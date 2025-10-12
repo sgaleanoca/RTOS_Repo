@@ -364,9 +364,6 @@ Project_1_LED_Basic_IS_TOP_LEVEL:STATIC=ON
 //Value Computed by CMake
 Project_1_LED_Basic_SOURCE_DIR:STATIC=/home/zerendor/Documents/RTOS_Raiz/Project_1_LED_Basic
 
-//No help, variable specified on the command line.
-SDKCONFIG:UNINITIALIZED=/home/zerendor/Documents/RTOS_Raiz/Project_1_LED_Basic/sdkconfig
-
 //Allow unsafe builds. These builds ARE NOT SECURE.
 UNSAFE_BUILD:BOOL=OFF
 
@@ -546,7 +543,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=48
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=120
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

@@ -55,10 +55,4 @@
 /home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/build/esp-idf/newlib/libnewlib.a
 /home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/build/esp-idf/pthread/libpthread.a
 /home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/build/esp-idf/cxx/libcxx.a
-/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/build/esp-idf/esp_driver_rmt/libesp_driver_rmt.a
-/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/build/esp-idf/esp_driver_spi/libesp_driver_spi.a
-/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/build/esp-idf/espressif__led_strip/libespressif__led_strip.a
-/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/build/esp-idf/esp_driver_rmt/libesp_driver_rmt.a
-/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/build/esp-idf/esp_driver_spi/libesp_driver_spi.a
 /home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/build/esp-idf/main/libmain.a
-/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/build/esp-idf/espressif__led_strip/libespressif__led_strip.a

@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "Project_3_Basic_Multicolor_LED",
-    "project_version":    "39a72b7-dirty",
+    "project_version":    "4152f22-dirty",
     "project_path":       "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED",
     "idf_path":           "/home/zerendor/esp/esp-idf",
     "build_dir":          "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/build",
@@ -21,12 +21,12 @@
     "monitor_toolprefix": "xtensa-esp32-elf-",
     "c_compiler":         "/home/zerendor/.espressif/tools/xtensa-esp-elf/esp-14.2.0_20241119/xtensa-esp-elf/bin/xtensa-esp32-elf-gcc",
     "config_environment" : {
-        "COMPONENT_KCONFIGS" : "/home/zerendor/esp/esp-idf/components/efuse/Kconfig;/home/zerendor/esp/esp-idf/components/esp_common/Kconfig;/home/zerendor/esp/esp-idf/components/esp_driver_bitscrambler/Kconfig;/home/zerendor/esp/esp-idf/components/esp_driver_gpio/Kconfig;/home/zerendor/esp/esp-idf/components/esp_driver_rmt/Kconfig;/home/zerendor/esp/esp-idf/components/esp_driver_spi/Kconfig;/home/zerendor/esp/esp-idf/components/esp_hw_support/Kconfig;/home/zerendor/esp/esp-idf/components/esp_mm/Kconfig;/home/zerendor/esp/esp-idf/components/esp_partition/Kconfig;/home/zerendor/esp/esp-idf/components/esp_pm/Kconfig;/home/zerendor/esp/esp-idf/components/esp_rom/Kconfig;/home/zerendor/esp/esp-idf/components/esp_security/Kconfig;/home/zerendor/esp/esp-idf/components/esp_system/Kconfig;/home/zerendor/esp/esp-idf/components/esp_timer/Kconfig;/home/zerendor/esp/esp-idf/components/freertos/Kconfig;/home/zerendor/esp/esp-idf/components/hal/Kconfig;/home/zerendor/esp/esp-idf/components/heap/Kconfig;/home/zerendor/esp/esp-idf/components/log/Kconfig;/home/zerendor/esp/esp-idf/components/mbedtls/Kconfig;/home/zerendor/esp/esp-idf/components/newlib/Kconfig;/home/zerendor/esp/esp-idf/components/pthread/Kconfig;/home/zerendor/esp/esp-idf/components/soc/Kconfig;/home/zerendor/esp/esp-idf/components/spi_flash/Kconfig",
+        "COMPONENT_KCONFIGS" : "/home/zerendor/esp/esp-idf/components/efuse/Kconfig;/home/zerendor/esp/esp-idf/components/esp_common/Kconfig;/home/zerendor/esp/esp-idf/components/esp_driver_gpio/Kconfig;/home/zerendor/esp/esp-idf/components/esp_hw_support/Kconfig;/home/zerendor/esp/esp-idf/components/esp_mm/Kconfig;/home/zerendor/esp/esp-idf/components/esp_partition/Kconfig;/home/zerendor/esp/esp-idf/components/esp_pm/Kconfig;/home/zerendor/esp/esp-idf/components/esp_rom/Kconfig;/home/zerendor/esp/esp-idf/components/esp_security/Kconfig;/home/zerendor/esp/esp-idf/components/esp_system/Kconfig;/home/zerendor/esp/esp-idf/components/esp_timer/Kconfig;/home/zerendor/esp/esp-idf/components/freertos/Kconfig;/home/zerendor/esp/esp-idf/components/hal/Kconfig;/home/zerendor/esp/esp-idf/components/heap/Kconfig;/home/zerendor/esp/esp-idf/components/log/Kconfig;/home/zerendor/esp/esp-idf/components/mbedtls/Kconfig;/home/zerendor/esp/esp-idf/components/newlib/Kconfig;/home/zerendor/esp/esp-idf/components/pthread/Kconfig;/home/zerendor/esp/esp-idf/components/soc/Kconfig;/home/zerendor/esp/esp-idf/components/spi_flash/Kconfig",
         "COMPONENT_KCONFIGS_PROJBUILD" : "/home/zerendor/esp/esp-idf/components/bootloader/Kconfig.projbuild;/home/zerendor/esp/esp-idf/components/esp_app_format/Kconfig.projbuild;/home/zerendor/esp/esp-idf/components/esp_rom/Kconfig.projbuild;/home/zerendor/esp/esp-idf/components/esptool_py/Kconfig.projbuild;/home/zerendor/esp/esp-idf/components/partition_table/Kconfig.projbuild;/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/main/Kconfig.projbuild"
     },
     "common_component_reqs": [ "cxx", "newlib", "freertos", "esp_hw_support", "heap", "log", "soc", "hal", "esp_rom", "esp_common", "esp_system", "xtensa" ],
-    "build_components" : [ "app_update", "bootloader", "bootloader_support", "cxx", "efuse", "esp_app_format", "esp_bootloader_format", "esp_common", "esp_driver_bitscrambler", "esp_driver_gpio", "esp_driver_rmt", "esp_driver_spi", "esp_hw_support", "esp_mm", "esp_partition", "esp_pm", "esp_rom", "esp_security", "esp_system", "esp_timer", "espressif__led_strip", "esptool_py", "freertos", "hal", "heap", "log", "main", "mbedtls", "newlib", "partition_table", "pthread", "soc", "spi_flash", "xtensa", "" ],
-    "build_component_paths" : [ "/home/zerendor/esp/esp-idf/components/app_update", "/home/zerendor/esp/esp-idf/components/bootloader", "/home/zerendor/esp/esp-idf/components/bootloader_support", "/home/zerendor/esp/esp-idf/components/cxx", "/home/zerendor/esp/esp-idf/components/efuse", "/home/zerendor/esp/esp-idf/components/esp_app_format", "/home/zerendor/esp/esp-idf/components/esp_bootloader_format", "/home/zerendor/esp/esp-idf/components/esp_common", "/home/zerendor/esp/esp-idf/components/esp_driver_bitscrambler", "/home/zerendor/esp/esp-idf/components/esp_driver_gpio", "/home/zerendor/esp/esp-idf/components/esp_driver_rmt", "/home/zerendor/esp/esp-idf/components/esp_driver_spi", "/home/zerendor/esp/esp-idf/components/esp_hw_support", "/home/zerendor/esp/esp-idf/components/esp_mm", "/home/zerendor/esp/esp-idf/components/esp_partition", "/home/zerendor/esp/esp-idf/components/esp_pm", "/home/zerendor/esp/esp-idf/components/esp_rom", "/home/zerendor/esp/esp-idf/components/esp_security", "/home/zerendor/esp/esp-idf/components/esp_system", "/home/zerendor/esp/esp-idf/components/esp_timer", "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/managed_components/espressif__led_strip", "/home/zerendor/esp/esp-idf/components/esptool_py", "/home/zerendor/esp/esp-idf/components/freertos", "/home/zerendor/esp/esp-idf/components/hal", "/home/zerendor/esp/esp-idf/components/heap", "/home/zerendor/esp/esp-idf/components/log", "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/main", "/home/zerendor/esp/esp-idf/components/mbedtls", "/home/zerendor/esp/esp-idf/components/newlib", "/home/zerendor/esp/esp-idf/components/partition_table", "/home/zerendor/esp/esp-idf/components/pthread", "/home/zerendor/esp/esp-idf/components/soc", "/home/zerendor/esp/esp-idf/components/spi_flash", "/home/zerendor/esp/esp-idf/components/xtensa", "" ],
+    "build_components" : [ "app_update", "bootloader", "bootloader_support", "cxx", "efuse", "esp_app_format", "esp_bootloader_format", "esp_common", "esp_driver_gpio", "esp_hw_support", "esp_mm", "esp_partition", "esp_pm", "esp_rom", "esp_security", "esp_system", "esp_timer", "esptool_py", "freertos", "hal", "heap", "log", "main", "mbedtls", "newlib", "partition_table", "pthread", "soc", "spi_flash", "xtensa", "" ],
+    "build_component_paths" : [ "/home/zerendor/esp/esp-idf/components/app_update", "/home/zerendor/esp/esp-idf/components/bootloader", "/home/zerendor/esp/esp-idf/components/bootloader_support", "/home/zerendor/esp/esp-idf/components/cxx", "/home/zerendor/esp/esp-idf/components/efuse", "/home/zerendor/esp/esp-idf/components/esp_app_format", "/home/zerendor/esp/esp-idf/components/esp_bootloader_format", "/home/zerendor/esp/esp-idf/components/esp_common", "/home/zerendor/esp/esp-idf/components/esp_driver_gpio", "/home/zerendor/esp/esp-idf/components/esp_hw_support", "/home/zerendor/esp/esp-idf/components/esp_mm", "/home/zerendor/esp/esp-idf/components/esp_partition", "/home/zerendor/esp/esp-idf/components/esp_pm", "/home/zerendor/esp/esp-idf/components/esp_rom", "/home/zerendor/esp/esp-idf/components/esp_security", "/home/zerendor/esp/esp-idf/components/esp_system", "/home/zerendor/esp/esp-idf/components/esp_timer", "/home/zerendor/esp/esp-idf/components/esptool_py", "/home/zerendor/esp/esp-idf/components/freertos", "/home/zerendor/esp/esp-idf/components/hal", "/home/zerendor/esp/esp-idf/components/heap", "/home/zerendor/esp/esp-idf/components/log", "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/main", "/home/zerendor/esp/esp-idf/components/mbedtls", "/home/zerendor/esp/esp-idf/components/newlib", "/home/zerendor/esp/esp-idf/components/partition_table", "/home/zerendor/esp/esp-idf/components/pthread", "/home/zerendor/esp/esp-idf/components/soc", "/home/zerendor/esp/esp-idf/components/spi_flash", "/home/zerendor/esp/esp-idf/components/xtensa", "" ],
     "build_component_info" : {
         "app_update": {
             "alias": "idf::app_update",
@@ -148,21 +148,6 @@
             "sources": [ "/home/zerendor/esp/esp-idf/components/esp_common/src/esp_err_to_name.c" ],
             "include_dirs": [ "include" ]
         },
-        "esp_driver_bitscrambler": {
-            "alias": "idf::esp_driver_bitscrambler",
-            "target": "___idf_esp_driver_bitscrambler",
-            "prefix": "idf",
-            "dir": "/home/zerendor/esp/esp-idf/components/esp_driver_bitscrambler",
-            "type": "CONFIG_ONLY",
-            "lib": "__idf_esp_driver_bitscrambler",
-            "reqs": [],
-            "priv_reqs": [ "esp_mm" ],
-            "managed_reqs": [],
-            "managed_priv_reqs": [],
-            "file": "",
-            "sources": [],
-            "include_dirs": [ "include" ]
-        },
         "esp_driver_gpio": {
             "alias": "idf::esp_driver_gpio",
             "target": "___idf_esp_driver_gpio",
@@ -176,36 +161,6 @@
             "managed_priv_reqs": [],
             "file": "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/build/esp-idf/esp_driver_gpio/libesp_driver_gpio.a",
             "sources": [ "/home/zerendor/esp/esp-idf/components/esp_driver_gpio/src/gpio.c", "/home/zerendor/esp/esp-idf/components/esp_driver_gpio/src/gpio_glitch_filter_ops.c", "/home/zerendor/esp/esp-idf/components/esp_driver_gpio/src/rtc_io.c" ],
-            "include_dirs": [ "include" ]
-        },
-        "esp_driver_rmt": {
-            "alias": "idf::esp_driver_rmt",
-            "target": "___idf_esp_driver_rmt",
-            "prefix": "idf",
-            "dir": "/home/zerendor/esp/esp-idf/components/esp_driver_rmt",
-            "type": "LIBRARY",
-            "lib": "__idf_esp_driver_rmt",
-            "reqs": [],
-            "priv_reqs": [ "esp_pm", "esp_driver_gpio", "esp_driver_bitscrambler", "esp_mm" ],
-            "managed_reqs": [],
-            "managed_priv_reqs": [],
-            "file": "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/build/esp-idf/esp_driver_rmt/libesp_driver_rmt.a",
-            "sources": [ "/home/zerendor/esp/esp-idf/components/esp_driver_rmt/src/rmt_common.c", "/home/zerendor/esp/esp-idf/components/esp_driver_rmt/src/rmt_encoder.c", "/home/zerendor/esp/esp-idf/components/esp_driver_rmt/src/rmt_encoder_bytes.c", "/home/zerendor/esp/esp-idf/components/esp_driver_rmt/src/rmt_encoder_copy.c", "/home/zerendor/esp/esp-idf/components/esp_driver_rmt/src/rmt_encoder_simple.c", "/home/zerendor/esp/esp-idf/components/esp_driver_rmt/src/rmt_rx.c", "/home/zerendor/esp/esp-idf/components/esp_driver_rmt/src/rmt_tx.c" ],
-            "include_dirs": [ "include" ]
-        },
-        "esp_driver_spi": {
-            "alias": "idf::esp_driver_spi",
-            "target": "___idf_esp_driver_spi",
-            "prefix": "idf",
-            "dir": "/home/zerendor/esp/esp-idf/components/esp_driver_spi",
-            "type": "LIBRARY",
-            "lib": "__idf_esp_driver_spi",
-            "reqs": [ "esp_pm" ],
-            "priv_reqs": [ "esp_timer", "esp_mm", "esp_driver_gpio" ],
-            "managed_reqs": [],
-            "managed_priv_reqs": [],
-            "file": "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/build/esp-idf/esp_driver_spi/libesp_driver_spi.a",
-            "sources": [ "/home/zerendor/esp/esp-idf/components/esp_driver_spi/src/gpspi/spi_common.c", "/home/zerendor/esp/esp-idf/components/esp_driver_spi/src/gpspi/spi_master.c", "/home/zerendor/esp/esp-idf/components/esp_driver_spi/src/gpspi/spi_slave.c", "/home/zerendor/esp/esp-idf/components/esp_driver_spi/src/gpspi/spi_dma.c" ],
             "include_dirs": [ "include" ]
         },
         "esp_hw_support": {
@@ -328,21 +283,6 @@
             "sources": [ "/home/zerendor/esp/esp-idf/components/esp_timer/src/esp_timer.c", "/home/zerendor/esp/esp-idf/components/esp_timer/src/esp_timer_init.c", "/home/zerendor/esp/esp-idf/components/esp_timer/src/ets_timer_legacy.c", "/home/zerendor/esp/esp-idf/components/esp_timer/src/system_time.c", "/home/zerendor/esp/esp-idf/components/esp_timer/src/esp_timer_impl_common.c", "/home/zerendor/esp/esp-idf/components/esp_timer/src/esp_timer_impl_lac.c" ],
             "include_dirs": [ "include" ]
         },
-        "espressif__led_strip": {
-            "alias": "idf::espressif__led_strip",
-            "target": "___idf_espressif__led_strip",
-            "prefix": "idf",
-            "dir": "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/managed_components/espressif__led_strip",
-            "type": "LIBRARY",
-            "lib": "__idf_espressif__led_strip",
-            "reqs": [ "esp_driver_rmt", "esp_driver_spi" ],
-            "priv_reqs": [],
-            "managed_reqs": [],
-            "managed_priv_reqs": [],
-            "file": "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/build/esp-idf/espressif__led_strip/libespressif__led_strip.a",
-            "sources": [ "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/managed_components/espressif__led_strip/src/led_strip_api.c", "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/managed_components/espressif__led_strip/src/led_strip_rmt_dev.c", "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/managed_components/espressif__led_strip/src/led_strip_rmt_encoder.c", "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/managed_components/espressif__led_strip/src/led_strip_spi_dev.c" ],
-            "include_dirs": [ "include", "interface" ]
-        },
         "esptool_py": {
             "alias": "idf::esptool_py",
             "target": "___idf_esptool_py",
@@ -426,11 +366,11 @@
             "type": "LIBRARY",
             "lib": "__idf_main",
             "reqs": [],
-            "priv_reqs": [ "espressif__led_strip" ],
+            "priv_reqs": [],
             "managed_reqs": [],
-            "managed_priv_reqs": [ "espressif__led_strip" ],
+            "managed_priv_reqs": [],
             "file": "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/build/esp-idf/main/libmain.a",
-            "sources": [ "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/main/blink_example_main.c", "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/main/rgb_led.c" ],
+            "sources": [ "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/main/blink_example_main.c" ],
             "include_dirs": [ "." ]
         },
         "mbedtls": {
@@ -1843,22 +1783,10 @@
             "dir": "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/main",
             "lib": "__idf_main",
             "reqs": [],
-            "priv_reqs": [ "espressif__led_strip" ],
-            "managed_reqs": [],
-            "managed_priv_reqs": [ "espressif__led_strip" ],
-            "include_dirs": [ "." ]
-        },
-        "espressif__led_strip": {
-            "alias": "idf::espressif__led_strip",
-            "target": "___idf_espressif__led_strip",
-            "prefix": "idf",
-            "dir": "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/managed_components/espressif__led_strip",
-            "lib": "__idf_espressif__led_strip",
-            "reqs": [ "esp_driver_rmt", "esp_driver_spi" ],
             "priv_reqs": [],
             "managed_reqs": [],
             "managed_priv_reqs": [],
-            "include_dirs": [ "include", "interface" ]
+            "include_dirs": [ "." ]
         }
     },
     "debug_prefix_map_gdbinit": "",

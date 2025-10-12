@@ -5,7 +5,7 @@
 
 // --- Definición de los pines ---
 // Aquí asignamos un nombre a cada número de pin que estamos usando.
-#define RED_PIN   GPIO_NUM_15 // El pin Rojo (R) del LED está conectado al GPIO 15.
+#define RED_PIN   GPIO_NUM_5 // El pin Rojo (R) del LED está conectado al GPIO 15.
 #define GREEN_PIN GPIO_NUM_19 // El pin Verde (G) del LED está conectado al GPIO 19.
 #define BLUE_PIN  GPIO_NUM_23 // El pin Azul (B) del LED está conectado al GPIO 23.
 #define BLINK_DELAY_MS 1000   // Definimos el tiempo de parpadeo en milisegundos (1000 ms = 1 segundo).

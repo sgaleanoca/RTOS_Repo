@@ -47,3 +47,13 @@ static void example_ledc_init(void)
     };
     ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel)); //Se aplica la configuración del canal
 }
+
+void app_main(void)
+{
+    // Set the LEDC peripheral configuration
+    example_ledc_init(); //Se inicializa el LEDC
+    // Set duty to 50%
+    ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, LEDC_DUTY)); //Se configura el ciclo de trabajo al 50%
+    // Update duty to apply the new value
+    ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL)); //Se actualiza el ciclo de trabajo
+}

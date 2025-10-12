@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "Project_1_LED_Basic",
-    "project_version":    "37b4ea0-dirty",
+    "project_version":    "0a519e4-dirty",
     "project_path":       "/home/zerendor/Documents/RTOS_Raiz/Project_1_LED_Basic",
     "idf_path":           "/home/zerendor/esp/esp-idf",
     "build_dir":          "/home/zerendor/Documents/RTOS_Raiz/Project_1_LED_Basic/build",

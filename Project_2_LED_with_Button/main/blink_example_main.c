@@ -60,3 +60,23 @@ void led_task(void *pvParameter) {
         }
     }
 }
+
+/* ================= FUNCIÓN PRINCIPAL ================= */
+void app_main(void) {
+    // ----- Configuración del LED -----
+    gpio_reset_pin(BLINK_GPIO);                         // Reinicia el pin LED
+    gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);   // Configura como salida
+
+    // ----- Configuración del botón -----
+    gpio_reset_pin(BUTTON_GPIO);                        // Reinicia el pin botón
+    gpio_set_direction(BUTTON_GPIO, GPIO_MODE_INPUT);   // Configura como entrada
+    gpio_pullup_en(BUTTON_GPIO);                        // Activa resistencia interna pull-up
+    gpio_pulldown_dis(BUTTON_GPIO);                     // Desactiva resistencia pull-down
+
+    // ----- Crear semáforo -----
+    xSemaphore = xSemaphoreCreateBinary();              // Crea semáforo binario
+
+    // ----- Crear tareas -----
+    xTaskCreate(button_task, "button_task", 2048, NULL, 5, NULL); // Tarea para el botón
+    xTaskCreate(led_task, "led_task", 2048, NULL, 5, NULL);       // Tarea para el LED
+}

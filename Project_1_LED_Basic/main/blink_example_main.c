@@ -23,3 +23,27 @@
  * when LEDC_DUTY_RES selects the maximum duty resolution (i.e. value equal to SOC_LEDC_TIMER_BIT_WIDTH),
  * 100% duty cycle is not reachable (duty cannot be set to (2 ** SOC_LEDC_TIMER_BIT_WIDTH)).
  */
+
+static void example_ledc_init(void)
+{
+    // Prepare and then apply the LEDC PWM timer configuration (Aqui se configura el timer que es el que genera la señal PWM en base a la configuración del canal)
+    ledc_timer_config_t ledc_timer = { //Se configura el timer
+        .speed_mode       = LEDC_MODE, //Acá se elige el modo de velocidad
+        .duty_resolution  = LEDC_DUTY_RES, //Acá se elige la resolución del ciclo de trabajo (la resolución define la cantidad de niveles de intensidad de luz)
+        .timer_num        = LEDC_TIMER, //Acá se elige el timer, el cual es el que se usa para generar la señal PWM
+        .freq_hz          = LEDC_FREQUENCY  // Set output frequency at 4 kHz (frecuencia de parpadeo)
+    };
+    ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer)); //Se aplica la configuración del timer
+
+    // Prepare and then apply the LEDC PWM channel configuration (Aqui la configuración del canal es la que define el pin de salida y el canal)
+    ledc_channel_config_t ledc_channel = {  //Se configura el canal
+        .speed_mode     = LEDC_MODE, //Acá se elige el modo de velocidad
+        .channel        = LEDC_CHANNEL, //Acá se elige el canal
+        .timer_sel      = LEDC_TIMER, //Acá se elige el timer
+        .intr_type      = LEDC_INTR_DISABLE, //Se deshabilitan las interrupciones
+        .gpio_num       = LEDC_OUTPUT_IO, //Se elige el pin de salida
+        .duty           = 0, // Set duty to 0% //Se inicia con el ciclo de trabajo en 0%
+        .hpoint         = 0 //Se inicia el hpoint en 0 (no se usa en este ejemplo)
+    };
+    ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel)); //Se aplica la configuración del canal
+}

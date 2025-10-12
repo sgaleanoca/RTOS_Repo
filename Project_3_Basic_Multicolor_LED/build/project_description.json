@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "Project_3_Basic_Multicolor_LED",
-    "project_version":    "4d928c5",
+    "project_version":    "a3cb597-dirty",
     "project_path":       "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED",
     "idf_path":           "/home/zerendor/esp/esp-idf",
     "build_dir":          "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/build",

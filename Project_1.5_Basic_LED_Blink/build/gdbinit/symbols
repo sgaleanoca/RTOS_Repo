@@ -18,8 +18,8 @@ end
 
 # Load bootloader symbols
 set confirm off
-    add-symbol-file /home/zerendor/Documents/RTOS_Raiz/Project_0.5_Basic_LED_Blink/build/bootloader/bootloader.elf
+    add-symbol-file /home/zerendor/Documents/RTOS_Raiz/Project_1.5_Basic_LED_Blink/build/bootloader/bootloader.elf
 set confirm on
 
 # Load application symbols
-file /home/zerendor/Documents/RTOS_Raiz/Project_0.5_Basic_LED_Blink/build/Project_0.5_Basic_LED_Blink.elf
+file /home/zerendor/Documents/RTOS_Raiz/Project_1.5_Basic_LED_Blink/build/Project_1.5_Basic_LED_Blink.elf

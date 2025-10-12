@@ -6,7 +6,7 @@
 # It is included in the main 'build.ninja'.
 
 # =============================================================================
-# Project: Project_0.5_Basic_LED_Blink
+# Project: Project_1.5_Basic_LED_Blink
 # Configurations: 
 # =============================================================================
 # =============================================================================
@@ -14,7 +14,7 @@
 #############################################
 # Rule for compiling C files.
 
-rule C_COMPILER__Project_0.2e5_Basic_LED_Blink.2eelf_unscanned_
+rule C_COMPILER__Project_1.2e5_Basic_LED_Blink.2eelf_unscanned_
   depfile = $DEP_FILE
   deps = gcc
   command = ${LAUNCHER}${CODE_CHECK}/home/zerendor/.espressif/tools/xtensa-esp-elf/esp-14.2.0_20241119/xtensa-esp-elf/bin/xtensa-esp32-elf-gcc $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -24,7 +24,7 @@ rule C_COMPILER__Project_0.2e5_Basic_LED_Blink.2eelf_unscanned_
 #############################################
 # Rule for linking CXX executable.
 
-rule CXX_EXECUTABLE_LINKER__Project_0.2e5_Basic_LED_Blink.2eelf_
+rule CXX_EXECUTABLE_LINKER__Project_1.2e5_Basic_LED_Blink.2eelf_
   command = $PRE_LINK && /home/zerendor/.espressif/tools/xtensa-esp-elf/esp-14.2.0_20241119/xtensa-esp-elf/bin/xtensa-esp32-elf-g++ $FLAGS $LINK_FLAGS $in -o $TARGET_FILE $LINK_PATH $LINK_LIBRARIES && $POST_BUILD
   description = Linking CXX executable $TARGET_FILE
   restat = $RESTAT
@@ -757,7 +757,7 @@ rule C_STATIC_LIBRARY_LINKER____idf_main_
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = /usr/bin/cmake --regenerate-during-build -S/home/zerendor/Documents/RTOS_Raiz/Project_0.5_Basic_LED_Blink -B/home/zerendor/Documents/RTOS_Raiz/Project_0.5_Basic_LED_Blink/build
+  command = /usr/bin/cmake --regenerate-during-build -S/home/zerendor/Documents/RTOS_Raiz/Project_1.5_Basic_LED_Blink -B/home/zerendor/Documents/RTOS_Raiz/Project_1.5_Basic_LED_Blink/build
   description = Re-running CMake...
   generator = 1
 

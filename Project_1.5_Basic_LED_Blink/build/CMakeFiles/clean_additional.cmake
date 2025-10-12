@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.16)
 
 if("${CONFIG}" STREQUAL "" OR "${CONFIG}" STREQUAL "")
   file(REMOVE_RECURSE
-  "Project_0.5_Basic_LED_Blink.bin"
-  "Project_0.5_Basic_LED_Blink.map"
+  "Project_1.5_Basic_LED_Blink.bin"
+  "Project_1.5_Basic_LED_Blink.map"
   "bootloader/bootloader.bin"
   "bootloader/bootloader.elf"
   "bootloader/bootloader.map"

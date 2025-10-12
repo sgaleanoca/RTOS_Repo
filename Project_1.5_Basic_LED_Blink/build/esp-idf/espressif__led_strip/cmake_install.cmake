@@ -1,4 +1,4 @@
-# Install script for directory: /home/zerendor/Documents/RTOS_Raiz/Project_0.5_Basic_LED_Blink/managed_components/espressif__led_strip
+# Install script for directory: /home/zerendor/Documents/RTOS_Raiz/Project_1.5_Basic_LED_Blink/managed_components/espressif__led_strip
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

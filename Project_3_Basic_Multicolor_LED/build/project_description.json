@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "Project_3_Basic_Multicolor_LED",
-    "project_version":    "2f64ab7-dirty",
+    "project_version":    "39a72b7-dirty",
     "project_path":       "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED",
     "idf_path":           "/home/zerendor/esp/esp-idf",
     "build_dir":          "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/build",
@@ -430,7 +430,7 @@
             "managed_reqs": [],
             "managed_priv_reqs": [ "espressif__led_strip" ],
             "file": "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/build/esp-idf/main/libmain.a",
-            "sources": [ "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/main/blink_example_main.c" ],
+            "sources": [ "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/main/blink_example_main.c", "/home/zerendor/Documents/RTOS_Raiz/Project_3_Basic_Multicolor_LED/main/rgb_led.c" ],
             "include_dirs": [ "." ]
         },
         "mbedtls": {

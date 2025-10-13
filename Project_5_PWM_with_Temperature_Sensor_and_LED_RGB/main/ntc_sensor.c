@@ -1,5 +1,6 @@
 #include "ntc_sensor.h"
 #include "driver/adc.h"
+#include "esp_adc/adc_oneshot.h"
 #include <math.h>
 
 #define NTC_ADC_CHANNEL     ADC1_CHANNEL_7 // GPIO35

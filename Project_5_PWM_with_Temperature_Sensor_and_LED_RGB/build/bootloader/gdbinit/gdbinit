@@ -1,0 +1,2 @@
+source /home/zerendor/Documents/RTOS_Raiz/Project_5_PWM_with_Temperature_Sensor_and_LED_RGB/build/bootloader/gdbinit/symbols
+source /home/zerendor/Documents/RTOS_Raiz/Project_5_PWM_with_Temperature_Sensor_and_LED_RGB/build/bootloader/gdbinit/connect

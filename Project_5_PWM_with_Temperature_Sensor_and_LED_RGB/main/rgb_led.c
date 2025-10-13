@@ -1,22 +1,24 @@
 #include "rgb_led.h"
 #include "driver/ledc.h"
+#include "esp_rom_gpio.h"
+#include "esp_check.h"
 
 #define LED_R_PIN 25
 #define LED_G_PIN 26
-#define LEDC_TIMER LEDC_TIMER_0
-#define LEDC_MODE LEDC_HIGH_SPEED_MODE
-#define LEDC_CHANNEL_R LEDC_CHANNEL_0
-#define LEDC_CHANNEL_G LEDC_CHANNEL_1
-#define LEDC_RESOLUTION LEDC_TIMER_10_BIT // 0-1023
+#define LEDC_TIMER          LEDC_TIMER_0
+#define LEDC_MODE          LEDC_LOW_SPEED_MODE
+#define LEDC_DUTY_RES     LEDC_TIMER_10_BIT // 0-1023
+#define LEDC_FREQUENCY    5000
+#define LEDC_CHANNEL_R    LEDC_CHANNEL_0
+#define LEDC_CHANNEL_G    LEDC_CHANNEL_1
 
 void rgb_led_init(void) {
     // 1. Configurar el Timer del LEDC
     ledc_timer_config_t ledc_timer = {
         .speed_mode = LEDC_MODE,
+        .duty_resolution = LEDC_DUTY_RES,
         .timer_num = LEDC_TIMER,
-        .duty_resolution = LEDC_RESOLUTION,
-        .freq_hz = 5000, // Frecuencia de 5kHz
-        .clk_cfg = LEDC_AUTO_CLK
+        .freq_hz = LEDC_FREQUENCY
     };
     ledc_timer_config(&ledc_timer);
 
@@ -52,12 +54,12 @@ static uint32_t map_percentage_to_duty(float percentage) {
 
 void set_red_intensity(float percentage) {
     uint32_t duty = map_percentage_to_duty(percentage);
-    ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_R, duty);
-    ledc_update_duty(LEDC_MODE, LEDC_CHANNEL_R);
+    ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_R, duty));
+    ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL_R));
 }
 
 void set_green_intensity(float percentage) {
     uint32_t duty = map_percentage_to_duty(percentage);
-    ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_G, duty);
-    ledc_update_duty(LEDC_MODE, LEDC_CHANNEL_G);
+    ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_G, duty));
+    ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL_G));
 }

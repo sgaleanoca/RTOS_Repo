@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "Project_4_Basic_Multicolor_LED_with_Library",
-    "project_version":    "13f74ef",
+    "project_version":    "0d2b6d7-dirty",
     "project_path":       "/home/zerendor/Documents/RTOS_Raiz/Project_4_Basic_Multicolor_LED_with_Library",
     "idf_path":           "/home/zerendor/esp/esp-idf",
     "build_dir":          "/home/zerendor/Documents/RTOS_Raiz/Project_4_Basic_Multicolor_LED_with_Library/build",
@@ -385,7 +385,7 @@
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "/home/zerendor/Documents/RTOS_Raiz/Project_4_Basic_Multicolor_LED_with_Library/build/esp-idf/main/libmain.a",
-            "sources": [ "/home/zerendor/Documents/RTOS_Raiz/Project_4_Basic_Multicolor_LED_with_Library/main/ledc_basic_example_main.c" ],
+            "sources": [ "/home/zerendor/Documents/RTOS_Raiz/Project_4_Basic_Multicolor_LED_with_Library/main/rgb_led.c", "/home/zerendor/Documents/RTOS_Raiz/Project_4_Basic_Multicolor_LED_with_Library/main/ledc_basic_example_main.c" ],
             "include_dirs": [ "." ]
         },
         "mbedtls": {

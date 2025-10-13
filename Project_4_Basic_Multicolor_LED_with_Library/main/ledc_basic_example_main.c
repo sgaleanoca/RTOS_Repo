@@ -6,9 +6,9 @@
 void app_main(void)
 {
     rgb_led_t my_led = {
-        .pin_r = 25,  // Pines donde conectas R, G, B
-        .pin_g = 26,
-        .pin_b = 27,
+        .pin_r = 5,  // Pines donde conectas R, G, B
+        .pin_g = 19,
+        .pin_b = 23,
         .channel_r = LEDC_CHANNEL_0,
         .channel_g = LEDC_CHANNEL_1,
         .channel_b = LEDC_CHANNEL_2,

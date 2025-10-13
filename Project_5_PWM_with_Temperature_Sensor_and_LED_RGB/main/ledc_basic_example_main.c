@@ -1,60 +1,59 @@
-/* LEDC (LED Controller) basic example
-
-   This example code is in the Public Domain (or CC0 licensed, at your option.)
-
-   Unless required by applicable law or agreed to in writing, this
-   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-   CONDITIONS OF ANY KIND, either express or implied.
-*/
 #include <stdio.h>
-#include "driver/ledc.h"
-#include "esp_err.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_log.h"
 
-#define LEDC_TIMER              LEDC_TIMER_0
-#define LEDC_MODE               LEDC_LOW_SPEED_MODE
-#define LEDC_OUTPUT_IO          (5) // Define the output GPIO
-#define LEDC_CHANNEL            LEDC_CHANNEL_0
-#define LEDC_DUTY_RES           LEDC_TIMER_13_BIT // Set duty resolution to 13 bits
-#define LEDC_DUTY               (4096) // Set duty to 50%. (2 ** 13) * 50% = 4096
-#define LEDC_FREQUENCY          (4000) // Frequency in Hertz. Set frequency at 4 kHz
+// Incluimos nuestras librerías
+#include "potentiometer.h"
+#include "ntc_sensor.h"
+#include "rgb_led.h"
 
-/* Warning:
- * For ESP32, ESP32S2, ESP32S3, ESP32C3, ESP32C2, ESP32C6, ESP32H2 (rev < 1.2), ESP32P4 targets,
- * when LEDC_DUTY_RES selects the maximum duty resolution (i.e. value equal to SOC_LEDC_TIMER_BIT_WIDTH),
- * 100% duty cycle is not reachable (duty cannot be set to (2 ** SOC_LEDC_TIMER_BIT_WIDTH)).
- */
+static const char *TAG = "Project_5";
 
-static void example_ledc_init(void)
-{
-    // Prepare and then apply the LEDC PWM timer configuration
-    ledc_timer_config_t ledc_timer = {
-        .speed_mode       = LEDC_MODE,
-        .duty_resolution  = LEDC_DUTY_RES,
-        .timer_num        = LEDC_TIMER,
-        .freq_hz          = LEDC_FREQUENCY,  // Set output frequency at 4 kHz
-        .clk_cfg          = LEDC_AUTO_CLK
-    };
-    ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
-
-    // Prepare and then apply the LEDC PWM channel configuration
-    ledc_channel_config_t ledc_channel = {
-        .speed_mode     = LEDC_MODE,
-        .channel        = LEDC_CHANNEL,
-        .timer_sel      = LEDC_TIMER,
-        .intr_type      = LEDC_INTR_DISABLE,
-        .gpio_num       = LEDC_OUTPUT_IO,
-        .duty           = 0, // Set duty to 0%
-        .hpoint         = 0
-    };
-    ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel));
+// Función para mapear un valor de un rango a otro
+float map_value(float value, float in_min, float in_max, float out_min, float out_max) {
+    // Acotar el valor al rango de entrada
+    if (value < in_min) value = in_min;
+    if (value > in_max) value = in_max;
+    return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-void app_main(void)
-{
-    // Set the LEDC peripheral configuration
-    example_ledc_init();
-    // Set duty to 50%
-    ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, LEDC_DUTY));
-    // Update duty to apply the new value
-    ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL));
+// Tarea principal que se ejecutará en bucle
+void sensor_read_task(void *pvParameters) {
+    while (1) {
+        // 1. Leer sensores
+        float voltage = get_potentiometer_voltage();
+        float temperature = get_ntc_temperature();
+
+        // 2. Calcular la intensidad de los LEDs
+        // LED Rojo (Temperatura): 10°C es 0%, 50°C es 100%
+        float red_intensity = map_value(temperature, 10.0, 50.0, 0.0, 100.0);
+        
+        // LED Verde (Potenciómetro): 0mV es 0%, 3300mV es 100%
+        float green_intensity = map_value(voltage, 0.0, 3300.0, 0.0, 100.0);
+        
+        // 3. Actualizar los LEDs
+        set_red_intensity(red_intensity);
+        set_green_intensity(green_intensity);
+
+        // 4. Imprimir los valores en el monitor serie
+        printf("Temperatura: %.2f C  |  Voltaje: %.0f mV\n", temperature, voltage);
+
+        // Esperar 250 milisegundos antes de la siguiente iteración
+        vTaskDelay(pdMS_TO_TICKS(250));
+    }
+}
+
+void app_main(void) {
+    ESP_LOGI(TAG, "Inicializando componentes...");
+
+    // Inicializar cada uno de nuestros módulos
+    potentiometer_init();
+    ntc_sensor_init();
+    rgb_led_init();
+
+    ESP_LOGI(TAG, "Componentes inicializados. Creando tarea.");
+
+    // Crear la tarea que leerá los sensores y controlará los LEDs
+    xTaskCreate(sensor_read_task, "sensor_read_task", 2048, NULL, 5, NULL);
 }

@@ -1,3 +1,4 @@
+// ===== INCLUDES Y CONFIGURACIÓN =====
 #include "ntc_sensor.h"
 #include "esp_log.h"
 #include "esp_adc/adc_oneshot.h"
@@ -10,11 +11,11 @@
 
 static const char *TAG = "NTC_TEMP_CONTROL";
 
-// Variables globales para ADC
+// ===== VARIABLES GLOBALES =====
 static adc_oneshot_unit_handle_t adc2_handle;
 static adc_cali_handle_t adc2_cali_handle = NULL;
 
-// Función para inicializar la calibración del ADC
+// ===== FUNCIONES DE CALIBRACIÓN DEL ADC =====
 static bool adc_calibration_init(adc_unit_t unit, adc_atten_t atten, adc_cali_handle_t *out_handle)
 {
     adc_cali_handle_t handle = NULL;
@@ -63,30 +64,29 @@ static bool adc_calibration_init(adc_unit_t unit, adc_atten_t atten, adc_cali_ha
     return calibrated;
 }
 
-// Función para inicializar el ADC
+// ===== FUNCIONES DE INICIALIZACIÓN =====
 void ntc_sensor_init(void) {
-    // Configurar ADC2
+    ESP_LOGI(TAG, "Inicializando ADC2 para sensor NTC...");
+    
     adc_oneshot_unit_init_cfg_t init_config1 = {
         .unit_id = ADC_UNIT,
     };
     ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config1, &adc2_handle));
 
-    // Configurar canal
     adc_oneshot_chan_cfg_t config = {
         .bitwidth = ADC_BITWIDTH_DEFAULT,
         .atten = ADC_ATTEN_DB_12,
     };
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc2_handle, NTC_PIN, &config));
 
-    // Inicializar calibración
     adc_calibration_init(ADC_UNIT, ADC_ATTEN_DB_12, &adc2_cali_handle);
     
-    ESP_LOGI(TAG, "Inicialización de ADC2 en GPIO26 completada.");
+    ESP_LOGI(TAG, "ADC2 inicializado correctamente en GPIO26 (ADC_CHANNEL_9)");
 }
 
-// Función para inicializar el control PWM del LED
 void ntc_led_pwm_init(void) {
-    // Configurar el timer
+    ESP_LOGI(TAG, "Inicializando PWM para LED rojo de temperatura...");
+    
     ledc_timer_config_t ledc_timer = {
         .speed_mode       = LEDC_MODE,
         .timer_num        = LEDC_TIMER,
@@ -96,55 +96,52 @@ void ntc_led_pwm_init(void) {
     };
     ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
 
-    // Configurar el canal
     ledc_channel_config_t ledc_channel = {
         .speed_mode     = LEDC_MODE,
         .channel        = LEDC_CHANNEL,
         .timer_sel      = LEDC_TIMER,
         .intr_type      = LEDC_INTR_DISABLE,
         .gpio_num       = LED_PIN,
-        .duty           = 0, // Iniciar con el LED apagado
+        .duty           = 0,
         .hpoint         = 0
     };
     ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel));
-    ESP_LOGI(TAG, "Inicialización de LED PWM completada en GPIO %d", LED_PIN);
+    
+    ESP_LOGI(TAG, "PWM del LED rojo inicializado en GPIO %d (10-bit, 5kHz)", LED_PIN);
 }
 
-// Función para leer la temperatura del sensor NTC
+// ===== FUNCIONES DE LECTURA Y CÁLCULO =====
 ntc_data_t ntc_read_temperature(void) {
     ntc_data_t ntc_data = {0};
     int raw_adc_value;
+    
     esp_err_t result = adc_oneshot_read(adc2_handle, NTC_PIN, &raw_adc_value);
 
     if (result == ESP_OK) {
         ntc_data.raw_adc_value = raw_adc_value;
         
-        // --- Cálculo de la Temperatura (Ecuación de Steinhart-Hart simplificada) ---
         float resistance = SERIES_RESISTOR * ((4095.0 / raw_adc_value) - 1.0);
         ntc_data.resistance = resistance;
 
         float steinhart;
-        steinhart = resistance / NOMINAL_RESISTANCE;     // (R/R0)
-        steinhart = log(steinhart);                      // ln(R/R0)
-        steinhart /= B_COEFFICIENT;                      // 1/B * ln(R/R0)
-        steinhart += 1.0 / (NOMINAL_TEMPERATURE + 273.15); // + 1/T0
-        steinhart = 1.0 / steinhart;                     // Invertir
-        float temperature_c = steinhart - 273.15;        // Convertir a Celsius
+        steinhart = resistance / NOMINAL_RESISTANCE;
+        steinhart = log(steinhart);
+        steinhart /= B_COEFFICIENT;
+        steinhart += 1.0 / (NOMINAL_TEMPERATURE + 273.15);
+        steinhart = 1.0 / steinhart;
+        float temperature_c = steinhart - 273.15;
         ntc_data.temperature_c = temperature_c;
 
-        // --- Control del LED basado en la temperatura ---
         int duty_cycle = 0;
         float brightness_percent = 0.0;
         
         if (temperature_c <= TEMP_MIN) {
-            duty_cycle = 0; // Por debajo del mínimo, el LED está apagado
+            duty_cycle = 0;
             brightness_percent = 0.0;
         } else if (temperature_c >= TEMP_MAX) {
-            duty_cycle = (1 << LEDC_DUTY_RES) - 1; // Por encima del máximo, el LED está al 100% (1023)
+            duty_cycle = (1 << LEDC_DUTY_RES) - 1;
             brightness_percent = 100.0;
         } else {
-            // Mapear el rango de temperatura al rango de PWM (0 a 1023)
-            // Fórmula: (temp - temp_min) / (temp_max - temp_min) * 100
             brightness_percent = ((temperature_c - TEMP_MIN) / (TEMP_MAX - TEMP_MIN)) * 100.0;
             duty_cycle = (int)(brightness_percent * ((1 << LEDC_DUTY_RES) - 1) / 100.0);
         }
@@ -159,32 +156,32 @@ ntc_data_t ntc_read_temperature(void) {
     return ntc_data;
 }
 
-// Función para actualizar el brillo del LED basado en la temperatura
+// ===== FUNCIONES DE CONTROL DEL LED =====
 void ntc_update_led_brightness(float temperature_c) {
     int duty_cycle = 0;
     
     if (temperature_c <= TEMP_MIN) {
-        duty_cycle = 0; // Por debajo del mínimo, el LED está apagado
+        duty_cycle = 0;
     } else if (temperature_c >= TEMP_MAX) {
-        duty_cycle = (1 << LEDC_DUTY_RES) - 1; // Por encima del máximo, el LED está al 100% (1023)
+        duty_cycle = (1 << LEDC_DUTY_RES) - 1;
     } else {
-        // Mapear el rango de temperatura al rango de PWM (0 a 1023)
         float brightness_percent = ((temperature_c - TEMP_MIN) / (TEMP_MAX - TEMP_MIN)) * 100.0;
         duty_cycle = (int)(brightness_percent * ((1 << LEDC_DUTY_RES) - 1) / 100.0);
     }
 
-    // Aplicar el ciclo de trabajo al LED
     ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, duty_cycle));
     ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL));
 }
 
-// Función para probar el LED
 void ntc_test_led(void) {
-    ESP_LOGI(TAG, "Probando LED...");
-    ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, 512)); // 50% de brillo
+    ESP_LOGI(TAG, "Iniciando prueba del LED rojo...");
+    
+    ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, 512));
     ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL));
     vTaskDelay(pdMS_TO_TICKS(1000));
-    ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, 0)); // Apagar
+    
+    ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, 0));
     ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL));
-    ESP_LOGI(TAG, "Prueba de LED completada");
+    
+    ESP_LOGI(TAG, "Prueba del LED rojo completada exitosamente");
 }

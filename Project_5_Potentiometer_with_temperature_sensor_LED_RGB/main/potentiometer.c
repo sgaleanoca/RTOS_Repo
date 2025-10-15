@@ -125,3 +125,8 @@ uint8_t pot_get_percent(void)
     uint32_t pct = (mv * 100) / MAX_MV;
     return (uint8_t)pct;
 }
+
+void* pot_get_adc_handle(void)
+{
+    return (void*)adc1_handle;
+}

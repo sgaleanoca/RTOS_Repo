@@ -715,7 +715,7 @@
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "/home/zerendor/Documents/RTOS_Raiz/Project_5_Potentiometer_with_temperature_sensor_LED_RGB/build/esp-idf/main/libmain.a",
-            "sources": [ "/home/zerendor/Documents/RTOS_Raiz/Project_5_Potentiometer_with_temperature_sensor_LED_RGB/main/ntc.c", "/home/zerendor/Documents/RTOS_Raiz/Project_5_Potentiometer_with_temperature_sensor_LED_RGB/main/main.c", "/home/zerendor/Documents/RTOS_Raiz/Project_5_Potentiometer_with_temperature_sensor_LED_RGB/main/potentiometer.c", "/home/zerendor/Documents/RTOS_Raiz/Project_5_Potentiometer_with_temperature_sensor_LED_RGB/main/rgb_led.c" ],
+            "sources": [ "/home/zerendor/Documents/RTOS_Raiz/Project_5_Potentiometer_with_temperature_sensor_LED_RGB/main/main.c", "/home/zerendor/Documents/RTOS_Raiz/Project_5_Potentiometer_with_temperature_sensor_LED_RGB/main/potentiometer.c", "/home/zerendor/Documents/RTOS_Raiz/Project_5_Potentiometer_with_temperature_sensor_LED_RGB/main/rgb_led.c" ],
             "include_dirs": []
         },
         "mbedtls": {

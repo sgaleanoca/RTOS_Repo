@@ -6,7 +6,6 @@
 
 #include "potentiometer.h"
 #include "rgb_led.h"
-#include "ntc.h"
 
 static const char *TAG = "MAIN";
 
@@ -55,31 +54,6 @@ void rgb_control_task(void *arg)
     }
 }
 
-// Tarea para lectura del termistor NTC
-void ntc_reading_task(void *arg)
-{
-    float temperature;
-    uint8_t temp_percent;
-    
-    while (1) {
-        // Leer temperatura del termistor
-        temperature = ntc_get_temperature_celsius();
-        
-        if (temperature > -999) { // Verificar que la lectura sea válida
-            // Convertir a porcentaje (10°C = 0%, 50°C = 100%)
-            temp_percent = ntc_temp_to_percent(temperature);
-            
-            // Mostrar temperatura con printf
-            printf("Temperatura: %.2f°C (%.1f%%)\n", temperature, (float)temp_percent);
-            ESP_LOGI(TAG, "NTC: %.2f°C (%d%%)", temperature, temp_percent);
-        } else {
-            ESP_LOGW(TAG, "Error leyendo termistor NTC");
-        }
-        
-        vTaskDelay(pdMS_TO_TICKS(1000)); // Leer cada segundo
-    }
-}
-
 void app_main(void)
 {
     ESP_LOGI(TAG, "Inicializando componentes...");
@@ -87,7 +61,6 @@ void app_main(void)
     // Inicializar hardware
     pot_init();
     rgb_led_init();
-    ntc_init();
     
     // Crear cola para comunicación entre tareas
     pot_queue = xQueueCreate(5, sizeof(pot_data_t));
@@ -106,12 +79,6 @@ void app_main(void)
     // Crear tarea para control del LED RGB
     if (xTaskCreate(rgb_control_task, "rgb_control_task", 4096, NULL, 4, NULL) != pdPASS) {
         ESP_LOGE(TAG, "Error creando tarea de control del LED");
-        return;
-    }
-    
-    // Crear tarea para lectura del termistor NTC
-    if (xTaskCreate(ntc_reading_task, "ntc_reading_task", 4096, NULL, 3, NULL) != pdPASS) {
-        ESP_LOGE(TAG, "Error creando tarea de lectura del termistor");
         return;
     }
     

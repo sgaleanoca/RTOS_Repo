@@ -6,7 +6,7 @@
 static const char *TAG = "RGB_LED";
 
 // GPIO y configuración
-#define GPIO_GREEN      26
+#define GPIO_GREEN      27
 #define LEDC_TIMER      LEDC_TIMER_0
 #define LEDC_MODE       LEDC_LOW_SPEED_MODE
 #define LEDC_CHANNEL_G  LEDC_CHANNEL_1

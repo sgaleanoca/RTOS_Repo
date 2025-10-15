@@ -99,7 +99,7 @@ void ntc_led_control_task(void *arg)
 void display_info_task(void *arg)
 {
     while (1) {
-        // Mostrar información organizada cada 2 segundos
+        // Mostrar información organizada cada 1 segundo
         printf("\n=== SISTEMA DE MONITOREO ===\n");
         printf("LED Verde: %d%% | Potenciómetro: %lu mV\n", 
                current_pot_data.pot_percent, current_pot_data.pot_voltage_mv);
@@ -107,7 +107,7 @@ void display_info_task(void *arg)
                current_ntc_data.temperature_c, current_ntc_data.brightness_percent);
         printf("=============================\n\n");
         
-        vTaskDelay(pdMS_TO_TICKS(2000)); // Mostrar cada 2 segundos
+        vTaskDelay(pdMS_TO_TICKS(1000)); // Mostrar cada 1 segundo
     }
 }
 

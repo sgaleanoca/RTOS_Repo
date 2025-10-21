@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.16)
 
 if("${CONFIG}" STREQUAL "" OR "${CONFIG}" STREQUAL "")
   file(REMOVE_RECURSE
-  "Project_6_Control_Temp_RGB.bin"
-  "Project_6_Control_Temp_RGB.map"
+  "Project_5_Potentiometer_with_temperature_sensor_LED_RGB.bin"
+  "Project_5_Potentiometer_with_temperature_sensor_LED_RGB.map"
   "bootloader/bootloader.bin"
   "bootloader/bootloader.elf"
   "bootloader/bootloader.map"

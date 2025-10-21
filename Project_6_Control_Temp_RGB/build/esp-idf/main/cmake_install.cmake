@@ -1,4 +1,4 @@
-# Install script for directory: /home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main
+# Install script for directory: /home/zerendor/Documents/RTOS_Raiz/Project_5_Potentiometer_with_temperature_sensor_LED_RGB/main
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

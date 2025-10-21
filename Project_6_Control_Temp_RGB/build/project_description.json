@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "Project_6_Control_Temp_RGB",
-    "project_version":    "c0285b7",
+    "project_version":    "09c9ee6-dirty",
     "project_path":       "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB",
     "idf_path":           "/home/zerendor/esp/esp-idf",
     "build_dir":          "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build",
@@ -370,7 +370,7 @@
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build/esp-idf/main/libmain.a",
-            "sources": [ "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/hello_world_main.c" ],
+            "sources": [ "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/main.c" ],
             "include_dirs": []
         },
         "mbedtls": {

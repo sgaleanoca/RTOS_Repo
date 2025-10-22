@@ -1,5 +1,6 @@
 // ===== INCLUDES Y CONFIGURACIÓN =====
 #include <stdio.h>
+#include <stdarg.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
@@ -13,6 +14,16 @@ static const char *TAG = "MAIN";
 // ===== ESTRUCTURAS DE DATOS Y VARIABLES GLOBALES =====
 static ntc_data_t current_ntc_data = {0};
 static bool data_ready = false;
+
+// ===== FUNCIÓN AUXILIAR PARA LOGS CONDICIONALES =====
+static void conditional_log_info(const char *tag, const char *format, ...) {
+    if (is_print_enabled()) {
+        va_list args;
+        va_start(args, format);
+        esp_log_writev(ESP_LOG_INFO, tag, format, args);
+        va_end(args);
+    }
+}
 
 // ===== TAREAS DEL SISTEMA =====
 void ntc_reading_task(void *arg)
@@ -32,10 +43,10 @@ void ntc_reading_task(void *arg)
             current_ntc_data = ntc_data;
             data_ready = true;
             
-            ESP_LOGI(TAG, "Datos válidos: Temp=%.1f°C, ADC=%d, R=%.0fΩ", 
+            conditional_log_info(TAG, "Datos válidos: Temp=%.1f°C, ADC=%d, R=%.0fΩ", 
                      ntc_data.temperature_c, ntc_data.raw_adc_value, ntc_data.resistance);
         } else {
-            ESP_LOGW(TAG, "Datos inválidos: Temp=%.1f°C, ADC=%d, R=%.0fΩ", 
+            conditional_log_info(TAG, "Datos inválidos: Temp=%.1f°C, ADC=%d, R=%.0fΩ", 
                      ntc_data.temperature_c, ntc_data.raw_adc_value, ntc_data.resistance);
         }
         
@@ -64,12 +75,9 @@ void display_info_task(void *arg)
                 printf("Estado: Impresión HABILITADA (Botón GPIO14)\n");
                 printf("==========================================\n\n");
             }
-        } else {
-            // Mostrar mensaje cuando la impresión está deshabilitada
-            printf("\n=== SISTEMA DE MONITOREO DE TEMPERATURA ===\n");
-            printf("Impresión DESHABILITADA - Presiona botón GPIO14 para habilitar\n");
-            printf("==========================================\n\n");
         }
+        // Cuando la impresión está deshabilitada, NO imprimir NADA
+        // El monitor serial permanecerá completamente silencioso
         
         vTaskDelay(pdMS_TO_TICKS(1000));
     }

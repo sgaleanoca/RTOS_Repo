@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "Project_5_Potentiometer_with_temperature_sensor_LED_RGB",
-    "project_version":    "95f882e-dirty",
+    "project_version":    "e2b1679-dirty",
     "project_path":       "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB",
     "idf_path":           "/home/zerendor/esp/esp-idf",
     "build_dir":          "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build",
@@ -715,7 +715,7 @@
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build/esp-idf/main/libmain.a",
-            "sources": [ "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/button_control.c", "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c", "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/main.c" ],
+            "sources": [ "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c", "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/button_control.c", "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c", "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/main.c" ],
             "include_dirs": []
         },
         "mbedtls": {

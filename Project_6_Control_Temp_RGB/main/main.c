@@ -8,10 +8,17 @@
 
 #include "ntc_sensor.h"
 #include "button_control.h"
+#include "potentiometer.h"
 
 static const char *TAG = "MAIN";
 
 // ===== ESTRUCTURAS DE DATOS Y VARIABLES GLOBALES =====
+typedef struct {
+    uint8_t pot_percent;
+    uint32_t pot_voltage_mv;
+} pot_data_t;
+
+static pot_data_t current_pot_data = {0};
 static ntc_data_t current_ntc_data = {0};
 static bool data_ready = false;
 
@@ -26,6 +33,25 @@ static void conditional_log_info(const char *tag, const char *format, ...) {
 }
 
 // ===== TAREAS DEL SISTEMA =====
+void pot_reading_task(void *arg)
+{
+    pot_data_t pot_data;
+    
+    ESP_LOGI(TAG, "Tarea de lectura del potenciómetro iniciada");
+    
+    while (1) {
+        pot_data.pot_percent = pot_get_percent();
+        pot_data.pot_voltage_mv = pot_get_voltage_mv();
+        
+        current_pot_data = pot_data;
+        
+        conditional_log_info(TAG, "Potenciómetro: %d%% (%lu mV)", 
+                           pot_data.pot_percent, pot_data.pot_voltage_mv);
+        
+        vTaskDelay(pdMS_TO_TICKS(250));
+    }
+}
+
 void ntc_reading_task(void *arg)
 {
     ntc_data_t ntc_data;
@@ -62,19 +88,18 @@ void display_info_task(void *arg)
     while (1) {
         // Solo mostrar datos si la impresión está habilitada
         if (is_print_enabled()) {
+            printf("\n=== SISTEMA DE MONITOREO ===\n");
+            printf("Potenciómetro: %d%% (%lu mV)\n", 
+                   current_pot_data.pot_percent, current_pot_data.pot_voltage_mv);
             if (data_ready) {
-                printf("\n=== SISTEMA DE MONITOREO DE TEMPERATURA ===\n");
                 printf("Temperatura: %.1f°C\n", current_ntc_data.temperature_c);
                 printf("Resistencia NTC: %.0f Ohms | ADC Raw: %d\n",
                        current_ntc_data.resistance, current_ntc_data.raw_adc_value);
-                printf("Estado: Impresión HABILITADA (Botón GPIO14)\n");
-                printf("==========================================\n\n");
             } else {
-                printf("\n=== SISTEMA DE MONITOREO DE TEMPERATURA ===\n");
-                printf("Esperando datos del sensor...\n");
-                printf("Estado: Impresión HABILITADA (Botón GPIO14)\n");
-                printf("==========================================\n\n");
+                printf("Esperando datos del sensor NTC...\n");
             }
+            printf("Estado: Impresión HABILITADA (Botón GPIO14)\n");
+            printf("==========================================\n\n");
         }
         // Cuando la impresión está deshabilitada, NO imprimir NADA
         // El monitor serial permanecerá completamente silencioso
@@ -82,6 +107,7 @@ void display_info_task(void *arg)
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
+
 
 // ===== FUNCIÓN PRINCIPAL DEL SISTEMA =====
 void app_main(void)
@@ -92,6 +118,7 @@ void app_main(void)
     // ===== INICIALIZACIÓN DE HARDWARE =====
     ntc_sensor_init();
     button_control_init();
+    pot_init();
     
     ESP_LOGI(TAG, "Hardware inicializado correctamente");
     
@@ -99,6 +126,11 @@ void app_main(void)
     
     // ===== CREACIÓN DE TAREAS DEL SISTEMA =====
     ESP_LOGI(TAG, "Creando tareas del sistema...");
+    
+    if (xTaskCreate(pot_reading_task, "pot_reading_task", 4096, NULL, 5, NULL) != pdPASS) {
+        ESP_LOGE(TAG, "Error creando tarea de lectura del potenciómetro");
+        return;
+    }
     
     if (xTaskCreate(ntc_reading_task, "ntc_reading_task", 4096, NULL, 5, NULL) != pdPASS) {
         ESP_LOGE(TAG, "Error creando tarea de lectura del sensor NTC");
@@ -119,9 +151,11 @@ void app_main(void)
     // ===== SISTEMA INICIADO EXITOSAMENTE =====
     ESP_LOGI(TAG, "=== SISTEMA RTOS INICIADO EXITOSAMENTE ===");
     ESP_LOGI(TAG, "Configuración del hardware:");
+    ESP_LOGI(TAG, "  - Potenciómetro: ADC1 CH6 (GPIO34)");
     ESP_LOGI(TAG, "  - Sensor NTC: ADC2 CH9 (GPIO26)");
     ESP_LOGI(TAG, "  - Botón de control: GPIO14");
     ESP_LOGI(TAG, "Frecuencias de operación:");
+    ESP_LOGI(TAG, "  - Lectura potenciómetro: 4 veces/segundo");
     ESP_LOGI(TAG, "  - Lectura sensor NTC: cada 2 segundos");
     ESP_LOGI(TAG, "  - Monitor serie: cada 1 segundo");
     ESP_LOGI(TAG, "  - Control de botón: cada 10ms");

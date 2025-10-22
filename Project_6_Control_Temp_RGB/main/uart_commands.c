@@ -11,10 +11,11 @@
 static const char *TAG = "UART_CMD";
 
 // ===== CONFIGURACIÓN UART =====
-#define UART_NUM UART_NUM_1  // Cambiar a UART1 para evitar conflicto con consola
+#define UART_NUM UART_NUM_1  // Usar UART1 para no interferir con logs (UART0)
 #define BUF_SIZE 1024
-#define UART_TX_PIN 17       // Cambiar pines para UART1
-#define UART_RX_PIN 16
+// Pines físicos para UART1 (conversor USB-Serial externo)
+#define UART_TX_PIN 17       // Pin físico TX para UART1
+#define UART_RX_PIN 16       // Pin físico RX para UART1
 
 // Variables globales
 static rgb_thresholds_t rgb_thresholds = {
@@ -131,6 +132,7 @@ void uart_commands_init(void)
     
     ESP_ERROR_CHECK(uart_driver_install(UART_NUM, BUF_SIZE * 2, 0, 0, NULL, 0));
     ESP_ERROR_CHECK(uart_param_config(UART_NUM, &uart_config));
+    // Configurar pines físicos para UART1 (conversor USB-Serial externo)
     ESP_ERROR_CHECK(uart_set_pin(UART_NUM, UART_TX_PIN, UART_RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
     
     ESP_LOGI(TAG, "UART inicializado correctamente");

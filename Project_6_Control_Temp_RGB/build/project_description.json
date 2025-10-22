@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "Project_5_Potentiometer_with_temperature_sensor_LED_RGB",
-    "project_version":    "50517e0-dirty",
+    "project_version":    "3faf7e6-dirty",
     "project_path":       "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB",
     "idf_path":           "/home/zerendor/esp/esp-idf",
     "build_dir":          "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build",

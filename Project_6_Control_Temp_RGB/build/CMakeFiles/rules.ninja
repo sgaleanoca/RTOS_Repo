@@ -1061,7 +1061,7 @@ rule C_STATIC_LIBRARY_LINKER____idf_main_
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = /usr/bin/cmake --regenerate-during-build -S/home/zerendor/Documents/RTOS_Raiz/Project_5_Potentiometer_with_temperature_sensor_LED_RGB -B/home/zerendor/Documents/RTOS_Raiz/Project_5_Potentiometer_with_temperature_sensor_LED_RGB/build
+  command = /usr/bin/cmake --regenerate-during-build -S/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB -B/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build
   description = Re-running CMake...
   generator = 1
 

@@ -6,6 +6,7 @@
 #include "esp_log.h"
 
 #include "ntc_sensor.h"
+#include "button_control.h"
 
 static const char *TAG = "MAIN";
 
@@ -48,15 +49,25 @@ void display_info_task(void *arg)
     ESP_LOGI(TAG, "Tarea de visualización iniciada");
     
     while (1) {
-        if (data_ready) {
-            printf("\n=== SISTEMA DE MONITOREO DE TEMPERATURA ===\n");
-            printf("Temperatura: %.1f°C\n", current_ntc_data.temperature_c);
-            printf("Resistencia NTC: %.0f Ohms | ADC Raw: %d\n",
-                   current_ntc_data.resistance, current_ntc_data.raw_adc_value);
-            printf("==========================================\n\n");
+        // Solo mostrar datos si la impresión está habilitada
+        if (is_print_enabled()) {
+            if (data_ready) {
+                printf("\n=== SISTEMA DE MONITOREO DE TEMPERATURA ===\n");
+                printf("Temperatura: %.1f°C\n", current_ntc_data.temperature_c);
+                printf("Resistencia NTC: %.0f Ohms | ADC Raw: %d\n",
+                       current_ntc_data.resistance, current_ntc_data.raw_adc_value);
+                printf("Estado: Impresión HABILITADA (Botón GPIO14)\n");
+                printf("==========================================\n\n");
+            } else {
+                printf("\n=== SISTEMA DE MONITOREO DE TEMPERATURA ===\n");
+                printf("Esperando datos del sensor...\n");
+                printf("Estado: Impresión HABILITADA (Botón GPIO14)\n");
+                printf("==========================================\n\n");
+            }
         } else {
+            // Mostrar mensaje cuando la impresión está deshabilitada
             printf("\n=== SISTEMA DE MONITOREO DE TEMPERATURA ===\n");
-            printf("Esperando datos del sensor...\n");
+            printf("Impresión DESHABILITADA - Presiona botón GPIO14 para habilitar\n");
             printf("==========================================\n\n");
         }
         
@@ -72,6 +83,7 @@ void app_main(void)
     
     // ===== INICIALIZACIÓN DE HARDWARE =====
     ntc_sensor_init();
+    button_control_init();
     
     ESP_LOGI(TAG, "Hardware inicializado correctamente");
     
@@ -91,12 +103,22 @@ void app_main(void)
         return;
     }
     
+    if (xTaskCreate(button_task, "button_task", 4096, NULL, 4, NULL) != pdPASS) {
+        ESP_LOGE(TAG, "Error creando tarea de control de botón");
+        return;
+    }
+    
     // ===== SISTEMA INICIADO EXITOSAMENTE =====
     ESP_LOGI(TAG, "=== SISTEMA RTOS INICIADO EXITOSAMENTE ===");
     ESP_LOGI(TAG, "Configuración del hardware:");
     ESP_LOGI(TAG, "  - Sensor NTC: ADC2 CH9 (GPIO26)");
+    ESP_LOGI(TAG, "  - Botón de control: GPIO14");
     ESP_LOGI(TAG, "Frecuencias de operación:");
     ESP_LOGI(TAG, "  - Lectura sensor NTC: cada 2 segundos");
     ESP_LOGI(TAG, "  - Monitor serie: cada 1 segundo");
+    ESP_LOGI(TAG, "  - Control de botón: cada 10ms");
+    ESP_LOGI(TAG, "Controles:");
+    ESP_LOGI(TAG, "  - Pulsación corta: Alternar impresión ON/OFF");
+    ESP_LOGI(TAG, "  - Pulsación larga: Evento especial");
     ESP_LOGI(TAG, "=== SISTEMA EN FUNCIONAMIENTO ===");
 }

@@ -19,6 +19,12 @@ typedef struct {
     uint32_t pot_voltage_mv;
 } pot_data_t;
 
+// Colas del sistema para comunicación entre tareas
+static QueueHandle_t pot_queue = NULL;
+static QueueHandle_t ntc_queue = NULL;
+static QueueHandle_t led_queue = NULL;
+
+// Variables globales (mantenidas para compatibilidad)
 static pot_data_t current_pot_data = {0};
 static ntc_data_t current_ntc_data = {0};
 static bool data_ready = false;
@@ -47,6 +53,12 @@ void pot_reading_task(void *arg)
         pot_data.pot_percent = pot_get_percent();
         pot_data.pot_voltage_mv = pot_get_voltage_mv();
         
+        // Enviar datos a la cola del potenciómetro
+        if (pot_queue != NULL) {
+            xQueueSend(pot_queue, &pot_data, pdMS_TO_TICKS(10));
+        }
+        
+        // Mantener compatibilidad con variables globales
         current_pot_data = pot_data;
         
         // Controlar intensidad del LED RGB con el potenciómetro (siempre en tiempo real)
@@ -81,6 +93,12 @@ void ntc_reading_task(void *arg)
             ntc_data.temperature_c > -50.0 && ntc_data.temperature_c < 150.0 &&
             ntc_data.temperature_c != -999.0) {
             
+            // Enviar datos a la cola del sensor NTC
+            if (ntc_queue != NULL) {
+                xQueueSend(ntc_queue, &ntc_data, pdMS_TO_TICKS(10));
+            }
+            
+            // Mantener compatibilidad con variables globales
             current_ntc_data = ntc_data;
             data_ready = true;
             
@@ -98,6 +116,35 @@ void ntc_reading_task(void *arg)
     }
 }
 
+// ===== TAREA DE CONTROL DEL LED RGB =====
+void rgb_control_task(void *arg)
+{
+    pot_data_t pot_data;
+    ntc_data_t ntc_data;
+    BaseType_t pot_status, ntc_status;
+    
+    ESP_LOGI(TAG, "Tarea de control del LED RGB iniciada");
+    
+    while (1) {
+        // Procesar datos del potenciómetro desde la cola
+        pot_status = xQueueReceive(pot_queue, &pot_data, pdMS_TO_TICKS(100));
+        if (pot_status == pdPASS) {
+            // Actualizar intensidad del LED RGB basado en el potenciómetro
+            rgb_led_set_intensity(pot_data.pot_percent);
+            ESP_LOGD(TAG, "LED RGB actualizado: %d%%", pot_data.pot_percent);
+        }
+        
+        // Procesar datos del sensor NTC desde la cola
+        ntc_status = xQueueReceive(ntc_queue, &ntc_data, pdMS_TO_TICKS(100));
+        if (ntc_status == pdPASS) {
+            // Aquí se podría implementar control RGB basado en temperatura
+            // Por ahora solo se registra la temperatura
+            ESP_LOGD(TAG, "Temperatura recibida: %.1f°C", ntc_data.temperature_c);
+        }
+        
+        vTaskDelay(pdMS_TO_TICKS(50));  // Control cada 50ms
+    }
+}
 
 void display_info_task(void *arg)
 {
@@ -142,7 +189,28 @@ void app_main(void)
     
     ESP_LOGI(TAG, "Hardware inicializado correctamente");
     
+    // ===== CREACIÓN DE COLAS DEL SISTEMA =====
+    ESP_LOGI(TAG, "Creando colas del sistema...");
     
+    pot_queue = xQueueCreate(5, sizeof(pot_data_t));
+    if (pot_queue == NULL) {
+        ESP_LOGE(TAG, "Error creando cola del potenciómetro");
+        return;
+    }
+    
+    ntc_queue = xQueueCreate(5, sizeof(ntc_data_t));
+    if (ntc_queue == NULL) {
+        ESP_LOGE(TAG, "Error creando cola del sensor NTC");
+        return;
+    }
+    
+    led_queue = xQueueCreate(5, sizeof(uint8_t));  // Para comandos del LED
+    if (led_queue == NULL) {
+        ESP_LOGE(TAG, "Error creando cola del LED RGB");
+        return;
+    }
+    
+    ESP_LOGI(TAG, "Colas del sistema creadas correctamente");
     
     // ===== CREACIÓN DE TAREAS DEL SISTEMA =====
     ESP_LOGI(TAG, "Creando tareas del sistema...");
@@ -168,6 +236,10 @@ void app_main(void)
         return;
     }
     
+    if (xTaskCreate(rgb_control_task, "rgb_control_task", 4096, NULL, 6, NULL) != pdPASS) {
+        ESP_LOGE(TAG, "Error creando tarea de control del LED RGB");
+        return;
+    }
     
     // ===== SISTEMA INICIADO EXITOSAMENTE =====
     ESP_LOGI(TAG, "=== SISTEMA RTOS INICIADO EXITOSAMENTE ===");
@@ -179,8 +251,13 @@ void app_main(void)
     ESP_LOGI(TAG, "Frecuencias de operación:");
     ESP_LOGI(TAG, "  - Lectura potenciómetro: 4 veces/segundo");
     ESP_LOGI(TAG, "  - Lectura sensor NTC: cada 2 segundos");
+    ESP_LOGI(TAG, "  - Control LED RGB: cada 50ms");
     ESP_LOGI(TAG, "  - Monitor serie: cada 1 segundo");
     ESP_LOGI(TAG, "  - Control de botón: cada 10ms");
+    ESP_LOGI(TAG, "Comunicación entre tareas:");
+    ESP_LOGI(TAG, "  - Cola potenciómetro: 5 elementos");
+    ESP_LOGI(TAG, "  - Cola sensor NTC: 5 elementos");
+    ESP_LOGI(TAG, "  - Cola LED RGB: 5 elementos");
     ESP_LOGI(TAG, "Controles:");
     ESP_LOGI(TAG, "  - Pulsación corta: Alternar impresión ON/OFF");
     ESP_LOGI(TAG, "  - Pulsación larga: Evento especial");

@@ -9,6 +9,7 @@
 #include "ntc_sensor.h"
 #include "button_control.h"
 #include "potentiometer.h"
+#include "rgb_led.h"
 
 static const char *TAG = "MAIN";
 
@@ -36,6 +37,9 @@ static void conditional_log_info(const char *tag, const char *format, ...) {
 void pot_reading_task(void *arg)
 {
     pot_data_t pot_data;
+    static uint8_t last_intensity = 0;
+    static uint32_t last_log_time = 0;
+    uint32_t current_time;
     
     ESP_LOGI(TAG, "Tarea de lectura del potenciómetro iniciada");
     
@@ -45,8 +49,19 @@ void pot_reading_task(void *arg)
         
         current_pot_data = pot_data;
         
-        conditional_log_info(TAG, "Potenciómetro: %d%% (%lu mV)", 
-                           pot_data.pot_percent, pot_data.pot_voltage_mv);
+        // Controlar intensidad del LED RGB con el potenciómetro (siempre en tiempo real)
+        if (pot_data.pot_percent != last_intensity) {
+            rgb_led_set_intensity(pot_data.pot_percent);
+            last_intensity = pot_data.pot_percent;
+        }
+        
+        // Solo imprimir cada 2 segundos
+        current_time = xTaskGetTickCount() * portTICK_PERIOD_MS;
+        if (current_time - last_log_time >= 2000) {
+            conditional_log_info(TAG, "Potenciómetro: %d%% (%lu mV) - LED RGB: %d%%", 
+                               pot_data.pot_percent, pot_data.pot_voltage_mv, pot_data.pot_percent);
+            last_log_time = current_time;
+        }
         
         vTaskDelay(pdMS_TO_TICKS(250));
     }
@@ -91,6 +106,7 @@ void display_info_task(void *arg)
             printf("\n=== SISTEMA DE MONITOREO ===\n");
             printf("Potenciómetro: %d%% (%lu mV)\n", 
                    current_pot_data.pot_percent, current_pot_data.pot_voltage_mv);
+            printf("LED RGB: %d%% intensidad\n", rgb_led_get_intensity());
             if (data_ready) {
                 printf("Temperatura: %.1f°C\n", current_ntc_data.temperature_c);
                 printf("Resistencia NTC: %.0f Ohms | ADC Raw: %d\n",
@@ -119,6 +135,7 @@ void app_main(void)
     ntc_sensor_init();
     button_control_init();
     pot_init();
+    rgb_led_init();
     
     ESP_LOGI(TAG, "Hardware inicializado correctamente");
     
@@ -154,6 +171,7 @@ void app_main(void)
     ESP_LOGI(TAG, "  - Potenciómetro: ADC1 CH6 (GPIO34)");
     ESP_LOGI(TAG, "  - Sensor NTC: ADC2 CH9 (GPIO26)");
     ESP_LOGI(TAG, "  - Botón de control: GPIO14");
+    ESP_LOGI(TAG, "  - LED RGB: R=GPIO13, G=GPIO12, B=GPIO25");
     ESP_LOGI(TAG, "Frecuencias de operación:");
     ESP_LOGI(TAG, "  - Lectura potenciómetro: 4 veces/segundo");
     ESP_LOGI(TAG, "  - Lectura sensor NTC: cada 2 segundos");
@@ -162,5 +180,6 @@ void app_main(void)
     ESP_LOGI(TAG, "Controles:");
     ESP_LOGI(TAG, "  - Pulsación corta: Alternar impresión ON/OFF");
     ESP_LOGI(TAG, "  - Pulsación larga: Evento especial");
+    ESP_LOGI(TAG, "  - Potenciómetro: Controla intensidad LED RGB (0-100%)");
     ESP_LOGI(TAG, "=== SISTEMA EN FUNCIONAMIENTO ===");
 }

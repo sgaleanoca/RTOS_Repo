@@ -4,7 +4,6 @@
 #include "esp_adc/adc_oneshot.h"
 #include "esp_adc/adc_cali.h"
 #include "esp_adc/adc_cali_scheme.h"
-#include "driver/ledc.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <math.h>
@@ -84,31 +83,6 @@ void ntc_sensor_init(void) {
     ESP_LOGI(TAG, "ADC2 inicializado correctamente en GPIO26 (ADC_CHANNEL_9)");
 }
 
-void ntc_led_pwm_init(void) {
-    ESP_LOGI(TAG, "Inicializando PWM para LED rojo de temperatura...");
-    
-    ledc_timer_config_t ledc_timer = {
-        .speed_mode       = LEDC_MODE,
-        .timer_num        = LEDC_TIMER,
-        .duty_resolution  = LEDC_DUTY_RES,
-        .freq_hz          = LEDC_FREQUENCY,
-        .clk_cfg          = LEDC_AUTO_CLK
-    };
-    ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
-
-    ledc_channel_config_t ledc_channel = {
-        .speed_mode     = LEDC_MODE,
-        .channel        = LEDC_CHANNEL,
-        .timer_sel      = LEDC_TIMER,
-        .intr_type      = LEDC_INTR_DISABLE,
-        .gpio_num       = LED_PIN,
-        .duty           = 0,
-        .hpoint         = 0
-    };
-    ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel));
-    
-    ESP_LOGI(TAG, "PWM del LED rojo inicializado en GPIO %d (10-bit, 5kHz)", LED_PIN);
-}
 
 // ===== FUNCIONES DE LECTURA Y CÁLCULO =====
 ntc_data_t ntc_read_temperature(void) {
@@ -120,68 +94,37 @@ ntc_data_t ntc_read_temperature(void) {
     if (result == ESP_OK) {
         ntc_data.raw_adc_value = raw_adc_value;
         
-        float resistance = SERIES_RESISTOR * ((4095.0 / raw_adc_value) - 1.0);
-        ntc_data.resistance = resistance;
+        // Verificar que el valor ADC sea razonable
+        if (raw_adc_value > 0 && raw_adc_value < 4096) {
+            float resistance = SERIES_RESISTOR * ((4095.0 / raw_adc_value) - 1.0);
+            ntc_data.resistance = resistance;
 
-        float steinhart;
-        steinhart = resistance / NOMINAL_RESISTANCE;
-        steinhart = log(steinhart);
-        steinhart /= B_COEFFICIENT;
-        steinhart += 1.0 / (NOMINAL_TEMPERATURE + 273.15);
-        steinhart = 1.0 / steinhart;
-        float temperature_c = steinhart - 273.15;
-        ntc_data.temperature_c = temperature_c;
-
-        int duty_cycle = 0;
-        float brightness_percent = 0.0;
-        
-        if (temperature_c <= TEMP_MIN) {
-            duty_cycle = 0;
-            brightness_percent = 0.0;
-        } else if (temperature_c >= TEMP_MAX) {
-            duty_cycle = (1 << LEDC_DUTY_RES) - 1;
-            brightness_percent = 100.0;
+            // Verificar que la resistencia sea razonable
+            if (resistance > 0 && resistance < 1000000) { // Entre 0 y 1MΩ
+                float steinhart;
+                steinhart = resistance / NOMINAL_RESISTANCE;
+                steinhart = log(steinhart);
+                steinhart /= B_COEFFICIENT;
+                steinhart += 1.0 / (NOMINAL_TEMPERATURE + 273.15);
+                steinhart = 1.0 / steinhart;
+                float temperature_c = steinhart - 273.15;
+                ntc_data.temperature_c = temperature_c;
+                
+                ESP_LOGD(TAG, "Lectura exitosa: ADC=%d, R=%.0fΩ, T=%.1f°C", 
+                         raw_adc_value, resistance, temperature_c);
+            } else {
+                ESP_LOGW(TAG, "Resistencia fuera de rango: %.0fΩ", resistance);
+                ntc_data.temperature_c = -999.0; // Valor de error
+            }
         } else {
-            brightness_percent = ((temperature_c - TEMP_MIN) / (TEMP_MAX - TEMP_MIN)) * 100.0;
-            duty_cycle = (int)(brightness_percent * ((1 << LEDC_DUTY_RES) - 1) / 100.0);
+            ESP_LOGW(TAG, "Valor ADC fuera de rango: %d", raw_adc_value);
+            ntc_data.temperature_c = -999.0; // Valor de error
         }
-        
-        ntc_data.brightness_percent = brightness_percent;
-        ntc_data.duty_cycle = duty_cycle;
-
     } else {
         ESP_LOGE(TAG, "Error al leer ADC2: %s", esp_err_to_name(result));
+        ntc_data.temperature_c = -999.0; // Valor de error
     }
 
     return ntc_data;
 }
 
-// ===== FUNCIONES DE CONTROL DEL LED =====
-void ntc_update_led_brightness(float temperature_c) {
-    int duty_cycle = 0;
-    
-    if (temperature_c <= TEMP_MIN) {
-        duty_cycle = 0;
-    } else if (temperature_c >= TEMP_MAX) {
-        duty_cycle = (1 << LEDC_DUTY_RES) - 1;
-    } else {
-        float brightness_percent = ((temperature_c - TEMP_MIN) / (TEMP_MAX - TEMP_MIN)) * 100.0;
-        duty_cycle = (int)(brightness_percent * ((1 << LEDC_DUTY_RES) - 1) / 100.0);
-    }
-
-    ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, duty_cycle));
-    ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL));
-}
-
-void ntc_test_led(void) {
-    ESP_LOGI(TAG, "Iniciando prueba del LED rojo...");
-    
-    ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, 512));
-    ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL));
-    vTaskDelay(pdMS_TO_TICKS(1000));
-    
-    ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, 0));
-    ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, LEDC_CHANNEL));
-    
-    ESP_LOGI(TAG, "Prueba del LED rojo completada exitosamente");
-}

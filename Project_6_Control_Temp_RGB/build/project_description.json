@@ -1,15 +1,15 @@
 {
     "version":            "1.2",
-    "project_name":       "Project_5_Potentiometer_with_temperature_sensor_LED_RGB",
-    "project_version":    "3faf7e6-dirty",
+    "project_name":       "Project_6_Control_Temp_RGB",
+    "project_version":    "0943816-dirty",
     "project_path":       "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB",
     "idf_path":           "/home/zerendor/esp/esp-idf",
     "build_dir":          "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build",
     "config_file":        "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/sdkconfig",
     "config_defaults":    "",
     "bootloader_elf":     "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build/bootloader/bootloader.elf",
-    "app_elf":            "Project_5_Potentiometer_with_temperature_sensor_LED_RGB.elf",
-    "app_bin":            "Project_5_Potentiometer_with_temperature_sensor_LED_RGB.bin",
+    "app_elf":            "Project_6_Control_Temp_RGB.elf",
+    "app_bin":            "Project_6_Control_Temp_RGB.bin",
     "build_type":         "flash_app",
     "git_revision":       "v5.5",
     "target":             "esp32",
@@ -715,7 +715,7 @@
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build/esp-idf/main/libmain.a",
-            "sources": [ "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/uart_commands.c", "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/rgb_led.c", "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c", "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/button_control.c", "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c", "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/main.c" ],
+            "sources": [ "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/rgb_led.c", "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c", "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/button_control.c", "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c", "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/main.c" ],
             "include_dirs": []
         },
         "mbedtls": {

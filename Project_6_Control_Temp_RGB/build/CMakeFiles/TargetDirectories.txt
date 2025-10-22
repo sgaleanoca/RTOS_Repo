@@ -10,7 +10,7 @@
 /home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build/CMakeFiles/flash.dir
 /home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build/CMakeFiles/encrypted-flash.dir
 /home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build/CMakeFiles/_project_elf_src.dir
-/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build/CMakeFiles/Project_5_Potentiometer_with_temperature_sensor_LED_RGB.elf.dir
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build/CMakeFiles/Project_6_Control_Temp_RGB.elf.dir
 /home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build/CMakeFiles/size.dir
 /home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build/CMakeFiles/size-files.dir
 /home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build/CMakeFiles/size-components.dir

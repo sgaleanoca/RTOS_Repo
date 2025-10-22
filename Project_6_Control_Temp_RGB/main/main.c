@@ -10,7 +10,6 @@
 #include "button_control.h"
 #include "potentiometer.h"
 #include "rgb_led.h"
-// #include "uart_commands.h"  // Comentado: Listo para usar con conversor USB-Serial en UART1 (GPIO16/17)
 
 static const char *TAG = "MAIN";
 
@@ -86,7 +85,7 @@ void ntc_reading_task(void *arg)
             data_ready = true;
             
             // Actualizar LED RGB según temperatura y thresholds
-            // update_rgb_by_temperature(ntc_data.temperature_c);  // Comentado: Listo para usar con conversor USB-Serial en UART1
+            // Función de control RGB por temperatura deshabilitada
             
             conditional_log_info(TAG, "Datos válidos: Temp=%.1f°C, ADC=%d, R=%.0fΩ", 
                      ntc_data.temperature_c, ntc_data.raw_adc_value, ntc_data.resistance);
@@ -140,7 +139,6 @@ void app_main(void)
     button_control_init();
     pot_init();
     rgb_led_init();
-    // uart_commands_init();  // Comentado: Listo para usar con conversor USB-Serial en UART1 (GPIO16/17)
     
     ESP_LOGI(TAG, "Hardware inicializado correctamente");
     
@@ -170,11 +168,6 @@ void app_main(void)
         return;
     }
     
-    // Comentado: Listo para usar con conversor USB-Serial en UART1 (GPIO16/17)
-    // if (xTaskCreate(uart_commands_task, "uart_commands_task", 4096, NULL, 3, NULL) != pdPASS) {
-    //     ESP_LOGE(TAG, "Error creando tarea de comandos UART");
-    //     return;
-    // }
     
     // ===== SISTEMA INICIADO EXITOSAMENTE =====
     ESP_LOGI(TAG, "=== SISTEMA RTOS INICIADO EXITOSAMENTE ===");
@@ -183,17 +176,14 @@ void app_main(void)
     ESP_LOGI(TAG, "  - Sensor NTC: ADC2 CH9 (GPIO26)");
     ESP_LOGI(TAG, "  - Botón de control: GPIO14");
     ESP_LOGI(TAG, "  - LED RGB: R=GPIO13, G=GPIO12, B=GPIO25");
-    // ESP_LOGI(TAG, "  - UART: USB-Serial (UART1) - GPIO16/17 - 115200 baud");  // Comentado: Listo para usar con conversor USB-Serial
     ESP_LOGI(TAG, "Frecuencias de operación:");
     ESP_LOGI(TAG, "  - Lectura potenciómetro: 4 veces/segundo");
     ESP_LOGI(TAG, "  - Lectura sensor NTC: cada 2 segundos");
     ESP_LOGI(TAG, "  - Monitor serie: cada 1 segundo");
     ESP_LOGI(TAG, "  - Control de botón: cada 10ms");
-    // ESP_LOGI(TAG, "  - Comandos UART: cada 10ms");  // Comentado: Listo para usar con conversor USB-Serial en UART1
     ESP_LOGI(TAG, "Controles:");
     ESP_LOGI(TAG, "  - Pulsación corta: Alternar impresión ON/OFF");
     ESP_LOGI(TAG, "  - Pulsación larga: Evento especial");
     ESP_LOGI(TAG, "  - Potenciómetro: Controla intensidad LED RGB (0-100%)");
-    // ESP_LOGI(TAG, "  - UART: Comandos para configurar thresholds RGB");  // Comentado: Listo para usar con conversor USB-Serial en UART1
     ESP_LOGI(TAG, "=== SISTEMA EN FUNCIONAMIENTO ===");
 }

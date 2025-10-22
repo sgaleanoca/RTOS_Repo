@@ -6,7 +6,7 @@
 # It is included in the main 'build.ninja'.
 
 # =============================================================================
-# Project: Project_5_Potentiometer_with_temperature_sensor_LED_RGB
+# Project: Project_6_Control_Temp_RGB
 # Configurations: 
 # =============================================================================
 # =============================================================================
@@ -14,7 +14,7 @@
 #############################################
 # Rule for compiling C files.
 
-rule C_COMPILER__Project_5_Potentiometer_with_temperature_sensor_LED_RGB.2eelf_unscanned_
+rule C_COMPILER__Project_6_Control_Temp_RGB.2eelf_unscanned_
   depfile = $DEP_FILE
   deps = gcc
   command = ${LAUNCHER}${CODE_CHECK}/home/zerendor/.espressif/tools/xtensa-esp-elf/esp-14.2.0_20241119/xtensa-esp-elf/bin/xtensa-esp32-elf-gcc $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -24,7 +24,7 @@ rule C_COMPILER__Project_5_Potentiometer_with_temperature_sensor_LED_RGB.2eelf_u
 #############################################
 # Rule for linking CXX executable.
 
-rule CXX_EXECUTABLE_LINKER__Project_5_Potentiometer_with_temperature_sensor_LED_RGB.2eelf_
+rule CXX_EXECUTABLE_LINKER__Project_6_Control_Temp_RGB.2eelf_
   command = $PRE_LINK && /home/zerendor/.espressif/tools/xtensa-esp-elf/esp-14.2.0_20241119/xtensa-esp-elf/bin/xtensa-esp32-elf-g++ $FLAGS $LINK_FLAGS $in -o $TARGET_FILE $LINK_PATH $LINK_LIBRARIES && $POST_BUILD
   description = Linking CXX executable $TARGET_FILE
   restat = $RESTAT

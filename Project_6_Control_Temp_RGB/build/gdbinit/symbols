@@ -22,4 +22,4 @@ set confirm off
 set confirm on
 
 # Load application symbols
-file /home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build/Project_5_Potentiometer_with_temperature_sensor_LED_RGB.elf
+file /home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build/Project_6_Control_Temp_RGB.elf

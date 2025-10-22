@@ -213,7 +213,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=Project_5_Potentiometer_with_temperature_sensor_LED_RGB
+CMAKE_PROJECT_NAME:STATIC=Project_6_Control_Temp_RGB
 
 //Value Computed by CMake
 CMAKE_PROJECT_VERSION:STATIC=3.6.3
@@ -363,6 +363,15 @@ Project_5_Potentiometer_with_temperature_sensor_LED_RGB_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
 Project_5_Potentiometer_with_temperature_sensor_LED_RGB_SOURCE_DIR:STATIC=/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB
+
+//Value Computed by CMake
+Project_6_Control_Temp_RGB_BINARY_DIR:STATIC=/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build
+
+//Value Computed by CMake
+Project_6_Control_Temp_RGB_IS_TOP_LEVEL:STATIC=ON
+
+//Value Computed by CMake
+Project_6_Control_Temp_RGB_SOURCE_DIR:STATIC=/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB
 
 //Allow unsafe builds. These builds ARE NOT SECURE.
 UNSAFE_BUILD:BOOL=OFF

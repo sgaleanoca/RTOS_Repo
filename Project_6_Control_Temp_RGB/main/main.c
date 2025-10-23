@@ -147,11 +147,6 @@ void rgb_control_task(void *arg)
                 rgb_led_set_color(led_cmd.red, led_cmd.green, led_cmd.blue);
                 ESP_LOGI(TAG, "Color establecido: R=%d, G=%d, B=%d", led_cmd.red, led_cmd.green, led_cmd.blue);
             }
-            else if (strcmp(led_cmd.command, "test_led") == 0) {
-                rgb_led_set_color(led_cmd.red, led_cmd.green, led_cmd.blue);
-                rgb_led_set_intensity(50);  // 50% de intensidad para la prueba
-                ESP_LOGI(TAG, "Prueba LED: R=%d, G=%d, B=%d al 50%%", led_cmd.red, led_cmd.green, led_cmd.blue);
-            }
             
             // Actualizar flag de control manual
             if (led_cmd.manual_control) {
@@ -178,26 +173,41 @@ void rgb_control_task(void *arg)
                 thresholds = get_temp_thresholds();
                 float temp = ntc_data.temperature_c;
                 
-                // Determinar color basado en umbrales de temperatura
-                if (temp >= thresholds->r_min && temp <= thresholds->r_max) {
-                    // Temperatura en rango rojo
-                    rgb_led_set_color(255, 0, 0);  // Rojo puro
-                    ESP_LOGD(TAG, "Temperatura %.1f°C -> LED ROJO", temp);
+                // Lógica específica para rangos de temperatura
+                // Mantener los 3 umbrales pero con comportamiento definido
+                bool in_red = (temp >= thresholds->r_min && temp <= thresholds->r_max);
+                bool in_green = (temp >= thresholds->g_min && temp <= thresholds->g_max);
+                bool in_blue = (temp >= thresholds->b_min && temp <= thresholds->b_max);
+                
+                // Debug: Mostrar información de rangos
+                ESP_LOGI(TAG, "Temperatura: %.1f°C | R:%.1f-%.1f G:%.1f-%.1f B:%.1f-%.1f | in_red:%d in_green:%d in_blue:%d", 
+                         temp, thresholds->r_min, thresholds->r_max, thresholds->g_min, thresholds->g_max, 
+                         thresholds->b_min, thresholds->b_max, in_red, in_green, in_blue);
+                
+                // Lógica específica para rangos superpuestos
+                if (in_red && in_green) {
+                    // Rango superpuesto rojo-verde (10-15°C): AMARILLO (rojo + verde)
+                    rgb_led_set_color(255, 255, 0);
+                    ESP_LOGI(TAG, "Temperatura %.1f°C -> LED AMARILLO (R+G superpuesto)", temp);
                 }
-                else if (temp >= thresholds->g_min && temp <= thresholds->g_max) {
-                    // Temperatura en rango verde
-                    rgb_led_set_color(0, 255, 0);  // Verde puro
-                    ESP_LOGD(TAG, "Temperatura %.1f°C -> LED VERDE", temp);
+                else if (in_green && !in_red) {
+                    // Solo verde (16-30°C): VERDE PURO
+                    rgb_led_set_color(0, 255, 0);
+                    ESP_LOGI(TAG, "Temperatura %.1f°C -> LED VERDE PURO", temp);
                 }
-                else if (temp >= thresholds->b_min && temp <= thresholds->b_max) {
-                    // Temperatura en rango azul
-                    rgb_led_set_color(0, 0, 255);  // Azul puro
-                    ESP_LOGD(TAG, "Temperatura %.1f°C -> LED AZUL", temp);
+                else if (in_red && !in_green) {
+                    // Solo rojo (0-10°C): ROJO PURO
+                    rgb_led_set_color(255, 0, 0);
+                    ESP_LOGI(TAG, "Temperatura %.1f°C -> LED ROJO PURO", temp);
+                }
+                else if (in_blue) {
+                    // Azul (40-50°C): AZUL PURO
+                    rgb_led_set_color(0, 0, 255);
+                    ESP_LOGI(TAG, "Temperatura %.1f°C -> LED AZUL PURO", temp);
                 }
                 else {
-                    // Temperatura fuera de todos los rangos - LED apagado
-                    rgb_led_off();
-                    ESP_LOGD(TAG, "Temperatura %.1f°C -> LED APAGADO (fuera de rangos)", temp);
+                    // Temperatura fuera de todos los rangos - mantener color actual (NO apagar)
+                    ESP_LOGI(TAG, "Temperatura %.1f°C -> MANTENER COLOR ACTUAL (fuera de rangos)", temp);
                 }
             }
         }

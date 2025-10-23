@@ -92,10 +92,6 @@ static uart_command_t parse_command(const char* input)
         strcpy(cmd.command, "status");
         cmd.valid = true;
     }
-    else if (strcmp(buffer, "test_led") == 0) {
-        strcpy(cmd.command, "test_led");
-        cmd.valid = true;
-    }
     else if (strcmp(buffer, "manual_on") == 0) {
         strcpy(cmd.command, "manual_on");
         cmd.valid = true;
@@ -164,11 +160,6 @@ static void execute_command(const uart_command_t* cmd)
     else if (strcmp(cmd->command, "status") == 0) {
         print_current_thresholds();
     }
-    else if (strcmp(cmd->command, "test_led") == 0) {
-        printf("Probando LED RGB...\n");
-        send_led_command("test_led", 255, 0, 0, true);
-        printf("Comando LED enviado: prueba rojo\n");
-    }
     else if (strcmp(cmd->command, "manual_on") == 0) {
         manual_control_active = true;
         printf("Control manual activado - El LED no cambiará automáticamente\n");
@@ -182,7 +173,7 @@ static void execute_command(const uart_command_t* cmd)
         printf("Comando LED enviado: encender en blanco\n");
     }
     else if (strcmp(cmd->command, "led_off") == 0) {
-        send_led_command("led_off", 0, 0, 0, false);
+        send_led_command("led_off", 0, 0, 0, true);  // Cambiar a true para forzar apagado
         printf("Comando LED enviado: apagar\n");
     }
     else if (strcmp(cmd->command, "set_color") == 0) {
@@ -195,6 +186,9 @@ static void execute_command(const uart_command_t* cmd)
             current_thresholds.r_min = cmd->value1;
             current_thresholds.r_max = cmd->value2;
             printf("Umbrales rojos actualizados: %.1f°C - %.1f°C\n", cmd->value1, cmd->value2);
+            // Encender LED en rojo para mostrar el color configurado
+            send_led_command("set_color", 255, 0, 0, true);
+            printf("LED encendido en ROJO para mostrar el color configurado\n");
         } else {
             printf("Error: El valor mínimo debe ser menor que el máximo\n");
         }
@@ -204,6 +198,9 @@ static void execute_command(const uart_command_t* cmd)
             current_thresholds.g_min = cmd->value1;
             current_thresholds.g_max = cmd->value2;
             printf("Umbrales verdes actualizados: %.1f°C - %.1f°C\n", cmd->value1, cmd->value2);
+            // Encender LED en verde para mostrar el color configurado
+            send_led_command("set_color", 0, 255, 0, true);
+            printf("LED encendido en VERDE para mostrar el color configurado\n");
         } else {
             printf("Error: El valor mínimo debe ser menor que el máximo\n");
         }
@@ -213,6 +210,9 @@ static void execute_command(const uart_command_t* cmd)
             current_thresholds.b_min = cmd->value1;
             current_thresholds.b_max = cmd->value2;
             printf("Umbrales azules actualizados: %.1f°C - %.1f°C\n", cmd->value1, cmd->value2);
+            // Encender LED en azul para mostrar el color configurado
+            send_led_command("set_color", 0, 0, 255, true);
+            printf("LED encendido en AZUL para mostrar el color configurado\n");
         } else {
             printf("Error: El valor mínimo debe ser menor que el máximo\n");
         }
@@ -292,21 +292,22 @@ void print_help(void)
 {
     printf("Comandos disponibles:\n");
     printf("  help                    - Mostrar esta ayuda\n");
-    printf("  status                  - Mostrar umbrales actuales\n");
-    printf("  test_led                - Probar LED RGB (rojo al 50%%) y activar control manual\n");
+    printf("  status                  - Mostrar umbrales actuales y estado\n");
     printf("  manual_on               - Activar control manual del LED\n");
     printf("  manual_off              - Activar control automático por temperatura\n");
     printf("  led_on                  - Encender LED en blanco (control manual)\n");
     printf("  led_off                 - Apagar LED\n");
     printf("  set_color <r> <g> <b>   - Establecer color RGB (0-255) (ej: set_color 255 0 0)\n");
-    printf("  set_red <min> <max>     - Configurar umbrales rojos (ej: set_red 0 15)\n");
-    printf("  set_green <min> <max>   - Configurar umbrales verdes (ej: set_green 10 30)\n");
-    printf("  set_blue <min> <max>    - Configurar umbrales azules (ej: set_blue 40 50)\n");
+    printf("  set_red <min> <max>     - Configurar umbrales rojos y mostrar color (ej: set_red 0 15)\n");
+    printf("  set_green <min> <max>   - Configurar umbrales verdes y mostrar color (ej: set_green 10 30)\n");
+    printf("  set_blue <min> <max>    - Configurar umbrales azules y mostrar color (ej: set_blue 40 50)\n");
     printf("\nEjemplos:\n");
-    printf("  led_on                  - Encender LED blanco\n");
-    printf("  set_color 255 0 0       - LED rojo\n");
-    printf("  set_color 0 255 0       - LED verde\n");
-    printf("  set_color 0 0 255       - LED azul\n");
+    printf("  set_red 0 15            - Configurar rojo (0-15°C) y mostrar LED rojo\n");
+    printf("  set_green 10 30         - Configurar verde (10-30°C) y mostrar LED verde\n");
+    printf("  set_blue 40 50          - Configurar azul (40-50°C) y mostrar LED azul\n");
+    printf("  set_color 255 0 0       - LED rojo manual\n");
+    printf("  set_color 0 255 0       - LED verde manual\n");
+    printf("  set_color 0 0 255       - LED azul manual\n");
     printf("  set_color 255 255 0     - LED amarillo\n");
     printf("  manual_on               - Activar control manual\n");
     printf("  manual_off              - Activar control automático\n");
@@ -314,11 +315,41 @@ void print_help(void)
 
 void print_current_thresholds(void)
 {
-    printf("\n=== UMBRALES ACTUALES ===\n");
-    printf("Rojo:   %.1f°C - %.1f°C\n", current_thresholds.r_min, current_thresholds.r_max);
-    printf("Verde:  %.1f°C - %.1f°C\n", current_thresholds.g_min, current_thresholds.g_max);
-    printf("Azul:   %.1f°C - %.1f°C\n", current_thresholds.b_min, current_thresholds.b_max);
-    printf("Control: %s\n", manual_control_active ? "MANUAL" : "AUTOMÁTICO");
+    printf("\n=== ESTADO DEL SISTEMA ===\n");
+    printf("Umbrales de temperatura:\n");
+    printf("  Rojo:   %.1f°C - %.1f°C\n", current_thresholds.r_min, current_thresholds.r_max);
+    printf("  Verde:  %.1f°C - %.1f°C\n", current_thresholds.g_min, current_thresholds.g_max);
+    printf("  Azul:   %.1f°C - %.1f°C\n", current_thresholds.b_min, current_thresholds.b_max);
+    printf("\nModo de control: %s\n", manual_control_active ? "MANUAL" : "AUTOMÁTICO");
+    
+    // Mostrar comportamiento específico de la lógica
+    printf("\nComportamiento específico del LED:\n");
+    
+    // Calcular rangos específicos
+    float red_only_start = current_thresholds.r_min;
+    float red_only_end = (current_thresholds.r_max < current_thresholds.g_min) ? current_thresholds.r_max : current_thresholds.g_min;
+    float overlap_start = (current_thresholds.r_min > current_thresholds.g_min) ? current_thresholds.r_min : current_thresholds.g_min;
+    float overlap_end = (current_thresholds.r_max < current_thresholds.g_max) ? current_thresholds.r_max : current_thresholds.g_max;
+    float green_only_start = (current_thresholds.g_min > current_thresholds.r_max) ? current_thresholds.g_min : current_thresholds.r_max + 1;
+    float green_only_end = current_thresholds.g_max;
+    
+    if (red_only_start < red_only_end) {
+        printf("  🔴 Solo Rojo: %.1f°C - %.1f°C -> LED ROJO PURO\n", red_only_start, red_only_end);
+    }
+    if (overlap_start <= overlap_end) {
+        printf("  🟡 Rojo + Verde: %.1f°C - %.1f°C -> LED AMARILLO\n", overlap_start, overlap_end);
+    }
+    if (green_only_start <= green_only_end) {
+        printf("  🟢 Solo Verde: %.1f°C - %.1f°C -> LED VERDE PURO\n", green_only_start, green_only_end);
+    }
+    printf("  🔵 Solo Azul: %.1f°C - %.1f°C -> LED AZUL PURO\n", current_thresholds.b_min, current_thresholds.b_max);
+    
+    printf("\nCaracterísticas del sistema:\n");
+    printf("  - El LED se mantiene encendido en el color correspondiente a la temperatura\n");
+    printf("  - NO se apaga cuando la temperatura está fuera de los rangos\n");
+    printf("  - Los rangos superpuestos generan colores mezclados automáticamente\n");
+    printf("  - Verde puro se mantiene encendido entre 16-30°C hasta que cambie la temperatura\n");
+    
     printf("========================\n\n");
 }
 

@@ -5,7 +5,7 @@
 
 // Pines del LED RGB
 #define RGB_RED_PIN    13
-#define RGB_GREEN_PIN  12
+#define RGB_GREEN_PIN  33
 #define RGB_BLUE_PIN   25
 
 // Configuración PWM

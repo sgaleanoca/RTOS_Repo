@@ -63,8 +63,8 @@ void pot_reading_task(void *arg)
         // Mantener compatibilidad con variables globales
         current_pot_data = pot_data;
         
-        // Controlar intensidad del LED RGB con el potenciómetro (siempre en tiempo real)
-        if (pot_data.pot_percent != last_intensity) {
+        // Controlar intensidad del LED RGB con el potenciómetro (solo si no está en modo manual)
+        if (pot_data.pot_percent != last_intensity && !is_manual_control_active()) {
             rgb_led_set_intensity(pot_data.pot_percent);
             last_intensity = pot_data.pot_percent;
         }
@@ -206,8 +206,9 @@ void rgb_control_task(void *arg)
                     ESP_LOGI(TAG, "Temperatura %.1f°C -> LED AZUL PURO", temp);
                 }
                 else {
-                    // Temperatura fuera de todos los rangos - mantener color actual (NO apagar)
-                    ESP_LOGI(TAG, "Temperatura %.1f°C -> MANTENER COLOR ACTUAL (fuera de rangos)", temp);
+                    // Temperatura fuera de todos los rangos - APAGAR LED
+                    rgb_led_off();
+                    ESP_LOGI(TAG, "Temperatura %.1f°C -> LED APAGADO (fuera de rangos)", temp);
                 }
             }
         }

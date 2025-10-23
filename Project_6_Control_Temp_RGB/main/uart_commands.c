@@ -189,6 +189,7 @@ static void execute_command(const uart_command_t* cmd)
             // Encender LED en rojo para mostrar el color configurado
             send_led_command("set_color", 255, 0, 0, true);
             printf("LED encendido en ROJO para mostrar el color configurado\n");
+            printf("El LED se mantendrá encendido solo cuando la temperatura esté entre %.1f°C y %.1f°C\n", cmd->value1, cmd->value2);
         } else {
             printf("Error: El valor mínimo debe ser menor que el máximo\n");
         }
@@ -201,6 +202,7 @@ static void execute_command(const uart_command_t* cmd)
             // Encender LED en verde para mostrar el color configurado
             send_led_command("set_color", 0, 255, 0, true);
             printf("LED encendido en VERDE para mostrar el color configurado\n");
+            printf("El LED se mantendrá encendido solo cuando la temperatura esté entre %.1f°C y %.1f°C\n", cmd->value1, cmd->value2);
         } else {
             printf("Error: El valor mínimo debe ser menor que el máximo\n");
         }
@@ -213,6 +215,7 @@ static void execute_command(const uart_command_t* cmd)
             // Encender LED en azul para mostrar el color configurado
             send_led_command("set_color", 0, 0, 255, true);
             printf("LED encendido en AZUL para mostrar el color configurado\n");
+            printf("El LED se mantendrá encendido solo cuando la temperatura esté entre %.1f°C y %.1f°C\n", cmd->value1, cmd->value2);
         } else {
             printf("Error: El valor mínimo debe ser menor que el máximo\n");
         }
@@ -345,10 +348,10 @@ void print_current_thresholds(void)
     printf("  🔵 Solo Azul: %.1f°C - %.1f°C -> LED AZUL PURO\n", current_thresholds.b_min, current_thresholds.b_max);
     
     printf("\nCaracterísticas del sistema:\n");
-    printf("  - El LED se mantiene encendido en el color correspondiente a la temperatura\n");
-    printf("  - NO se apaga cuando la temperatura está fuera de los rangos\n");
+    printf("  - El LED se mantiene encendido SOLO en el rango de temperatura configurado\n");
+    printf("  - Se APAGA cuando la temperatura está fuera de los rangos configurados\n");
     printf("  - Los rangos superpuestos generan colores mezclados automáticamente\n");
-    printf("  - Verde puro se mantiene encendido entre 16-30°C hasta que cambie la temperatura\n");
+    printf("  - En modo manual, el potenciómetro NO afecta el LED\n");
     
     printf("========================\n\n");
 }

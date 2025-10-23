@@ -69,11 +69,11 @@ void pot_reading_task(void *arg)
             last_intensity = pot_data.pot_percent;
         }
         
-        // Solo imprimir cada 2 segundos
+        // Solo imprimir cada 2 segundos (deshabilitado para limpiar salida)
         current_time = xTaskGetTickCount() * portTICK_PERIOD_MS;
         if (current_time - last_log_time >= 2000) {
-            conditional_log_info(TAG, "Potenciómetro: %d%% (%lu mV) - LED RGB: %d%%", 
-                               pot_data.pot_percent, pot_data.pot_voltage_mv, pot_data.pot_percent);
+            // conditional_log_info(TAG, "Potenciómetro: %d%% (%lu mV) - LED RGB: %d%%", 
+            //                    pot_data.pot_percent, pot_data.pot_voltage_mv, pot_data.pot_percent);
             last_log_time = current_time;
         }
         
@@ -107,8 +107,8 @@ void ntc_reading_task(void *arg)
             // Actualizar LED RGB según temperatura y thresholds
             // Función de control RGB por temperatura deshabilitada
             
-            conditional_log_info(TAG, "Datos válidos: Temp=%.1f°C, ADC=%d, R=%.0fΩ", 
-                     ntc_data.temperature_c, ntc_data.raw_adc_value, ntc_data.resistance);
+            // conditional_log_info(TAG, "Datos válidos: Temp=%.1f°C, ADC=%d, R=%.0fΩ", 
+            //          ntc_data.temperature_c, ntc_data.raw_adc_value, ntc_data.resistance);
         } else {
             conditional_log_info(TAG, "Datos inválidos: Temp=%.1f°C, ADC=%d, R=%.0fΩ", 
                      ntc_data.temperature_c, ntc_data.raw_adc_value, ntc_data.resistance);
@@ -164,11 +164,11 @@ void rgb_control_task(void *arg)
             ESP_LOGD(TAG, "Intensidad LED actualizada: %d%%", pot_data.pot_percent);
         }
         
-        // Procesar datos del sensor NTC desde la cola (solo si no está en modo manual)
+        // Procesar datos del sensor NTC desde la cola (solo si no está en modo manual y está inicializado)
         ntc_status = xQueueReceive(ntc_queue, &ntc_data, pdMS_TO_TICKS(10));
         if (ntc_status == pdPASS) {
-            // Solo controlar LED si no está en modo manual
-            if (!is_manual_control_active()) {
+            // Solo controlar LED si no está en modo manual y el control de temperatura está inicializado
+            if (!is_manual_control_active() && is_temperature_control_initialized()) {
                 // Control RGB basado en temperatura
                 thresholds = get_temp_thresholds();
                 float temp = ntc_data.temperature_c;
@@ -248,8 +248,12 @@ void display_info_task(void *arg)
             }
             
             // Estado del sistema
-            printf("Modo: %s | Impresión: HABILITADA\n", 
-                   is_manual_control_active() ? "MANUAL" : "AUTOMÁTICO");
+            if (is_temperature_control_initialized()) {
+                printf("Modo: %s | Control Temp: ACTIVADO | Impresión: HABILITADA\n", 
+                       is_manual_control_active() ? "MANUAL" : "AUTOMÁTICO");
+            } else {
+                printf("Modo: INICIALIZANDO | Control Temp: DESACTIVADO | Impresión: HABILITADA\n");
+            }
             printf("==========================================\n\n");
         }
         // Cuando la impresión está deshabilitada, NO imprimir NADA

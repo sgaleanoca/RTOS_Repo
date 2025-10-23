@@ -231,11 +231,9 @@ static void execute_command(const uart_command_t* cmd)
             temperature_control_initialized = true;  // Activar control de temperatura
             last_configured_color = 'B';  // Marcar que se configuró azul
             printf("Umbrales azules actualizados: %.1f°C - %.1f°C\n", cmd->value1, cmd->value2);
-            // Encender LED en azul para mostrar el color configurado
-            send_led_command("set_color", 0, 0, 255, true);
-            printf("LED encendido en AZUL para mostrar el color configurado\n");
-            printf("El LED se mantendrá encendido solo cuando la temperatura esté entre %.1f°C y %.1f°C\n", cmd->value1, cmd->value2);
             printf("Control automático de temperatura ACTIVADO - Solo rango AZUL\n");
+            printf("El LED se encenderá en AZUL solo cuando la temperatura esté entre %.1f°C y %.1f°C\n", cmd->value1, cmd->value2);
+            printf("El LED permanecerá APAGADO si la temperatura está fuera de este rango\n");
         } else {
             printf("Error: El valor mínimo debe ser menor que el máximo\n");
         }

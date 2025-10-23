@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "Project_6_Control_Temp_RGB",
-    "project_version":    "7f85545-dirty",
+    "project_version":    "c4d0305-dirty",
     "project_path":       "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB",
     "idf_path":           "/home/zerendor/esp/esp-idf",
     "build_dir":          "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build",

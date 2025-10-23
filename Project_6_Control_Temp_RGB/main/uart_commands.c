@@ -32,6 +32,7 @@ static temp_thresholds_t current_thresholds = {
 static bool uart_initialized = false;
 static bool manual_control_active = false;  // Flag para control manual
 static bool temperature_control_initialized = false;  // Flag para control de temperatura inicializado
+static char last_configured_color = 'N';  // 'R'=rojo, 'G'=verde, 'B'=azul, 'N'=ninguno
 static QueueHandle_t led_command_queue = NULL;  // Cola para comandos LED
 
 // ===== FUNCIONES PRIVADAS =====
@@ -196,12 +197,13 @@ static void execute_command(const uart_command_t* cmd)
             current_thresholds.r_min = cmd->value1;
             current_thresholds.r_max = cmd->value2;
             temperature_control_initialized = true;  // Activar control de temperatura
+            last_configured_color = 'R';  // Marcar que se configuró rojo
             printf("Umbrales rojos actualizados: %.1f°C - %.1f°C\n", cmd->value1, cmd->value2);
             // Encender LED en rojo para mostrar el color configurado
             send_led_command("set_color", 255, 0, 0, true);
             printf("LED encendido en ROJO para mostrar el color configurado\n");
             printf("El LED se mantendrá encendido solo cuando la temperatura esté entre %.1f°C y %.1f°C\n", cmd->value1, cmd->value2);
-            printf("Control automático de temperatura ACTIVADO\n");
+            printf("Control automático de temperatura ACTIVADO - Solo rango ROJO\n");
         } else {
             printf("Error: El valor mínimo debe ser menor que el máximo\n");
         }
@@ -211,12 +213,13 @@ static void execute_command(const uart_command_t* cmd)
             current_thresholds.g_min = cmd->value1;
             current_thresholds.g_max = cmd->value2;
             temperature_control_initialized = true;  // Activar control de temperatura
+            last_configured_color = 'G';  // Marcar que se configuró verde
             printf("Umbrales verdes actualizados: %.1f°C - %.1f°C\n", cmd->value1, cmd->value2);
             // Encender LED en verde para mostrar el color configurado
             send_led_command("set_color", 0, 255, 0, true);
             printf("LED encendido en VERDE para mostrar el color configurado\n");
             printf("El LED se mantendrá encendido solo cuando la temperatura esté entre %.1f°C y %.1f°C\n", cmd->value1, cmd->value2);
-            printf("Control automático de temperatura ACTIVADO\n");
+            printf("Control automático de temperatura ACTIVADO - Solo rango VERDE\n");
         } else {
             printf("Error: El valor mínimo debe ser menor que el máximo\n");
         }
@@ -226,12 +229,13 @@ static void execute_command(const uart_command_t* cmd)
             current_thresholds.b_min = cmd->value1;
             current_thresholds.b_max = cmd->value2;
             temperature_control_initialized = true;  // Activar control de temperatura
+            last_configured_color = 'B';  // Marcar que se configuró azul
             printf("Umbrales azules actualizados: %.1f°C - %.1f°C\n", cmd->value1, cmd->value2);
             // Encender LED en azul para mostrar el color configurado
             send_led_command("set_color", 0, 0, 255, true);
             printf("LED encendido en AZUL para mostrar el color configurado\n");
             printf("El LED se mantendrá encendido solo cuando la temperatura esté entre %.1f°C y %.1f°C\n", cmd->value1, cmd->value2);
-            printf("Control automático de temperatura ACTIVADO\n");
+            printf("Control automático de temperatura ACTIVADO - Solo rango AZUL\n");
         } else {
             printf("Error: El valor mínimo debe ser menor que el máximo\n");
         }
@@ -381,6 +385,11 @@ bool is_manual_control_active(void)
 bool is_temperature_control_initialized(void)
 {
     return temperature_control_initialized;
+}
+
+char get_last_configured_color(void)
+{
+    return last_configured_color;
 }
 
 // ===== FUNCIONES DE COLA DE COMANDOS LED =====

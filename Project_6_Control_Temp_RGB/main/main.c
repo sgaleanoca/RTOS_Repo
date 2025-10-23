@@ -169,46 +169,44 @@ void rgb_control_task(void *arg)
         if (ntc_status == pdPASS) {
             // Solo controlar LED si no está en modo manual y el control de temperatura está inicializado
             if (!is_manual_control_active() && is_temperature_control_initialized()) {
-                // Control RGB basado en temperatura
+                // Control RGB basado en temperatura - Solo el último rango configurado
                 thresholds = get_temp_thresholds();
                 float temp = ntc_data.temperature_c;
+                char last_color = get_last_configured_color();
                 
-                // Lógica específica para rangos de temperatura
-                // Mantener los 3 umbrales pero con comportamiento definido
-                bool in_red = (temp >= thresholds->r_min && temp <= thresholds->r_max);
-                bool in_green = (temp >= thresholds->g_min && temp <= thresholds->g_max);
-                bool in_blue = (temp >= thresholds->b_min && temp <= thresholds->b_max);
+                // Solo usar el último rango configurado
+                bool in_range = false;
                 
-                // Debug: Mostrar información de rangos (deshabilitado para limpiar salida)
-                // ESP_LOGI(TAG, "Temperatura: %.1f°C | R:%.1f-%.1f G:%.1f-%.1f B:%.1f-%.1f | in_red:%d in_green:%d in_blue:%d", 
-                //          temp, thresholds->r_min, thresholds->r_max, thresholds->g_min, thresholds->g_max, 
-                //          thresholds->b_min, thresholds->b_max, in_red, in_green, in_blue);
-                
-                // Lógica específica para rangos superpuestos
-                if (in_red && in_green) {
-                    // Rango superpuesto rojo-verde (10-15°C): AMARILLO (rojo + verde)
-                    rgb_led_set_color(255, 255, 0);
-                    // ESP_LOGI(TAG, "Temperatura %.1f°C -> LED AMARILLO (R+G superpuesto)", temp);
+                if (last_color == 'R') {
+                    // Solo verificar rango rojo
+                    in_range = (temp >= thresholds->r_min && temp <= thresholds->r_max);
+                    if (in_range) {
+                        rgb_led_set_color(255, 0, 0);  // ROJO
+                    } else {
+                        rgb_led_off();  // APAGADO si está fuera del rango rojo
+                    }
                 }
-                else if (in_green && !in_red) {
-                    // Solo verde (16-30°C): VERDE PURO
-                    rgb_led_set_color(0, 255, 0);
-                    // ESP_LOGI(TAG, "Temperatura %.1f°C -> LED VERDE PURO", temp);
+                else if (last_color == 'G') {
+                    // Solo verificar rango verde
+                    in_range = (temp >= thresholds->g_min && temp <= thresholds->g_max);
+                    if (in_range) {
+                        rgb_led_set_color(0, 255, 0);  // VERDE
+                    } else {
+                        rgb_led_off();  // APAGADO si está fuera del rango verde
+                    }
                 }
-                else if (in_red && !in_green) {
-                    // Solo rojo (0-10°C): ROJO PURO
-                    rgb_led_set_color(255, 0, 0);
-                    // ESP_LOGI(TAG, "Temperatura %.1f°C -> LED ROJO PURO", temp);
-                }
-                else if (in_blue) {
-                    // Azul (40-50°C): AZUL PURO
-                    rgb_led_set_color(0, 0, 255);
-                    // ESP_LOGI(TAG, "Temperatura %.1f°C -> LED AZUL PURO", temp);
+                else if (last_color == 'B') {
+                    // Solo verificar rango azul
+                    in_range = (temp >= thresholds->b_min && temp <= thresholds->b_max);
+                    if (in_range) {
+                        rgb_led_set_color(0, 0, 255);  // AZUL
+                    } else {
+                        rgb_led_off();  // APAGADO si está fuera del rango azul
+                    }
                 }
                 else {
-                    // Temperatura fuera de todos los rangos - APAGAR LED
+                    // No hay rango configurado - apagar LED
                     rgb_led_off();
-                    // ESP_LOGI(TAG, "Temperatura %.1f°C -> LED APAGADO (fuera de rangos)", temp);
                 }
             }
         }

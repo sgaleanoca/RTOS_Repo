@@ -179,36 +179,36 @@ void rgb_control_task(void *arg)
                 bool in_green = (temp >= thresholds->g_min && temp <= thresholds->g_max);
                 bool in_blue = (temp >= thresholds->b_min && temp <= thresholds->b_max);
                 
-                // Debug: Mostrar información de rangos
-                ESP_LOGI(TAG, "Temperatura: %.1f°C | R:%.1f-%.1f G:%.1f-%.1f B:%.1f-%.1f | in_red:%d in_green:%d in_blue:%d", 
-                         temp, thresholds->r_min, thresholds->r_max, thresholds->g_min, thresholds->g_max, 
-                         thresholds->b_min, thresholds->b_max, in_red, in_green, in_blue);
+                // Debug: Mostrar información de rangos (deshabilitado para limpiar salida)
+                // ESP_LOGI(TAG, "Temperatura: %.1f°C | R:%.1f-%.1f G:%.1f-%.1f B:%.1f-%.1f | in_red:%d in_green:%d in_blue:%d", 
+                //          temp, thresholds->r_min, thresholds->r_max, thresholds->g_min, thresholds->g_max, 
+                //          thresholds->b_min, thresholds->b_max, in_red, in_green, in_blue);
                 
                 // Lógica específica para rangos superpuestos
                 if (in_red && in_green) {
                     // Rango superpuesto rojo-verde (10-15°C): AMARILLO (rojo + verde)
                     rgb_led_set_color(255, 255, 0);
-                    ESP_LOGI(TAG, "Temperatura %.1f°C -> LED AMARILLO (R+G superpuesto)", temp);
+                    // ESP_LOGI(TAG, "Temperatura %.1f°C -> LED AMARILLO (R+G superpuesto)", temp);
                 }
                 else if (in_green && !in_red) {
                     // Solo verde (16-30°C): VERDE PURO
                     rgb_led_set_color(0, 255, 0);
-                    ESP_LOGI(TAG, "Temperatura %.1f°C -> LED VERDE PURO", temp);
+                    // ESP_LOGI(TAG, "Temperatura %.1f°C -> LED VERDE PURO", temp);
                 }
                 else if (in_red && !in_green) {
                     // Solo rojo (0-10°C): ROJO PURO
                     rgb_led_set_color(255, 0, 0);
-                    ESP_LOGI(TAG, "Temperatura %.1f°C -> LED ROJO PURO", temp);
+                    // ESP_LOGI(TAG, "Temperatura %.1f°C -> LED ROJO PURO", temp);
                 }
                 else if (in_blue) {
                     // Azul (40-50°C): AZUL PURO
                     rgb_led_set_color(0, 0, 255);
-                    ESP_LOGI(TAG, "Temperatura %.1f°C -> LED AZUL PURO", temp);
+                    // ESP_LOGI(TAG, "Temperatura %.1f°C -> LED AZUL PURO", temp);
                 }
                 else {
                     // Temperatura fuera de todos los rangos - APAGAR LED
                     rgb_led_off();
-                    ESP_LOGI(TAG, "Temperatura %.1f°C -> LED APAGADO (fuera de rangos)", temp);
+                    // ESP_LOGI(TAG, "Temperatura %.1f°C -> LED APAGADO (fuera de rangos)", temp);
                 }
             }
         }
@@ -227,7 +227,18 @@ void display_info_task(void *arg)
             printf("\n=== SISTEMA DE MONITOREO ===\n");
             printf("Potenciómetro: %d%% (%lu mV)\n", 
                    current_pot_data.pot_percent, current_pot_data.pot_voltage_mv);
-            printf("LED RGB: %d%% intensidad\n", rgb_led_get_intensity());
+            
+            // Información del LED RGB
+            if (rgb_led_is_on()) {
+                printf("LED RGB: %s | Intensidad: %d%% | RGB(%d,%d,%d)\n", 
+                       rgb_led_get_color_name(), 
+                       rgb_led_get_intensity(),
+                       rgb_led_get_red(), rgb_led_get_green(), rgb_led_get_blue());
+            } else {
+                printf("LED RGB: APAGADO\n");
+            }
+            
+            // Información de temperatura
             if (data_ready) {
                 printf("Temperatura: %.1f°C\n", current_ntc_data.temperature_c);
                 printf("Resistencia NTC: %.0f Ohms | ADC Raw: %d\n",
@@ -235,13 +246,16 @@ void display_info_task(void *arg)
             } else {
                 printf("Esperando datos del sensor NTC...\n");
             }
-            printf("Estado: Impresión HABILITADA (Botón GPIO14)\n");
+            
+            // Estado del sistema
+            printf("Modo: %s | Impresión: HABILITADA\n", 
+                   is_manual_control_active() ? "MANUAL" : "AUTOMÁTICO");
             printf("==========================================\n\n");
         }
         // Cuando la impresión está deshabilitada, NO imprimir NADA
         // El monitor serial permanecerá completamente silencioso
         
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(2000));  // Cambiado a 2 segundos
     }
 }
 

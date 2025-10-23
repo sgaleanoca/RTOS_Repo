@@ -134,3 +134,56 @@ uint8_t rgb_led_get_intensity(void)
 {
     return current_intensity;
 }
+
+uint8_t rgb_led_get_red(void)
+{
+    return current_red;
+}
+
+uint8_t rgb_led_get_green(void)
+{
+    return current_green;
+}
+
+uint8_t rgb_led_get_blue(void)
+{
+    return current_blue;
+}
+
+bool rgb_led_is_on(void)
+{
+    return current_intensity > 0;
+}
+
+const char* rgb_led_get_color_name(void)
+{
+    if (!rgb_led_is_on()) {
+        return "APAGADO";
+    }
+    
+    // Determinar color basado en los valores RGB
+    if (current_red > 200 && current_green < 50 && current_blue < 50) {
+        return "ROJO";
+    }
+    else if (current_red < 50 && current_green > 200 && current_blue < 50) {
+        return "VERDE";
+    }
+    else if (current_red < 50 && current_green < 50 && current_blue > 200) {
+        return "AZUL";
+    }
+    else if (current_red > 200 && current_green > 200 && current_blue < 50) {
+        return "AMARILLO";
+    }
+    else if (current_red > 200 && current_green < 50 && current_blue > 200) {
+        return "MAGENTA";
+    }
+    else if (current_red < 50 && current_green > 200 && current_blue > 200) {
+        return "CIAN";
+    }
+    else if (current_red > 200 && current_green > 200 && current_blue > 200) {
+        return "BLANCO";
+    }
+    else {
+        return "MIXTO";
+    }
+}

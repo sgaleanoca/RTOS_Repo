@@ -23,6 +23,8 @@ typedef enum {
 typedef struct {
     bool is_pressed;
     bool print_enabled;
+    // IMPLEMENTACIÓN PARCIAL_1 BOTON ALTERNADO DEL LED
+    bool led_forced_off;
     uint32_t press_start_time;
     uint32_t last_event_time;
 } button_state_t;
@@ -36,5 +38,7 @@ void button_task(void *arg);
 bool is_print_enabled(void);
 void set_print_enabled(bool enabled);
 button_state_t get_button_state(void);
+// IMPLEMENTACIÓN PARCIAL_1 BOTON ALTERNADO DEL LED
+bool is_led_forced_off(void);
 
 #endif // BUTTON_CONTROL_H

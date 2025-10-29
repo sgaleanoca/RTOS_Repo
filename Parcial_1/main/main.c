@@ -121,6 +121,16 @@ void rgb_control_task(void *arg)
     ESP_LOGI(TAG, "Tarea de control del LED RGB iniciada");
     
     while (1) {
+        // IMPLEMENTACIÓN PARCIAL_1 BOTON ALTERNADO DEL LED
+        // Si el LED está forzado apagado por el botón, mantenerlo apagado y omitir controles
+        if (is_led_forced_off()) {
+            if (rgb_led_is_on()) {
+                rgb_led_off();
+            }
+            vTaskDelay(pdMS_TO_TICKS(50));
+            continue;
+        }
+
         // Procesar comandos UART si existen (no bloqueante)
         // Gestión de comandos recibidos por UART para ajustar umbrales o control del pot
         if (command_queue != NULL && xQueueReceive(command_queue, &received_cmd, 0) == pdPASS) {

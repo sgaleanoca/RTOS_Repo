@@ -30,9 +30,11 @@ void button_control_init(void) {
     
     // Inicializar estado del botón
     button_state.is_pressed = false;
-    button_state.print_enabled = true;  // Por defecto, la impresión está habilitada
+    button_state.print_enabled = true;  // La impresión deja de togglearse con el botón
+    button_state.led_forced_off = false; // LED no forzado apagado por defecto
     button_state.press_start_time = 0;
     button_state.last_event_time = 0;
+    
     
     // Crear cola de eventos del botón
     button_queue = xQueueCreate(5, sizeof(button_event_t));
@@ -83,12 +85,13 @@ void button_task(void *arg) {
             button_state.last_event_time = current_time;
             
             if (!long_press_detected) {
-                // Pulsación corta: alternar estado de impresión por consola
-                button_state.print_enabled = !button_state.print_enabled;
-                ESP_LOGI(TAG, "Pulsación corta - Impresión %s", 
-                         button_state.print_enabled ? "HABILITADA" : "DESHABILITADA");
-                
-                // Enviar evento a la cola
+                // IMPLEMENTACIÓN PARCIAL_1 BOTON ALTERNADO DEL LED
+                // Pulsación corta: alterna forzado de LED apagado (una sola vez por pulsación)
+                button_state.led_forced_off = !button_state.led_forced_off;
+                ESP_LOGI(TAG, "Pulsación corta - LED %s", 
+                         button_state.led_forced_off ? "FORZADO APAGADO" : "CONTROL NORMAL");
+
+                // Enviar evento a la cola (se mantiene por compatibilidad)
                 button_event_t event = BUTTON_EVENT_PRESSED;
                 xQueueSend(button_queue, &event, pdMS_TO_TICKS(10));
             }
@@ -118,3 +121,4 @@ void set_print_enabled(bool enabled) {
     ESP_LOGI(TAG, "Impresión %s manualmente", enabled ? "HABILITADA" : "DESHABILITADA");
 }
 button_state_t get_button_state(void) { return button_state; }
+bool is_led_forced_off(void) { return button_state.led_forced_off; }

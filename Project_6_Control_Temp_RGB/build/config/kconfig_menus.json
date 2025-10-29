@@ -14059,6 +14059,117 @@
                 "id": "component-config-spi-flash-driver",
                 "title": "SPI Flash driver",
                 "type": "menu"
+            },
+            {
+                "children": [
+                    {
+                        "children": [
+                            {
+                                "children": [],
+                                "depends_on": "VFS_SUPPORT_IO",
+                                "help": "If enabled, the following functions are provided by the VFS component.\n\nstat, link, unlink, rename, utime, access, truncate, rmdir, mkdir,\nopendir, closedir, readdir, readdir_r, seekdir, telldir, rewinddir\n\nFilesystem drivers can then be registered to handle these functions\nfor specific paths.\n\nDisabling this option can save memory when the support for these functions\nis not required.",
+                                "id": "VFS_SUPPORT_DIR",
+                                "name": "VFS_SUPPORT_DIR",
+                                "range": null,
+                                "title": "Provide directory related functions",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [
+                                    {
+                                        "children": [],
+                                        "depends_on": "VFS_SUPPORT_SELECT",
+                                        "help": "Select() related functions might produce an inconveniently lot of\ndebug outputs when one sets the default log level to DEBUG or higher.\nIt is possible to suppress these debug outputs by enabling this\noption.",
+                                        "id": "VFS_SUPPRESS_SELECT_DEBUG_OUTPUT",
+                                        "name": "VFS_SUPPRESS_SELECT_DEBUG_OUTPUT",
+                                        "range": null,
+                                        "title": "Suppress select() related debug outputs",
+                                        "type": "bool"
+                                    },
+                                    {
+                                        "children": [],
+                                        "depends_on": "VFS_SUPPORT_SELECT",
+                                        "help": "If enabled, VFS driver select() callback function will be placed in IRAM.",
+                                        "id": "VFS_SELECT_IN_RAM",
+                                        "name": "VFS_SELECT_IN_RAM",
+                                        "range": null,
+                                        "title": "Make VFS driver select() callbacks IRAM-safe",
+                                        "type": "bool"
+                                    }
+                                ],
+                                "depends_on": "VFS_SUPPORT_IO && !LWIP_USE_ONLY_LWIP_SELECT",
+                                "help": "If enabled, select function is provided by the VFS component, and can be used\non peripheral file descriptors (such as UART) and sockets at the same time.\n\nIf disabled, the default select implementation will be provided by LWIP for\nsockets only.\n\nDisabling this option can reduce code size if support for \"select\" on UART file\ndescriptors is not required.",
+                                "id": "VFS_SUPPORT_SELECT",
+                                "name": "VFS_SUPPORT_SELECT",
+                                "range": null,
+                                "title": "Provide select function",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "VFS_SUPPORT_IO",
+                                "help": "Disabling this option can save memory when the support for termios.h is not required.",
+                                "id": "VFS_SUPPORT_TERMIOS",
+                                "name": "VFS_SUPPORT_TERMIOS",
+                                "range": null,
+                                "title": "Provide termios.h functions",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "VFS_SUPPORT_IO",
+                                "help": "Define maximum number of virtual filesystems that can be registered.",
+                                "id": "VFS_MAX_COUNT",
+                                "name": "VFS_MAX_COUNT",
+                                "range": [
+                                    1,
+                                    20
+                                ],
+                                "title": "Maximum Number of Virtual Filesystems",
+                                "type": "int"
+                            },
+                            {
+                                "children": [
+                                    {
+                                        "children": [],
+                                        "depends_on": "VFS_SUPPORT_IO",
+                                        "help": "Define maximum number of host filesystem mount points.",
+                                        "id": "VFS_SEMIHOSTFS_MAX_MOUNT_POINTS",
+                                        "name": "VFS_SEMIHOSTFS_MAX_MOUNT_POINTS",
+                                        "range": null,
+                                        "title": "Host FS: Maximum number of the host filesystem mount points",
+                                        "type": "int"
+                                    }
+                                ],
+                                "depends_on": "VFS_SUPPORT_IO",
+                                "id": "component-config-virtual-file-system-provide-basic-i-o-functions-host-file-system-i-o-semihosting-",
+                                "title": "Host File System I/O (Semihosting)",
+                                "type": "menu"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "VFS_SUPPORT_IO",
+                                "help": "If enabled, /dev/null VFS will be automatically initialized at startup.",
+                                "id": "VFS_INITIALIZE_DEV_NULL",
+                                "name": "VFS_INITIALIZE_DEV_NULL",
+                                "range": null,
+                                "title": "Initialize /dev/null VFS",
+                                "type": "bool"
+                            }
+                        ],
+                        "depends_on": null,
+                        "help": "If enabled, the following functions are provided by the VFS component.\n\nopen, close, read, write, pread, pwrite, lseek, fstat, fsync, ioctl, fcntl\n\nFilesystem drivers can then be registered to handle these functions\nfor specific paths.\n\nDisabling this option can save memory when the support for these functions\nis not required.\n\nNote that the following functions can still be used with socket file descriptors\nwhen this option is disabled:\n\nclose, read, write, ioctl, fcntl.",
+                        "id": "VFS_SUPPORT_IO",
+                        "name": "VFS_SUPPORT_IO",
+                        "range": null,
+                        "title": "Provide basic I/O functions",
+                        "type": "bool"
+                    }
+                ],
+                "depends_on": null,
+                "id": "component-config-virtual-file-system",
+                "title": "Virtual file system",
+                "type": "menu"
             }
         ],
         "depends_on": null,

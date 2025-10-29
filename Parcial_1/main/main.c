@@ -214,7 +214,9 @@ void display_info_task(void *arg)
     while (1) {
         if (is_print_enabled()) {
             printf("\n=== SISTEMA DE MONITOREO ===\n");
-            printf("Potenciómetro: %d%% (%lu mV)\n", current_pot_data.pot_percent, current_pot_data.pot_voltage_mv);
+            // IMPLEMENTACIÓN PARCIAL_1 COMANDO PARA IMPRIMIR UNA SOLA VEZ EL VOLTAJE DEL POTENCIOMETRO
+            // Se quita la impresión de mV del potenciómetro en el monitoreo periódico
+            printf("Potenciómetro: %d%%\n", current_pot_data.pot_percent);
             
             if (rgb_led_is_on()) {
                 printf("LED RGB: %s | Intensidad: %d%% | RGB(%d,%d,%d)\n", 
@@ -319,6 +321,8 @@ static void print_help_menu(void)
     printf("  G <min> <max>   -> Rango temp para VERDE (ej: G 10 30)\n");
     printf("  B <min> <max>   -> Rango temp para AZUL (ej: B 25 40)\n");
     printf("  pot <r|g|b|none>-> Asigna el potenciómetro a un color\n");
+    // IMPLEMENTACIÓN PARCIAL_1 COMANDO PARA IMPRIMIR UNA SOLA VEZ EL VOLTAJE DEL POTENCIOMETRO
+    printf("  potmv           -> Lee el potenciómetro (mV) una sola vez\n");
     // IMPLEMENTACIÓN PARCIAL_1 COMANDO PARA CAMBIAR EL TIEMPO DE IMPRESIÓN DE TEMPERATURA
     printf("  rate <ms>       -> Cambia periodo del monitor en milisegundos\n");
     printf("  help            -> Muestra este menú\n");
@@ -348,6 +352,15 @@ void uart_receiver_task(void *arg)
 
             if (strncmp((char*)data, "help", 4) == 0) {
                 print_help_menu();
+                continue;
+            }
+
+            // IMPLEMENTACIÓN PARCIAL_1 COMANDO PARA IMPRIMIR UNA SOLA VEZ EL VOLTAJE DEL POTENCIOMETRO
+            // Lectura única del potenciómetro en mV
+            if (strncmp((char*)data, "potmv", 5) == 0) {
+                uint32_t mv = pot_get_voltage_mv();
+                printf("POT: %lu mV\n> ", mv);
+                fflush(stdout);
                 continue;
             }
 

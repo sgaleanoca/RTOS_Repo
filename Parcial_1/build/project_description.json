@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "Parcial_1",
-    "project_version":    "ec23e78-dirty",
+    "project_version":    "72b3600-dirty",
     "project_path":       "/home/zerendor/Documents/RTOS_Raiz/Parcial_1",
     "idf_path":           "/home/zerendor/esp/esp-idf",
     "build_dir":          "/home/zerendor/Documents/RTOS_Raiz/Parcial_1/build",

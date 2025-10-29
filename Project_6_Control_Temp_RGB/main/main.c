@@ -34,10 +34,8 @@ static bool data_ready = false;
 // ===== FUNCIÓN AUXILIAR PARA LOGS CONDICIONALES =====
 static void conditional_log_info(const char *tag, const char *format, ...) {
     if (is_print_enabled()) {
-        va_list args;
-        va_start(args, format);
-        esp_log_writev(ESP_LOG_INFO, tag, format, args);
-        va_end(args);
+        va_list args; va_start(args, format);
+        esp_log_writev(ESP_LOG_INFO, tag, format, args); va_end(args);
     }
 }
 
@@ -47,7 +45,6 @@ void pot_reading_task(void *arg)
     pot_data_t pot_data;
     static uint8_t last_intensity = 0;
     static uint32_t last_log_time = 0;
-    uint32_t current_time;
     
     ESP_LOGI(TAG, "Tarea de lectura del potenciómetro iniciada");
     
@@ -55,27 +52,16 @@ void pot_reading_task(void *arg)
         pot_data.pot_percent = pot_get_percent();
         pot_data.pot_voltage_mv = pot_get_voltage_mv();
         
-        // Enviar datos a la cola del potenciómetro
-        if (pot_queue != NULL) {
-            xQueueSend(pot_queue, &pot_data, pdMS_TO_TICKS(10));
-        }
-        
-        // Mantener compatibilidad con variables globales
+        if (pot_queue != NULL) xQueueSend(pot_queue, &pot_data, pdMS_TO_TICKS(10));
         current_pot_data = pot_data;
         
-        // Controlar intensidad del LED RGB con el potenciómetro (solo si no está en modo manual)
         if (pot_data.pot_percent != last_intensity && !is_manual_control_active()) {
             rgb_led_set_intensity(pot_data.pot_percent);
             last_intensity = pot_data.pot_percent;
         }
         
-        // Solo imprimir cada 2 segundos (deshabilitado para limpiar salida)
-        current_time = xTaskGetTickCount() * portTICK_PERIOD_MS;
-        if (current_time - last_log_time >= 2000) {
-            // conditional_log_info(TAG, "Potenciómetro: %d%% (%lu mV) - LED RGB: %d%%", 
-            //                    pot_data.pot_percent, pot_data.pot_voltage_mv, pot_data.pot_percent);
-            last_log_time = current_time;
-        }
+        uint32_t current_time = xTaskGetTickCount() * portTICK_PERIOD_MS;
+        if (current_time - last_log_time >= 2000) last_log_time = current_time;
         
         vTaskDelay(pdMS_TO_TICKS(250));
     }
@@ -84,36 +70,19 @@ void pot_reading_task(void *arg)
 void ntc_reading_task(void *arg)
 {
     ntc_data_t ntc_data;
-    
     ESP_LOGI(TAG, "Tarea de lectura del sensor NTC iniciada");
     
     while (1) {
         ntc_data = ntc_read_temperature();
         
-        // Validar que los datos sean razonables
         if (ntc_data.raw_adc_value > 0 && ntc_data.raw_adc_value < 4096 && 
-            ntc_data.temperature_c > -50.0 && ntc_data.temperature_c < 150.0 &&
-            ntc_data.temperature_c != -999.0) {
-            
-            // Enviar datos a la cola del sensor NTC
-            if (ntc_queue != NULL) {
-                xQueueSend(ntc_queue, &ntc_data, pdMS_TO_TICKS(10));
-            }
-            
-            // Mantener compatibilidad con variables globales
-            current_ntc_data = ntc_data;
-            data_ready = true;
-            
-            // Actualizar LED RGB según temperatura y thresholds
-            // Función de control RGB por temperatura deshabilitada
-            
-            // conditional_log_info(TAG, "Datos válidos: Temp=%.1f°C, ADC=%d, R=%.0fΩ", 
-            //          ntc_data.temperature_c, ntc_data.raw_adc_value, ntc_data.resistance);
+            ntc_data.temperature_c > -50.0 && ntc_data.temperature_c < 150.0 && ntc_data.temperature_c != -999.0) {
+            if (ntc_queue != NULL) xQueueSend(ntc_queue, &ntc_data, pdMS_TO_TICKS(10));
+            current_ntc_data = ntc_data; data_ready = true;
         } else {
             conditional_log_info(TAG, "Datos inválidos: Temp=%.1f°C, ADC=%d, R=%.0fΩ", 
                      ntc_data.temperature_c, ntc_data.raw_adc_value, ntc_data.resistance);
         }
-        
         vTaskDelay(pdMS_TO_TICKS(2000));
     }
 }
@@ -138,76 +107,43 @@ void rgb_control_task(void *arg)
             if (strcmp(led_cmd.command, "led_on") == 0) {
                 rgb_led_set_color(led_cmd.red, led_cmd.green, led_cmd.blue);
                 ESP_LOGI(TAG, "LED encendido: R=%d, G=%d, B=%d", led_cmd.red, led_cmd.green, led_cmd.blue);
-            }
-            else if (strcmp(led_cmd.command, "led_off") == 0) {
+            } else if (strcmp(led_cmd.command, "led_off") == 0) {
                 rgb_led_off();
                 ESP_LOGI(TAG, "LED apagado");
-            }
-            else if (strcmp(led_cmd.command, "set_color") == 0) {
+            } else if (strcmp(led_cmd.command, "set_color") == 0) {
                 rgb_led_set_color(led_cmd.red, led_cmd.green, led_cmd.blue);
                 ESP_LOGI(TAG, "Color establecido: R=%d, G=%d, B=%d", led_cmd.red, led_cmd.green, led_cmd.blue);
             }
             
-            // Actualizar flag de control manual
-            if (led_cmd.manual_control) {
-                // El flag se actualiza en uart_commands.c
-                ESP_LOGI(TAG, "Control manual activado por comando UART");
-            }
+            if (led_cmd.manual_control) ESP_LOGI(TAG, "Control manual activado por comando UART");
         }
         
         // Procesar datos del potenciómetro desde la cola (siempre activo para intensidad)
         pot_status = xQueueReceive(pot_queue, &pot_data, pdMS_TO_TICKS(10));
         if (pot_status == pdPASS) {
-            // Actualizar intensidad del LED RGB basado en el potenciómetro
-            // Esto NO afecta el color, solo la intensidad
             rgb_led_set_intensity(pot_data.pot_percent);
             ESP_LOGD(TAG, "Intensidad LED actualizada: %d%%", pot_data.pot_percent);
         }
         
         // Procesar datos del sensor NTC desde la cola (solo si no está en modo manual y está inicializado)
         ntc_status = xQueueReceive(ntc_queue, &ntc_data, pdMS_TO_TICKS(10));
-        if (ntc_status == pdPASS) {
-            // Solo controlar LED si no está en modo manual y el control de temperatura está inicializado
-            if (!is_manual_control_active() && is_temperature_control_initialized()) {
-                // Control RGB basado en temperatura - Solo el último rango configurado
-                thresholds = get_temp_thresholds();
-                float temp = ntc_data.temperature_c;
-                char last_color = get_last_configured_color();
-                
-                // Solo usar el último rango configurado
-                bool in_range = false;
-                
-                if (last_color == 'R') {
-                    // Solo verificar rango rojo
-                    in_range = (temp >= thresholds->r_min && temp <= thresholds->r_max);
-                    if (in_range) {
-                        rgb_led_set_color(255, 0, 0);  // ROJO
-                    } else {
-                        rgb_led_off();  // APAGADO si está fuera del rango rojo
-                    }
-                }
-                else if (last_color == 'G') {
-                    // Solo verificar rango verde
-                    in_range = (temp >= thresholds->g_min && temp <= thresholds->g_max);
-                    if (in_range) {
-                        rgb_led_set_color(0, 255, 0);  // VERDE
-                    } else {
-                        rgb_led_off();  // APAGADO si está fuera del rango verde
-                    }
-                }
-                else if (last_color == 'B') {
-                    // Solo verificar rango azul
-                    in_range = (temp >= thresholds->b_min && temp <= thresholds->b_max);
-                    if (in_range) {
-                        rgb_led_set_color(0, 0, 255);  // AZUL
-                    } else {
-                        rgb_led_off();  // APAGADO si está fuera del rango azul
-                    }
-                }
-                else {
-                    // No hay rango configurado - apagar LED
-                    rgb_led_off();
-                }
+        if (ntc_status == pdPASS && !is_manual_control_active() && is_temperature_control_initialized()) {
+            thresholds = get_temp_thresholds();
+            float temp = ntc_data.temperature_c;
+            char last_color = get_last_configured_color();
+            bool in_range = false;
+            
+            if (last_color == 'R') {
+                in_range = (temp >= thresholds->r_min && temp <= thresholds->r_max);
+                if (in_range) rgb_led_set_color(255, 0, 0); else rgb_led_off();
+            } else if (last_color == 'G') {
+                in_range = (temp >= thresholds->g_min && temp <= thresholds->g_max);
+                if (in_range) rgb_led_set_color(0, 255, 0); else rgb_led_off();
+            } else if (last_color == 'B') {
+                in_range = (temp >= thresholds->b_min && temp <= thresholds->b_max);
+                if (in_range) rgb_led_set_color(0, 0, 255); else rgb_led_off();
+            } else {
+                rgb_led_off();
             }
         }
         
@@ -220,32 +156,25 @@ void display_info_task(void *arg)
     ESP_LOGI(TAG, "Tarea de visualización iniciada");
     
     while (1) {
-        // Solo mostrar datos si la impresión está habilitada
         if (is_print_enabled()) {
             printf("\n=== SISTEMA DE MONITOREO ===\n");
-            printf("Potenciómetro: %d%% (%lu mV)\n", 
-                   current_pot_data.pot_percent, current_pot_data.pot_voltage_mv);
+            printf("Potenciómetro: %d%% (%lu mV)\n", current_pot_data.pot_percent, current_pot_data.pot_voltage_mv);
             
-            // Información del LED RGB
             if (rgb_led_is_on()) {
                 printf("LED RGB: %s | Intensidad: %d%% | RGB(%d,%d,%d)\n", 
-                       rgb_led_get_color_name(), 
-                       rgb_led_get_intensity(),
+                       rgb_led_get_color_name(), rgb_led_get_intensity(),
                        rgb_led_get_red(), rgb_led_get_green(), rgb_led_get_blue());
             } else {
                 printf("LED RGB: APAGADO\n");
             }
             
-            // Información de temperatura
             if (data_ready) {
                 printf("Temperatura: %.1f°C\n", current_ntc_data.temperature_c);
-                printf("Resistencia NTC: %.0f Ohms | ADC Raw: %d\n",
-                       current_ntc_data.resistance, current_ntc_data.raw_adc_value);
+                printf("Resistencia NTC: %.0f Ohms | ADC Raw: %d\n", current_ntc_data.resistance, current_ntc_data.raw_adc_value);
             } else {
                 printf("Esperando datos del sensor NTC...\n");
             }
             
-            // Estado del sistema
             if (is_temperature_control_initialized()) {
                 printf("Modo: %s | Control Temp: ACTIVADO | Impresión: HABILITADA\n", 
                        is_manual_control_active() ? "MANUAL" : "AUTOMÁTICO");
@@ -254,10 +183,7 @@ void display_info_task(void *arg)
             }
             printf("==========================================\n\n");
         }
-        // Cuando la impresión está deshabilitada, NO imprimir NADA
-        // El monitor serial permanecerá completamente silencioso
-        
-        vTaskDelay(pdMS_TO_TICKS(2000));  // Cambiado a 2 segundos
+        vTaskDelay(pdMS_TO_TICKS(2000));
     }
 }
 
@@ -281,89 +207,33 @@ void app_main(void)
     ESP_LOGI(TAG, "Creando colas del sistema...");
     
     pot_queue = xQueueCreate(5, sizeof(pot_data_t));
-    if (pot_queue == NULL) {
-        ESP_LOGE(TAG, "Error creando cola del potenciómetro");
-        return;
-    }
-    
     ntc_queue = xQueueCreate(5, sizeof(ntc_data_t));
-    if (ntc_queue == NULL) {
-        ESP_LOGE(TAG, "Error creando cola del sensor NTC");
-        return;
-    }
-    
-    led_queue = xQueueCreate(5, sizeof(uint8_t));  // Para comandos del LED
-    if (led_queue == NULL) {
-        ESP_LOGE(TAG, "Error creando cola del LED RGB");
-        return;
-    }
-    
-    // Obtener cola de comandos LED desde uart_commands
+    led_queue = xQueueCreate(5, sizeof(uint8_t));
     led_command_queue = get_led_command_queue();
-    if (led_command_queue == NULL) {
-        ESP_LOGE(TAG, "Error obteniendo cola de comandos LED");
+    
+    if (pot_queue == NULL || ntc_queue == NULL || led_queue == NULL || led_command_queue == NULL) {
+        ESP_LOGE(TAG, "Error creando colas del sistema");
         return;
     }
-    
     ESP_LOGI(TAG, "Colas del sistema creadas correctamente");
     
     // ===== CREACIÓN DE TAREAS DEL SISTEMA =====
     ESP_LOGI(TAG, "Creando tareas del sistema...");
     
-    if (xTaskCreate(pot_reading_task, "pot_reading_task", 4096, NULL, 5, NULL) != pdPASS) {
-        ESP_LOGE(TAG, "Error creando tarea de lectura del potenciómetro");
-        return;
-    }
-    
-    if (xTaskCreate(ntc_reading_task, "ntc_reading_task", 4096, NULL, 5, NULL) != pdPASS) {
-        ESP_LOGE(TAG, "Error creando tarea de lectura del sensor NTC");
-        return;
-    }
-    
-    
-    if (xTaskCreate(display_info_task, "display_info_task", 4096, NULL, 3, NULL) != pdPASS) {
-        ESP_LOGE(TAG, "Error creando tarea de visualización");
-        return;
-    }
-    
-    if (xTaskCreate(button_task, "button_task", 4096, NULL, 4, NULL) != pdPASS) {
-        ESP_LOGE(TAG, "Error creando tarea de control de botón");
-        return;
-    }
-    
-    if (xTaskCreate(rgb_control_task, "rgb_control_task", 4096, NULL, 6, NULL) != pdPASS) {
-        ESP_LOGE(TAG, "Error creando tarea de control del LED RGB");
-        return;
-    }
-    
-    if (xTaskCreate(uart_commands_task, "uart_commands_task", 4096, NULL, 7, NULL) != pdPASS) {
-        ESP_LOGE(TAG, "Error creando tarea de comandos UART");
+    if (xTaskCreate(pot_reading_task, "pot_reading_task", 4096, NULL, 5, NULL) != pdPASS ||
+        xTaskCreate(ntc_reading_task, "ntc_reading_task", 4096, NULL, 5, NULL) != pdPASS ||
+        xTaskCreate(display_info_task, "display_info_task", 4096, NULL, 3, NULL) != pdPASS ||
+        xTaskCreate(button_task, "button_task", 4096, NULL, 4, NULL) != pdPASS ||
+        xTaskCreate(rgb_control_task, "rgb_control_task", 4096, NULL, 6, NULL) != pdPASS ||
+        xTaskCreate(uart_commands_task, "uart_commands_task", 4096, NULL, 7, NULL) != pdPASS) {
+        ESP_LOGE(TAG, "Error creando tareas del sistema");
         return;
     }
     
     // ===== SISTEMA INICIADO EXITOSAMENTE =====
     ESP_LOGI(TAG, "=== SISTEMA RTOS INICIADO EXITOSAMENTE ===");
-    ESP_LOGI(TAG, "Configuración del hardware:");
-    ESP_LOGI(TAG, "  - Potenciómetro: ADC1 CH6 (GPIO34)");
-    ESP_LOGI(TAG, "  - Sensor NTC: ADC2 CH9 (GPIO26)");
-    ESP_LOGI(TAG, "  - Botón de control: GPIO14");
-    ESP_LOGI(TAG, "  - LED RGB: R=GPIO13, G=GPIO12, B=GPIO25");
-    ESP_LOGI(TAG, "  - UART: TX=GPIO1, RX=GPIO3 (115200 baud)");
-    ESP_LOGI(TAG, "Frecuencias de operación:");
-    ESP_LOGI(TAG, "  - Lectura potenciómetro: 4 veces/segundo");
-    ESP_LOGI(TAG, "  - Lectura sensor NTC: cada 2 segundos");
-    ESP_LOGI(TAG, "  - Control LED RGB: cada 50ms");
-    ESP_LOGI(TAG, "  - Monitor serie: cada 1 segundo");
-    ESP_LOGI(TAG, "  - Control de botón: cada 10ms");
-    ESP_LOGI(TAG, "  - Comandos UART: tiempo real");
-    ESP_LOGI(TAG, "Comunicación entre tareas:");
-    ESP_LOGI(TAG, "  - Cola potenciómetro: 5 elementos");
-    ESP_LOGI(TAG, "  - Cola sensor NTC: 5 elementos");
-    ESP_LOGI(TAG, "  - Cola LED RGB: 5 elementos");
-    ESP_LOGI(TAG, "Controles:");
-    ESP_LOGI(TAG, "  - Pulsación corta: Alternar impresión ON/OFF");
-    ESP_LOGI(TAG, "  - Pulsación larga: Evento especial");
-    ESP_LOGI(TAG, "  - Potenciómetro: Controla intensidad LED RGB (0-100%)");
-    ESP_LOGI(TAG, "  - UART: Comandos para configurar umbrales de temperatura");
+    ESP_LOGI(TAG, "Hardware: Pot=GPIO34, NTC=GPIO26, Botón=GPIO14, RGB=R13/G12/B25, UART=GPIO1/3");
+    ESP_LOGI(TAG, "Frecuencias: Pot=4Hz, NTC=0.5Hz, LED=20Hz, Monitor=0.5Hz, Botón=100Hz, UART=tiempo real");
+    ESP_LOGI(TAG, "Controles: Botón=impresión ON/OFF, Pot=intensidad LED, UART=umbrales temperatura");
     ESP_LOGI(TAG, "=== SISTEMA EN FUNCIONAMIENTO ===");
 }

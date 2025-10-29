@@ -1,0 +1,310 @@
+Command: ninja all
+[1/10] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/potentiometer.c.obj
+FAILED: esp-idf/main/CMakeFiles/__idf_main.dir/potentiometer.c.obj 
+/home/zerendor/.espressif/tools/xtensa-esp-elf/esp-14.2.0_20241119/xtensa-esp-elf/bin/xtensa-esp32-elf-gcc -DESP_PLATFORM -DIDF_VER=\"v5.5\" -DSOC_MMU_PAGE_SIZE=CONFIG_MMU_PAGE_SIZE -DSOC_XTAL_FREQ_MHZ=CONFIG_XTAL_FREQ -D_GLIBCXX_HAVE_POSIX_SEMAPHORE -D_GLIBCXX_USE_POSIX_SEMAPHORE -D_GNU_SOURCE -D_POSIX_READER_WRITER_LOCKS -I/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build/config -I/home/zerendor/esp/esp-idf/components/newlib/platform_include -I/home/zerendor/esp/esp-idf/components/freertos/config/include -I/home/zerendor/esp/esp-idf/components/freertos/config/include/freertos -I/home/zerendor/esp/esp-idf/components/freertos/config/xtensa/include -I/home/zerendor/esp/esp-idf/components/freertos/FreeRTOS-Kernel/include -I/home/zerendor/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/include -I/home/zerendor/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/include/freertos -I/home/zerendor/esp/esp-idf/components/freertos/esp_additions/include -I/home/zerendor/esp/esp-idf/components/esp_hw_support/include -I/home/zerendor/esp/esp-idf/components/esp_hw_support/include/soc -I/home/zerendor/esp/esp-idf/components/esp_hw_support/include/soc/esp32 -I/home/zerendor/esp/esp-idf/components/esp_hw_support/dma/include -I/home/zerendor/esp/esp-idf/components/esp_hw_support/ldo/include -I/home/zerendor/esp/esp-idf/components/esp_hw_support/debug_probe/include -I/home/zerendor/esp/esp-idf/components/esp_hw_support/mspi_timing_tuning/include -I/home/zerendor/esp/esp-idf/components/esp_hw_support/mspi_timing_tuning/tuning_scheme_impl/include -I/home/zerendor/esp/esp-idf/components/esp_hw_support/power_supply/include -I/home/zerendor/esp/esp-idf/components/esp_hw_support/port/esp32/. -I/home/zerendor/esp/esp-idf/components/esp_hw_support/port/esp32/include -I/home/zerendor/esp/esp-idf/components/heap/include -I/home/zerendor/esp/esp-idf/components/heap/tlsf -I/home/zerendor/esp/esp-idf/components/log/include -I/home/zerendor/esp/esp-idf/components/soc/include -I/home/zerendor/esp/esp-idf/components/soc/esp32 -I/home/zerendor/esp/esp-idf/components/soc/esp32/include -I/home/zerendor/esp/esp-idf/components/soc/esp32/register -I/home/zerendor/esp/esp-idf/components/hal/platform_port/include -I/home/zerendor/esp/esp-idf/components/hal/esp32/include -I/home/zerendor/esp/esp-idf/components/hal/include -I/home/zerendor/esp/esp-idf/components/esp_rom/include -I/home/zerendor/esp/esp-idf/components/esp_rom/esp32/include -I/home/zerendor/esp/esp-idf/components/esp_rom/esp32/include/esp32 -I/home/zerendor/esp/esp-idf/components/esp_rom/esp32 -I/home/zerendor/esp/esp-idf/components/esp_common/include -I/home/zerendor/esp/esp-idf/components/esp_system/include -I/home/zerendor/esp/esp-idf/components/esp_system/port/soc -I/home/zerendor/esp/esp-idf/components/esp_system/port/include/private -I/home/zerendor/esp/esp-idf/components/xtensa/esp32/include -I/home/zerendor/esp/esp-idf/components/xtensa/include -I/home/zerendor/esp/esp-idf/components/xtensa/deprecated_include -I/home/zerendor/esp/esp-idf/components/spi_flash/include -I/home/zerendor/esp/esp-idf/components/esp_adc/include -I/home/zerendor/esp/esp-idf/components/esp_adc/interface -I/home/zerendor/esp/esp-idf/components/esp_adc/esp32/include -I/home/zerendor/esp/esp-idf/components/esp_adc/deprecated/include -I/home/zerendor/esp/esp-idf/components/esp_driver_ledc/include -I/home/zerendor/esp/esp-idf/components/esp_driver_gpio/include -I/home/zerendor/esp/esp-idf/components/esp_timer/include -I/home/zerendor/esp/esp-idf/components/esp_driver_uart/include -mlongcalls -Wno-frame-address  -fno-builtin-memcpy -fno-builtin-memset -fno-builtin-bzero -fno-builtin-stpcpy -fno-builtin-strncpy -fdiagnostics-color=always -ffunction-sections -fdata-sections -Wall -Werror=all -Wno-error=unused-function -Wno-error=unused-variable -Wno-error=unused-but-set-variable -Wno-error=deprecated-declarations -Wextra -Wno-error=extra -Wno-unused-parameter -Wno-sign-compare -Wno-enum-conversion -gdwarf-4 -ggdb -Og -fno-shrink-wrap -fmacro-prefix-map=/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB=. -fmacro-prefix-map=/home/zerendor/esp/esp-idf=/IDF -fstrict-volatile-bitfields -fno-jump-tables -fno-tree-switch-conversion -std=gnu17 -Wno-old-style-declaration -MD -MT esp-idf/main/CMakeFiles/__idf_main.dir/potentiometer.c.obj -MF esp-idf/main/CMakeFiles/__idf_main.dir/potentiometer.c.obj.d -o esp-idf/main/CMakeFiles/__idf_main.dir/potentiometer.c.obj -c /home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c
+In file included from /home/zerendor/esp/esp-idf/components/log/include/esp_log.h:20,
+                 from /home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:3:
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c: In function 'adc_calibration_init':
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:45:19: error: expected ')' before 'ret'
+   45 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración del ADC exitosa" :
+      |                   ^~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log_format.h:15:88: note: in definition of macro 'LOG_FORMAT'
+   15 | #define LOG_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%" PRIu32 ") %s: " format LOG_RESET_COLOR "\n"
+      |                                                                                        ^~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:45:5: note: in expansion of macro 'ESP_LOGI'
+   45 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración del ADC exitosa" :
+      |     ^~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:220:72: note: to match this '('
+  220 |         if (ESP_LOG_GET_LEVEL(configs)==ESP_LOG_ERROR)        { esp_log(ESP_LOG_CONFIG_INIT(ESP_LOG_ERROR),   tag, LOG_FORMAT(E, format), esp_log_timestamp(), tag, ##__VA_ARGS__); } \
+      |                                                                        ^
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:45:5: note: in expansion of macro 'ESP_LOGI'
+   45 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración del ADC exitosa" :
+      |     ^~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:45:19: error: expected ')' before 'ret'
+   45 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración del ADC exitosa" :
+      |                   ^~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log_format.h:15:88: note: in definition of macro 'LOG_FORMAT'
+   15 | #define LOG_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%" PRIu32 ") %s: " format LOG_RESET_COLOR "\n"
+      |                                                                                        ^~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:45:5: note: in expansion of macro 'ESP_LOGI'
+   45 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración del ADC exitosa" :
+      |     ^~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:221:72: note: to match this '('
+  221 |         else if (ESP_LOG_GET_LEVEL(configs)==ESP_LOG_WARN)    { esp_log(ESP_LOG_CONFIG_INIT(ESP_LOG_WARN),    tag, LOG_FORMAT(W, format), esp_log_timestamp(), tag, ##__VA_ARGS__); } \
+      |                                                                        ^
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:45:5: note: in expansion of macro 'ESP_LOGI'
+   45 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración del ADC exitosa" :
+      |     ^~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:45:19: error: expected ')' before 'ret'
+   45 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración del ADC exitosa" :
+      |                   ^~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log_format.h:15:88: note: in definition of macro 'LOG_FORMAT'
+   15 | #define LOG_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%" PRIu32 ") %s: " format LOG_RESET_COLOR "\n"
+      |                                                                                        ^~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:45:5: note: in expansion of macro 'ESP_LOGI'
+   45 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración del ADC exitosa" :
+      |     ^~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:222:72: note: to match this '('
+  222 |         else if (ESP_LOG_GET_LEVEL(configs)==ESP_LOG_DEBUG)   { esp_log(ESP_LOG_CONFIG_INIT(ESP_LOG_DEBUG),   tag, LOG_FORMAT(D, format), esp_log_timestamp(), tag, ##__VA_ARGS__); } \
+      |                                                                        ^
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:45:5: note: in expansion of macro 'ESP_LOGI'
+   45 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración del ADC exitosa" :
+      |     ^~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:45:19: error: expected ')' before 'ret'
+   45 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración del ADC exitosa" :
+      |                   ^~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log_format.h:15:88: note: in definition of macro 'LOG_FORMAT'
+   15 | #define LOG_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%" PRIu32 ") %s: " format LOG_RESET_COLOR "\n"
+      |                                                                                        ^~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:45:5: note: in expansion of macro 'ESP_LOGI'
+   45 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración del ADC exitosa" :
+      |     ^~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:223:72: note: to match this '('
+  223 |         else if (ESP_LOG_GET_LEVEL(configs)==ESP_LOG_VERBOSE) { esp_log(ESP_LOG_CONFIG_INIT(ESP_LOG_VERBOSE), tag, LOG_FORMAT(V, format), esp_log_timestamp(), tag, ##__VA_ARGS__); } \
+      |                                                                        ^
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:45:5: note: in expansion of macro 'ESP_LOGI'
+   45 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración del ADC exitosa" :
+      |     ^~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:45:19: error: expected ')' before 'ret'
+   45 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración del ADC exitosa" :
+      |                   ^~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log_format.h:15:88: note: in definition of macro 'LOG_FORMAT'
+   15 | #define LOG_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%" PRIu32 ") %s: " format LOG_RESET_COLOR "\n"
+      |                                                                                        ^~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:45:5: note: in expansion of macro 'ESP_LOGI'
+   45 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración del ADC exitosa" :
+      |     ^~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:224:72: note: to match this '('
+  224 |         else                                                  { esp_log(ESP_LOG_CONFIG_INIT(ESP_LOG_INFO),    tag, LOG_FORMAT(I, format), esp_log_timestamp(), tag, ##__VA_ARGS__); } \
+      |                                                                        ^
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:45:5: note: in expansion of macro 'ESP_LOGI'
+   45 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración del ADC exitosa" :
+      |     ^~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c: In function 'pot_init':
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:59:5: warning: 'ADC_ATTEN_DB_11' is deprecated [-Wdeprecated-declarations]
+   59 |     adc_oneshot_chan_cfg_t config = {.bitwidth = ADC_BITWIDTH_DEFAULT, .atten = ADC_ATTEN_DB_11};
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/zerendor/esp/esp-idf/components/esp_adc/include/esp_adc/adc_oneshot.h:12,
+                 from /home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:4:
+/home/zerendor/esp/esp-idf/components/hal/include/hal/adc_types.h:51:5: note: declared here
+   51 |     ADC_ATTEN_DB_11 __attribute__((deprecated)) = ADC_ATTEN_DB_12,  ///<This is deprecated, it behaves the same as `ADC_ATTEN_DB_12`
+      |     ^~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:62:5: warning: 'ADC_ATTEN_DB_11' is deprecated [-Wdeprecated-declarations]
+   62 |     do_calibration_init = adc_calibration_init(ADC_UNIT_1, ADC_ATTEN_DB_11, &adc1_cali_handle);
+      |     ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/hal/include/hal/adc_types.h:51:5: note: declared here
+   51 |     ADC_ATTEN_DB_11 __attribute__((deprecated)) = ADC_ATTEN_DB_12,  ///<This is deprecated, it behaves the same as `ADC_ATTEN_DB_12`
+      |     ^~~~~~~~~~~~~~~
+In file included from /home/zerendor/esp/esp-idf/components/esp_adc/include/esp_adc/adc_oneshot.h:11:
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c: In function 'pot_get_voltage_mv':
+/home/zerendor/esp/esp-idf/components/esp_common/include/esp_err.h:115:28: error: expected expression before 'do'
+  115 | #define ESP_ERROR_CHECK(x) do {                                         \
+      |                            ^~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/potentiometer.c:84:10: note: in expansion of macro 'ESP_ERROR_CHECK'
+   84 |         (ESP_ERROR_CHECK(adc_cali_raw_to_voltage(adc1_cali_handle, adc_raw, &voltage)), voltage) :
+      |          ^~~~~~~~~~~~~~~
+[2/10] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/ntc_sensor.c.obj
+FAILED: esp-idf/main/CMakeFiles/__idf_main.dir/ntc_sensor.c.obj 
+/home/zerendor/.espressif/tools/xtensa-esp-elf/esp-14.2.0_20241119/xtensa-esp-elf/bin/xtensa-esp32-elf-gcc -DESP_PLATFORM -DIDF_VER=\"v5.5\" -DSOC_MMU_PAGE_SIZE=CONFIG_MMU_PAGE_SIZE -DSOC_XTAL_FREQ_MHZ=CONFIG_XTAL_FREQ -D_GLIBCXX_HAVE_POSIX_SEMAPHORE -D_GLIBCXX_USE_POSIX_SEMAPHORE -D_GNU_SOURCE -D_POSIX_READER_WRITER_LOCKS -I/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build/config -I/home/zerendor/esp/esp-idf/components/newlib/platform_include -I/home/zerendor/esp/esp-idf/components/freertos/config/include -I/home/zerendor/esp/esp-idf/components/freertos/config/include/freertos -I/home/zerendor/esp/esp-idf/components/freertos/config/xtensa/include -I/home/zerendor/esp/esp-idf/components/freertos/FreeRTOS-Kernel/include -I/home/zerendor/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/include -I/home/zerendor/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/include/freertos -I/home/zerendor/esp/esp-idf/components/freertos/esp_additions/include -I/home/zerendor/esp/esp-idf/components/esp_hw_support/include -I/home/zerendor/esp/esp-idf/components/esp_hw_support/include/soc -I/home/zerendor/esp/esp-idf/components/esp_hw_support/include/soc/esp32 -I/home/zerendor/esp/esp-idf/components/esp_hw_support/dma/include -I/home/zerendor/esp/esp-idf/components/esp_hw_support/ldo/include -I/home/zerendor/esp/esp-idf/components/esp_hw_support/debug_probe/include -I/home/zerendor/esp/esp-idf/components/esp_hw_support/mspi_timing_tuning/include -I/home/zerendor/esp/esp-idf/components/esp_hw_support/mspi_timing_tuning/tuning_scheme_impl/include -I/home/zerendor/esp/esp-idf/components/esp_hw_support/power_supply/include -I/home/zerendor/esp/esp-idf/components/esp_hw_support/port/esp32/. -I/home/zerendor/esp/esp-idf/components/esp_hw_support/port/esp32/include -I/home/zerendor/esp/esp-idf/components/heap/include -I/home/zerendor/esp/esp-idf/components/heap/tlsf -I/home/zerendor/esp/esp-idf/components/log/include -I/home/zerendor/esp/esp-idf/components/soc/include -I/home/zerendor/esp/esp-idf/components/soc/esp32 -I/home/zerendor/esp/esp-idf/components/soc/esp32/include -I/home/zerendor/esp/esp-idf/components/soc/esp32/register -I/home/zerendor/esp/esp-idf/components/hal/platform_port/include -I/home/zerendor/esp/esp-idf/components/hal/esp32/include -I/home/zerendor/esp/esp-idf/components/hal/include -I/home/zerendor/esp/esp-idf/components/esp_rom/include -I/home/zerendor/esp/esp-idf/components/esp_rom/esp32/include -I/home/zerendor/esp/esp-idf/components/esp_rom/esp32/include/esp32 -I/home/zerendor/esp/esp-idf/components/esp_rom/esp32 -I/home/zerendor/esp/esp-idf/components/esp_common/include -I/home/zerendor/esp/esp-idf/components/esp_system/include -I/home/zerendor/esp/esp-idf/components/esp_system/port/soc -I/home/zerendor/esp/esp-idf/components/esp_system/port/include/private -I/home/zerendor/esp/esp-idf/components/xtensa/esp32/include -I/home/zerendor/esp/esp-idf/components/xtensa/include -I/home/zerendor/esp/esp-idf/components/xtensa/deprecated_include -I/home/zerendor/esp/esp-idf/components/spi_flash/include -I/home/zerendor/esp/esp-idf/components/esp_adc/include -I/home/zerendor/esp/esp-idf/components/esp_adc/interface -I/home/zerendor/esp/esp-idf/components/esp_adc/esp32/include -I/home/zerendor/esp/esp-idf/components/esp_adc/deprecated/include -I/home/zerendor/esp/esp-idf/components/esp_driver_ledc/include -I/home/zerendor/esp/esp-idf/components/esp_driver_gpio/include -I/home/zerendor/esp/esp-idf/components/esp_timer/include -I/home/zerendor/esp/esp-idf/components/esp_driver_uart/include -mlongcalls -Wno-frame-address  -fno-builtin-memcpy -fno-builtin-memset -fno-builtin-bzero -fno-builtin-stpcpy -fno-builtin-strncpy -fdiagnostics-color=always -ffunction-sections -fdata-sections -Wall -Werror=all -Wno-error=unused-function -Wno-error=unused-variable -Wno-error=unused-but-set-variable -Wno-error=deprecated-declarations -Wextra -Wno-error=extra -Wno-unused-parameter -Wno-sign-compare -Wno-enum-conversion -gdwarf-4 -ggdb -Og -fno-shrink-wrap -fmacro-prefix-map=/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB=. -fmacro-prefix-map=/home/zerendor/esp/esp-idf=/IDF -fstrict-volatile-bitfields -fno-jump-tables -fno-tree-switch-conversion -std=gnu17 -Wno-old-style-declaration -MD -MT esp-idf/main/CMakeFiles/__idf_main.dir/ntc_sensor.c.obj -MF esp-idf/main/CMakeFiles/__idf_main.dir/ntc_sensor.c.obj.d -o esp-idf/main/CMakeFiles/__idf_main.dir/ntc_sensor.c.obj -c /home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c
+In file included from /home/zerendor/esp/esp-idf/components/log/include/esp_log.h:20,
+                 from /home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c:3:
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c: In function 'adc_calibration_init':
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c:41:19: error: expected ')' before 'ret'
+   41 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración exitosa" :
+      |                   ^~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log_format.h:15:88: note: in definition of macro 'LOG_FORMAT'
+   15 | #define LOG_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%" PRIu32 ") %s: " format LOG_RESET_COLOR "\n"
+      |                                                                                        ^~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c:41:5: note: in expansion of macro 'ESP_LOGI'
+   41 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración exitosa" :
+      |     ^~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:220:72: note: to match this '('
+  220 |         if (ESP_LOG_GET_LEVEL(configs)==ESP_LOG_ERROR)        { esp_log(ESP_LOG_CONFIG_INIT(ESP_LOG_ERROR),   tag, LOG_FORMAT(E, format), esp_log_timestamp(), tag, ##__VA_ARGS__); } \
+      |                                                                        ^
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c:41:5: note: in expansion of macro 'ESP_LOGI'
+   41 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración exitosa" :
+      |     ^~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c:41:19: error: expected ')' before 'ret'
+   41 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración exitosa" :
+      |                   ^~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log_format.h:15:88: note: in definition of macro 'LOG_FORMAT'
+   15 | #define LOG_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%" PRIu32 ") %s: " format LOG_RESET_COLOR "\n"
+      |                                                                                        ^~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c:41:5: note: in expansion of macro 'ESP_LOGI'
+   41 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración exitosa" :
+      |     ^~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:221:72: note: to match this '('
+  221 |         else if (ESP_LOG_GET_LEVEL(configs)==ESP_LOG_WARN)    { esp_log(ESP_LOG_CONFIG_INIT(ESP_LOG_WARN),    tag, LOG_FORMAT(W, format), esp_log_timestamp(), tag, ##__VA_ARGS__); } \
+      |                                                                        ^
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c:41:5: note: in expansion of macro 'ESP_LOGI'
+   41 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración exitosa" :
+      |     ^~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c:41:19: error: expected ')' before 'ret'
+   41 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración exitosa" :
+      |                   ^~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log_format.h:15:88: note: in definition of macro 'LOG_FORMAT'
+   15 | #define LOG_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%" PRIu32 ") %s: " format LOG_RESET_COLOR "\n"
+      |                                                                                        ^~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c:41:5: note: in expansion of macro 'ESP_LOGI'
+   41 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración exitosa" :
+      |     ^~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:222:72: note: to match this '('
+  222 |         else if (ESP_LOG_GET_LEVEL(configs)==ESP_LOG_DEBUG)   { esp_log(ESP_LOG_CONFIG_INIT(ESP_LOG_DEBUG),   tag, LOG_FORMAT(D, format), esp_log_timestamp(), tag, ##__VA_ARGS__); } \
+      |                                                                        ^
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c:41:5: note: in expansion of macro 'ESP_LOGI'
+   41 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración exitosa" :
+      |     ^~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c:41:19: error: expected ')' before 'ret'
+   41 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración exitosa" :
+      |                   ^~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log_format.h:15:88: note: in definition of macro 'LOG_FORMAT'
+   15 | #define LOG_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%" PRIu32 ") %s: " format LOG_RESET_COLOR "\n"
+      |                                                                                        ^~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c:41:5: note: in expansion of macro 'ESP_LOGI'
+   41 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración exitosa" :
+      |     ^~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:223:72: note: to match this '('
+  223 |         else if (ESP_LOG_GET_LEVEL(configs)==ESP_LOG_VERBOSE) { esp_log(ESP_LOG_CONFIG_INIT(ESP_LOG_VERBOSE), tag, LOG_FORMAT(V, format), esp_log_timestamp(), tag, ##__VA_ARGS__); } \
+      |                                                                        ^
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c:41:5: note: in expansion of macro 'ESP_LOGI'
+   41 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración exitosa" :
+      |     ^~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c:41:19: error: expected ')' before 'ret'
+   41 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración exitosa" :
+      |                   ^~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log_format.h:15:88: note: in definition of macro 'LOG_FORMAT'
+   15 | #define LOG_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%" PRIu32 ") %s: " format LOG_RESET_COLOR "\n"
+      |                                                                                        ^~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c:41:5: note: in expansion of macro 'ESP_LOGI'
+   41 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración exitosa" :
+      |     ^~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:224:72: note: to match this '('
+  224 |         else                                                  { esp_log(ESP_LOG_CONFIG_INIT(ESP_LOG_INFO),    tag, LOG_FORMAT(I, format), esp_log_timestamp(), tag, ##__VA_ARGS__); } \
+      |                                                                        ^
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:165:94: note: in expansion of macro 'ESP_LOG_LEVEL'
+  165 | #define ESP_LOG_LEVEL_LOCAL(configs, tag, format, ...) do { if (_ESP_LOG_ENABLED(configs)) { ESP_LOG_LEVEL(configs, tag, format, ##__VA_ARGS__); } } while(0)
+      |                                                                                              ^~~~~~~~~~~~~
+/home/zerendor/esp/esp-idf/components/log/include/esp_log.h:127:41: note: in expansion of macro 'ESP_LOG_LEVEL_LOCAL'
+  127 | #define ESP_LOGI(tag, format, ...) do { ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO, tag, format, ##__VA_ARGS__); } while(0)
+      |                                         ^~~~~~~~~~~~~~~~~~~
+/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/main/ntc_sensor.c:41:5: note: in expansion of macro 'ESP_LOGI'
+   41 |     ESP_LOGI(TAG, ret == ESP_OK ? "Calibración exitosa" :
+      |     ^~~~~~~~
+[3/10] Performing build step for 'bootloader'
+[1/1] cd /home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build/bootloader/esp-idf/esptool_py && /home/zerendor/.espressif/python_env/idf5.5_py3.12_env/bin/python /home/zerendor/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x1000 /home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build/bootloader/bootloader.bin
+Bootloader binary size 0x6680 bytes. 0x980 bytes (8%) free.
+ninja: build stopped: subcommand failed.

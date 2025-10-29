@@ -42,14 +42,8 @@ static void uart_init(void)
     
     ESP_LOGI(TAG, "Inicializando UART...");
     
-    uart_config_t uart_config = {
-        .baud_rate = 115200,
-        .data_bits = UART_DATA_8_BITS,
-        .parity = UART_PARITY_DISABLE,
-        .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-        .source_clk = UART_SCLK_DEFAULT,
-    };
+    uart_config_t uart_config = {.baud_rate = 115200, .data_bits = UART_DATA_8_BITS, .parity = UART_PARITY_DISABLE,
+                                 .stop_bits = UART_STOP_BITS_1, .flow_ctrl = UART_HW_FLOWCTRL_DISABLE, .source_clk = UART_SCLK_DEFAULT};
     
     ESP_ERROR_CHECK(uart_driver_install(UART_NUM, BUF_SIZE * 2, 0, 0, NULL, 0));
     ESP_ERROR_CHECK(uart_param_config(UART_NUM, &uart_config));
@@ -57,97 +51,57 @@ static void uart_init(void)
     
     uart_initialized = true;
     ESP_LOGI(TAG, "UART inicializado correctamente en GPIO%d (TX) y GPIO%d (RX)", UART_TX_PIN, UART_RX_PIN);
-    printf("=== UART INICIADO ===\n");
-    printf("TX: GPIO%d, RX: GPIO%d\n", UART_TX_PIN, UART_RX_PIN);
-    printf("Velocidad: 115200 baudios\n");
-    printf("=====================\n");
+    printf("=== UART INICIADO ===\nTX: GPIO%d, RX: GPIO%d\nVelocidad: 115200 baudios\n=====================\n", UART_TX_PIN, UART_RX_PIN);
 }
 
 
 static uart_command_t parse_command(const char* input)
 {
     uart_command_t cmd = {0};
-    cmd.valid = false;
-    
     char buffer[64];
     strncpy(buffer, input, sizeof(buffer) - 1);
     buffer[sizeof(buffer) - 1] = '\0';
     
-    // Eliminar caracteres de nueva línea
-    char* newline = strchr(buffer, '\n');
-    if (newline) *newline = '\0';
-    newline = strchr(buffer, '\r');
-    if (newline) *newline = '\0';
-    
-    // Convertir a minúsculas
+    // Eliminar caracteres de nueva línea y convertir a minúsculas
     for (int i = 0; buffer[i]; i++) {
-        if (buffer[i] >= 'A' && buffer[i] <= 'Z') {
-            buffer[i] = buffer[i] - 'A' + 'a';
+        if (buffer[i] == '\n' || buffer[i] == '\r') buffer[i] = '\0';
+        else if (buffer[i] >= 'A' && buffer[i] <= 'Z') buffer[i] = buffer[i] - 'A' + 'a';
+    }
+    
+    // Comandos simples
+    const char* simple_commands[] = {"help", "status", "manual_on", "manual_off", "temp_control_off", "led_on", "led_off"};
+    for (int i = 0; i < 7; i++) {
+        if (strcmp(buffer, simple_commands[i]) == 0) {
+            strcpy(cmd.command, simple_commands[i]);
+            cmd.valid = true;
+            return cmd;
         }
     }
     
-    if (strcmp(buffer, "help") == 0) {
-        strcpy(cmd.command, "help");
-        cmd.valid = true;
-    }
-    else if (strcmp(buffer, "status") == 0) {
-        strcpy(cmd.command, "status");
-        cmd.valid = true;
-    }
-    else if (strcmp(buffer, "manual_on") == 0) {
-        strcpy(cmd.command, "manual_on");
-        cmd.valid = true;
-    }
-    else if (strcmp(buffer, "manual_off") == 0) {
-        strcpy(cmd.command, "manual_off");
-        cmd.valid = true;
-    }
-    else if (strcmp(buffer, "temp_control_off") == 0) {
-        strcpy(cmd.command, "temp_control_off");
-        cmd.valid = true;
-    }
-    else if (strcmp(buffer, "led_on") == 0) {
-        strcpy(cmd.command, "led_on");
-        cmd.valid = true;
-    }
-    else if (strcmp(buffer, "led_off") == 0) {
-        strcpy(cmd.command, "led_off");
-        cmd.valid = true;
-    }
-    else if (strncmp(buffer, "set_color", 9) == 0) {
+    // Comandos con parámetros
+    if (strncmp(buffer, "set_color", 9) == 0) {
         strcpy(cmd.command, "set_color");
         int temp_red, temp_green, temp_blue;
         if (sscanf(buffer, "set_color %d %d %d", &temp_red, &temp_green, &temp_blue) == 3) {
-            cmd.red = (uint8_t)temp_red;
-            cmd.green = (uint8_t)temp_green;
-            cmd.blue = (uint8_t)temp_blue;
+            cmd.red = (uint8_t)temp_red; cmd.green = (uint8_t)temp_green; cmd.blue = (uint8_t)temp_blue;
             cmd.valid = true;
         }
     }
     else if (strncmp(buffer, "set_red", 7) == 0) {
         strcpy(cmd.command, "set_red");
-        if (sscanf(buffer, "set_red %f %f", &cmd.value1, &cmd.value2) == 2) {
-            cmd.valid = true;
-        }
+        cmd.valid = (sscanf(buffer, "set_red %f %f", &cmd.value1, &cmd.value2) == 2);
     }
     else if (strncmp(buffer, "set_green", 9) == 0) {
         strcpy(cmd.command, "set_green");
-        if (sscanf(buffer, "set_green %f %f", &cmd.value1, &cmd.value2) == 2) {
-            cmd.valid = true;
-        }
+        cmd.valid = (sscanf(buffer, "set_green %f %f", &cmd.value1, &cmd.value2) == 2);
     }
     else if (strncmp(buffer, "set_blue", 8) == 0) {
         strcpy(cmd.command, "set_blue");
-        if (sscanf(buffer, "set_blue %f %f", &cmd.value1, &cmd.value2) == 2) {
-            cmd.valid = true;
-        }
+        cmd.valid = (sscanf(buffer, "set_blue %f %f", &cmd.value1, &cmd.value2) == 2);
     }
     else if (strncmp(buffer, "set_all", 7) == 0) {
         strcpy(cmd.command, "set_all");
-        if (sscanf(buffer, "set_all %f %f %f %f %f %f", 
-                   &cmd.value1, &cmd.value2, &cmd.value1, &cmd.value2, &cmd.value1, &cmd.value2) == 6) {
-            cmd.valid = true;
-        }
+        cmd.valid = (sscanf(buffer, "set_all %f %f %f %f %f %f", &cmd.value1, &cmd.value2, &cmd.value1, &cmd.value2, &cmd.value1, &cmd.value2) == 6);
     }
     
     return cmd;
@@ -244,17 +198,13 @@ static void execute_command(const uart_command_t* cmd)
 void uart_commands_init(void)
 {
     uart_init();
-    
-    // Crear cola para comandos LED
     led_command_queue = xQueueCreate(10, sizeof(led_command_t));
     if (led_command_queue == NULL) {
         ESP_LOGE(TAG, "Error creando cola de comandos LED");
         return;
     }
-    
     ESP_LOGI(TAG, "Sistema de comandos UART inicializado");
-    printf("\n=== SISTEMA DE CONTROL RGB POR TEMPERATURA ===\n");
-    printf("Comandos disponibles:\n");
+    printf("\n=== SISTEMA DE CONTROL RGB POR TEMPERATURA ===\nComandos disponibles:\n");
     print_help();
     printf("===============================================\n\n");
 }
@@ -265,74 +215,49 @@ void uart_commands_task(void *arg)
     int len;
     
     ESP_LOGI(TAG, "Tarea de comandos UART iniciada");
-    printf("=== TAREA UART INICIADA ===\n");
-    printf("Esperando comandos...\n");
-    printf("Comandos disponibles: help, status, set_red, set_green, set_blue\n");
-    printf("===========================\n");
+    printf("=== TAREA UART INICIADA ===\nEsperando comandos...\nComandos: help, status, set_red, set_green, set_blue\n===========================\n");
     
     while (1) {
         len = uart_read_bytes(UART_NUM, data, BUF_SIZE - 1, pdMS_TO_TICKS(100));
         if (len > 0) {
             data[len] = '\0';
             printf("Comando recibido: %s\n", (char*)data);
-            
-            // Procesar comando
             uart_command_t cmd = parse_command((char*)data);
             execute_command(&cmd);
         }
-        
         vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
-temp_thresholds_t* get_temp_thresholds(void)
-{
-    return &current_thresholds;
-}
+temp_thresholds_t* get_temp_thresholds(void) { return &current_thresholds; }
 
 void set_temp_thresholds(float r_min, float r_max, float g_min, float g_max, float b_min, float b_max)
 {
-    current_thresholds.r_min = r_min;
-    current_thresholds.r_max = r_max;
-    current_thresholds.g_min = g_min;
-    current_thresholds.g_max = g_max;
-    current_thresholds.b_min = b_min;
-    current_thresholds.b_max = b_max;
-    
-    ESP_LOGI(TAG, "Umbrales actualizados: R(%.1f-%.1f), G(%.1f-%.1f), B(%.1f-%.1f)", 
-             r_min, r_max, g_min, g_max, b_min, b_max);
+    current_thresholds.r_min = r_min; current_thresholds.r_max = r_max;
+    current_thresholds.g_min = g_min; current_thresholds.g_max = g_max;
+    current_thresholds.b_min = b_min; current_thresholds.b_max = b_max;
+    ESP_LOGI(TAG, "Umbrales actualizados: R(%.1f-%.1f), G(%.1f-%.1f), B(%.1f-%.1f)", r_min, r_max, g_min, g_max, b_min, b_max);
 }
 
-void process_uart_command(const char* command)
-{
-    uart_command_t cmd = parse_command(command);
-    execute_command(&cmd);
-}
+void process_uart_command(const char* command) { uart_command_t cmd = parse_command(command); execute_command(&cmd); }
 
 void print_help(void)
 {
     printf("Comandos disponibles:\n");
     printf("  help                    - Mostrar esta ayuda\n");
     printf("  status                  - Mostrar umbrales actuales y estado\n");
-    printf("  manual_on               - Activar control manual del LED\n");
-    printf("  manual_off              - Activar control automático por temperatura\n");
-    printf("  temp_control_off         - Desactivar control de temperatura (LED apagado)\n");
-    printf("  led_on                  - Encender LED en blanco (control manual)\n");
-    printf("  led_off                 - Apagar LED\n");
-    printf("  set_color <r> <g> <b>   - Establecer color RGB (0-255) (ej: set_color 255 0 0)\n");
-    printf("  set_red <min> <max>     - Configurar umbrales rojos y mostrar color (ej: set_red 0 15)\n");
-    printf("  set_green <min> <max>   - Configurar umbrales verdes y mostrar color (ej: set_green 10 30)\n");
-    printf("  set_blue <min> <max>    - Configurar umbrales azules y mostrar color (ej: set_blue 40 50)\n");
+    printf("  manual_on/off           - Activar/desactivar control manual del LED\n");
+    printf("  temp_control_off        - Desactivar control de temperatura (LED apagado)\n");
+    printf("  led_on/off              - Encender/apagar LED\n");
+    printf("  set_color <r> <g> <b>   - Establecer color RGB (0-255)\n");
+    printf("  set_red/green/blue <min> <max> - Configurar umbrales de temperatura\n");
     printf("\nEjemplos:\n");
-    printf("  set_red 0 15            - Configurar rojo (0-15°C) y mostrar LED rojo\n");
-    printf("  set_green 10 30         - Configurar verde (10-30°C) y mostrar LED verde\n");
-    printf("  set_blue 40 50          - Configurar azul (40-50°C) y mostrar LED azul\n");
+    printf("  set_red 0 15            - Configurar rojo (0-15°C)\n");
+    printf("  set_green 10 30         - Configurar verde (10-30°C)\n");
+    printf("  set_blue 40 50          - Configurar azul (40-50°C)\n");
     printf("  set_color 255 0 0       - LED rojo manual\n");
-    printf("  set_color 0 255 0       - LED verde manual\n");
-    printf("  set_color 0 0 255       - LED azul manual\n");
     printf("  set_color 255 255 0     - LED amarillo\n");
-    printf("  manual_on               - Activar control manual\n");
-    printf("  manual_off              - Activar control automático\n");
+    printf("  manual_on/off           - Control manual/automático\n");
 }
 
 void print_current_thresholds(void)
@@ -375,26 +300,10 @@ void print_current_thresholds(void)
     printf("========================\n\n");
 }
 
-bool is_manual_control_active(void)
-{
-    return manual_control_active;
-}
-
-bool is_temperature_control_initialized(void)
-{
-    return temperature_control_initialized;
-}
-
-char get_last_configured_color(void)
-{
-    return last_configured_color;
-}
-
-// ===== FUNCIONES DE COLA DE COMANDOS LED =====
-QueueHandle_t get_led_command_queue(void)
-{
-    return led_command_queue;
-}
+bool is_manual_control_active(void) { return manual_control_active; }
+bool is_temperature_control_initialized(void) { return temperature_control_initialized; }
+char get_last_configured_color(void) { return last_configured_color; }
+QueueHandle_t get_led_command_queue(void) { return led_command_queue; }
 
 void send_led_command(const char* command, uint8_t red, uint8_t green, uint8_t blue, bool manual_control)
 {

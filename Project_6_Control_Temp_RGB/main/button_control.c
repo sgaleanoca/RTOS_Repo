@@ -45,25 +45,10 @@ void button_control_init(void) {
 }
 
 // ===== FUNCIONES DE LECTURA DEL BOTÓN =====
-static bool read_button_state(void) {
-    return !gpio_get_level(BUTTON_PIN);  // Invertido porque usamos pull-up
-}
-
-static uint32_t get_current_time_ms(void) {
-    return (uint32_t)(esp_timer_get_time() / 1000);
-}
-
-// ===== FUNCIONES DE DEBOUNCE Y DETECCIÓN =====
-static bool is_debounce_ready(void) {
-    uint32_t current_time = get_current_time_ms();
-    return (current_time - button_state.last_event_time) >= BUTTON_DEBOUNCE_TIME;
-}
-
-static bool is_long_press(void) {
-    if (!button_state.is_pressed) return false;
-    uint32_t current_time = get_current_time_ms();
-    return (current_time - button_state.press_start_time) >= BUTTON_LONG_PRESS_TIME;
-}
+static bool read_button_state(void) { return !gpio_get_level(BUTTON_PIN); }
+static uint32_t get_current_time_ms(void) { return (uint32_t)(esp_timer_get_time() / 1000); }
+static bool is_debounce_ready(void) { return (get_current_time_ms() - button_state.last_event_time) >= BUTTON_DEBOUNCE_TIME; }
+static bool is_long_press(void) { return button_state.is_pressed && (get_current_time_ms() - button_state.press_start_time) >= BUTTON_LONG_PRESS_TIME; }
 
 // ===== FUNCIONES DE CONTROL =====
 void button_task(void *arg) {
@@ -121,15 +106,9 @@ void button_task(void *arg) {
 }
 
 // ===== FUNCIONES PÚBLICAS =====
-bool is_print_enabled(void) {
-    return button_state.print_enabled;
-}
-
-void set_print_enabled(bool enabled) {
+bool is_print_enabled(void) { return button_state.print_enabled; }
+void set_print_enabled(bool enabled) { 
     button_state.print_enabled = enabled;
     ESP_LOGI(TAG, "Impresión %s manualmente", enabled ? "HABILITADA" : "DESHABILITADA");
 }
-
-button_state_t get_button_state(void) {
-    return button_state;
-}
+button_state_t get_button_state(void) { return button_state; }

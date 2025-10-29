@@ -18,39 +18,44 @@
 
 static const char *TAG = "MAIN";
 
-// ===== ESTRUCTURAS DE DATOS Y VARIABLES GLOBALES =====
+// ===== ESTRUCTURAS DE DATOS Y CONTEXTO DE APLICACIÓN =====
 typedef struct {
     uint8_t pot_percent;
     uint32_t pot_voltage_mv;
 } pot_data_t;
 
-// Colas del sistema para comunicación entre tareas
-static QueueHandle_t pot_queue = NULL;
-static QueueHandle_t ntc_queue = NULL;
-static QueueHandle_t led_queue = NULL;
-// Cola para comandos recibidos por UART
 typedef enum { CMD_SET_RED, CMD_SET_GREEN, CMD_SET_BLUE, CMD_SET_POT } command_type_t; 
 typedef struct {
     command_type_t type;
     float value1; // min_temp o canal del pot (1=r,2=g,3=b,0=none)
     float value2; // max_temp
 } app_command_t;
-static QueueHandle_t command_queue = NULL; 
+
+typedef struct {
+    // Colas
+    QueueHandle_t pot_queue;
+    QueueHandle_t ntc_queue;
+    QueueHandle_t led_queue;
+    QueueHandle_t command_queue;
+    // Estado actual
+    pot_data_t current_pot_data;
+    ntc_data_t current_ntc_data;
+    bool data_ready;
+    // Periodo de monitorización (ms)
+    uint32_t monitor_period_ms;
+    // Contextos de módulos
+    pot_ctx_t *pot_ctx;
+    ntc_sensor_ctx_t *ntc_ctx;
+    rgb_led_ctx_t *rgb_ctx;
+    button_ctx_t *button_ctx;
+} app_context_t;
 
 // Prototipo de tarea UART
 void uart_receiver_task(void *arg); //
 
-// Variables globales (mantenidas para compatibilidad)
-static pot_data_t current_pot_data = {0}; 
-static ntc_data_t current_ntc_data = {0};
-static bool data_ready = false;
-// IMPLEMENTACIÓN PARCIAL_1 COMANDO PARA CAMBIAR EL TIEMPO DE IMPRESIÓN DE TEMPERATURA
-// Periodo de impresión del sistema de monitoreo (ms), configurable por UART
-static volatile uint32_t monitor_period_ms = 2000;
-
 // ===== FUNCIÓN AUXILIAR PARA LOGS CONDICIONALES =====
-static void conditional_log_info(const char *tag, const char *format, ...) { 
-    if (is_print_enabled()) {
+static void conditional_log_info(app_context_t *ctx, const char *tag, const char *format, ...) { 
+    if (get_button_state(ctx->button_ctx).print_enabled) {
         va_list args; va_start(args, format);
         esp_log_writev(ESP_LOG_INFO, tag, format, args); va_end(args);
     }
@@ -60,17 +65,18 @@ static void conditional_log_info(const char *tag, const char *format, ...) {
 // Tarea: Lee el potenciómetro periódicamente y envía porcentaje y mV a la cola
 void pot_reading_task(void *arg)
 {
+    app_context_t *ctx = (app_context_t *)arg;
     pot_data_t pot_data;
     static uint32_t last_log_time = 0;
     
     ESP_LOGI(TAG, "Tarea de lectura del potenciómetro iniciada");
     
     while (1) {
-        pot_data.pot_percent = pot_get_percent();
-        pot_data.pot_voltage_mv = pot_get_voltage_mv();
+        pot_data.pot_percent = pot_get_percent(ctx->pot_ctx);
+        pot_data.pot_voltage_mv = pot_get_voltage_mv(ctx->pot_ctx);
         
-        if (pot_queue != NULL) xQueueSend(pot_queue, &pot_data, pdMS_TO_TICKS(10));
-        current_pot_data = pot_data;
+        if (ctx->pot_queue != NULL) xQueueSend(ctx->pot_queue, &pot_data, pdMS_TO_TICKS(10));
+        ctx->current_pot_data = pot_data;
         
         // La intensidad del LED se controla desde la tarea de RGB para evitar conflictos
         
@@ -84,18 +90,19 @@ void pot_reading_task(void *arg)
 // Tarea: Lee temperatura del NTC, valida rangos y publica datos a la cola
 void ntc_reading_task(void *arg)
 {
+    app_context_t *ctx = (app_context_t *)arg;
     ntc_data_t ntc_data;
     ESP_LOGI(TAG, "Tarea de lectura del sensor NTC iniciada");
     
     while (1) {
-        ntc_data = ntc_read_temperature();
+        ntc_data = ntc_read_temperature(ctx->ntc_ctx);
         
         if (ntc_data.raw_adc_value > 0 && ntc_data.raw_adc_value < 4096 && 
             ntc_data.temperature_c > -50.0 && ntc_data.temperature_c < 150.0 && ntc_data.temperature_c != -999.0) {
-            if (ntc_queue != NULL) xQueueSend(ntc_queue, &ntc_data, pdMS_TO_TICKS(10));
-            current_ntc_data = ntc_data; data_ready = true;
+            if (ctx->ntc_queue != NULL) xQueueSend(ctx->ntc_queue, &ntc_data, pdMS_TO_TICKS(10));
+            ctx->current_ntc_data = ntc_data; ctx->data_ready = true;
         } else {
-            conditional_log_info(TAG, "Datos inválidos: Temp=%.1f°C, ADC=%d, R=%.0fΩ", 
+            conditional_log_info(ctx, TAG, "Datos inválidos: Temp=%.1f°C, ADC=%d, R=%.0fΩ", 
                      ntc_data.temperature_c, ntc_data.raw_adc_value, ntc_data.resistance);
         }
         vTaskDelay(pdMS_TO_TICKS(2000));
@@ -106,6 +113,7 @@ void ntc_reading_task(void *arg)
 // Tarea: Controla el LED RGB según temperatura (automático) o potenciómetro (manual)
 void rgb_control_task(void *arg)
 {
+    app_context_t *ctx = (app_context_t *)arg;
     pot_data_t pot_data;
     ntc_data_t ntc_data;
     BaseType_t pot_status, ntc_status;
@@ -123,9 +131,9 @@ void rgb_control_task(void *arg)
     while (1) {
         // IMPLEMENTACIÓN PARCIAL_1 BOTON ALTERNADO DEL LED
         // Si el LED está forzado apagado por el botón, mantenerlo apagado y omitir controles
-        if (is_led_forced_off()) {
-            if (rgb_led_is_on()) {
-                rgb_led_off();
+        if (is_led_forced_off(ctx->button_ctx)) {
+            if (rgb_led_is_on(ctx->rgb_ctx)) {
+                rgb_led_off(ctx->rgb_ctx);
             }
             vTaskDelay(pdMS_TO_TICKS(50));
             continue;
@@ -133,7 +141,7 @@ void rgb_control_task(void *arg)
 
         // Procesar comandos UART si existen (no bloqueante)
         // Gestión de comandos recibidos por UART para ajustar umbrales o control del pot
-        if (command_queue != NULL && xQueueReceive(command_queue, &received_cmd, 0) == pdPASS) {
+        if (ctx->command_queue != NULL && xQueueReceive(ctx->command_queue, &received_cmd, 0) == pdPASS) {
             switch (received_cmd.type) {
                 case CMD_SET_RED:
                     red_min = received_cmd.value1;
@@ -154,26 +162,26 @@ void rgb_control_task(void *arg)
         }
         
         // Leer pot sin bloquear; se apoya en current_pot_data actualizado por su tarea
-        pot_status = xQueueReceive(pot_queue, &pot_data, pdMS_TO_TICKS(1));
+        pot_status = xQueueReceive(ctx->pot_queue, &pot_data, pdMS_TO_TICKS(1));
         (void)pot_status; (void)pot_data;
 
         // Modo manual: si el pot controla un color, se aplica intensidad y se omite control por NTC
         if (pot_control_target != 0) {
-            uint8_t intensity = current_pot_data.pot_percent;
+            uint8_t intensity = ctx->current_pot_data.pot_percent;
             if (pot_control_target == 1) {
-                rgb_led_set_color(255, 0, 0);
+                rgb_led_set_color(ctx->rgb_ctx, 255, 0, 0);
             } else if (pot_control_target == 2) {
-                rgb_led_set_color(0, 255, 0);
+                rgb_led_set_color(ctx->rgb_ctx, 0, 255, 0);
             } else if (pot_control_target == 3) {
-                rgb_led_set_color(0, 0, 255);
+                rgb_led_set_color(ctx->rgb_ctx, 0, 0, 255);
             }
-            rgb_led_set_intensity(intensity);
+            rgb_led_set_intensity(ctx->rgb_ctx, intensity);
             vTaskDelay(pdMS_TO_TICKS(50));
             continue;
         }
         
         // Modo automático: decidir color según rangos configurables de temperatura
-        ntc_status = xQueueReceive(ntc_queue, &ntc_data, pdMS_TO_TICKS(10));
+        ntc_status = xQueueReceive(ctx->ntc_queue, &ntc_data, pdMS_TO_TICKS(10));
         if (ntc_status == pdPASS) {
             float temp = ntc_data.temperature_c;
             bool in_red   = (temp >= red_min && temp <= red_max);
@@ -182,34 +190,34 @@ void rgb_control_task(void *arg)
 
             // Resolver solapamientos de rangos mezclando colores (blanco/amarillo/magenta/cian)
             if (!in_red && !in_green && !in_blue) {
-                rgb_led_off();
+                rgb_led_off(ctx->rgb_ctx);
                 any_color_active = false;
             } else if (in_red && in_green && in_blue) {
-                rgb_led_set_color(255, 255, 255);   // Blanco: solapado de los tres
+                rgb_led_set_color(ctx->rgb_ctx, 255, 255, 255);   // Blanco: solapado de los tres
                 any_color_active = true;
             } else if (in_red && in_green) {
-                rgb_led_set_color(255, 255, 0);     // Amarillo: R+G
+                rgb_led_set_color(ctx->rgb_ctx, 255, 255, 0);     // Amarillo: R+G
                 any_color_active = true;
             } else if (in_red && in_blue) {
-                rgb_led_set_color(255, 0, 255);     // Magenta: R+B
+                rgb_led_set_color(ctx->rgb_ctx, 255, 0, 255);     // Magenta: R+B
                 any_color_active = true;
             } else if (in_green && in_blue) {
-                rgb_led_set_color(0, 255, 255);     // Cian: G+B
+                rgb_led_set_color(ctx->rgb_ctx, 0, 255, 255);     // Cian: G+B
                 any_color_active = true;
             } else if (in_red) {
-                rgb_led_set_color(255, 0, 0);
+                rgb_led_set_color(ctx->rgb_ctx, 255, 0, 0);
                 any_color_active = true;
             } else if (in_green) {
-                rgb_led_set_color(0, 255, 0);
+                rgb_led_set_color(ctx->rgb_ctx, 0, 255, 0);
                 any_color_active = true;
             } else { // in_blue
-                rgb_led_set_color(0, 0, 255);
+                rgb_led_set_color(ctx->rgb_ctx, 0, 0, 255);
                 any_color_active = true;
             }
         }
         // Actualizar intensidad desde el pot incluso en modo automático si hay color activo
         if (any_color_active) {
-            rgb_led_set_intensity(current_pot_data.pot_percent);
+            rgb_led_set_intensity(ctx->rgb_ctx, ctx->current_pot_data.pot_percent);
         }
 
         vTaskDelay(pdMS_TO_TICKS(50));  // Control cada 50ms
@@ -219,26 +227,27 @@ void rgb_control_task(void *arg)
 // Tarea: Muestra por consola el estado del sistema cada 2s si la impresión está habilitada
 void display_info_task(void *arg)
 {
+    app_context_t *ctx = (app_context_t *)arg;
     ESP_LOGI(TAG, "Tarea de visualización iniciada");
     
     while (1) {
-        if (is_print_enabled()) {
+        if (get_button_state(ctx->button_ctx).print_enabled) {
             printf("\n=== SISTEMA DE MONITOREO ===\n");
             // IMPLEMENTACIÓN PARCIAL_1 COMANDO PARA IMPRIMIR UNA SOLA VEZ EL VOLTAJE DEL POTENCIOMETRO
             // Se quita la impresión de mV del potenciómetro en el monitoreo periódico
-            printf("Potenciómetro: %d%%\n", current_pot_data.pot_percent);
+            printf("Potenciómetro: %d%%\n", ctx->current_pot_data.pot_percent);
             
-            if (rgb_led_is_on()) {
+            if (rgb_led_is_on(ctx->rgb_ctx)) {
                 printf("LED RGB: %s | Intensidad: %d%% | RGB(%d,%d,%d)\n", 
-                       rgb_led_get_color_name(), rgb_led_get_intensity(),
-                       rgb_led_get_red(), rgb_led_get_green(), rgb_led_get_blue());
+                       rgb_led_get_color_name(ctx->rgb_ctx), rgb_led_get_intensity(ctx->rgb_ctx),
+                       rgb_led_get_red(ctx->rgb_ctx), rgb_led_get_green(ctx->rgb_ctx), rgb_led_get_blue(ctx->rgb_ctx));
             } else {
                 printf("LED RGB: APAGADO\n");
             }
             
-            if (data_ready) {
-                printf("Temperatura: %.1f°C\n", current_ntc_data.temperature_c);
-                printf("Resistencia NTC: %.0f Ohms | ADC Raw: %d\n", current_ntc_data.resistance, current_ntc_data.raw_adc_value);
+            if (ctx->data_ready) {
+                printf("Temperatura: %.1f°C\n", ctx->current_ntc_data.temperature_c);
+                printf("Resistencia NTC: %.0f Ohms | ADC Raw: %d\n", ctx->current_ntc_data.resistance, ctx->current_ntc_data.raw_adc_value);
             } else {
                 printf("Esperando datos del sensor NTC...\n");
             }
@@ -247,7 +256,7 @@ void display_info_task(void *arg)
             printf("==========================================\n\n");
         }
         // IMPLEMENTACIÓN PARCIAL_1 COMANDO PARA CAMBIAR EL TIEMPO DE IMPRESIÓN DE TEMPERATURA
-        uint32_t period = monitor_period_ms;
+        uint32_t period = ctx->monitor_period_ms;
         if (period < 100) period = 100;           // mínimo 100 ms
         if (period > 60000) period = 60000;       // máximo 60 s
         vTaskDelay(pdMS_TO_TICKS(period));
@@ -259,14 +268,20 @@ void display_info_task(void *arg)
 // Punto de entrada: inicializa hardware, crea colas y tareas del sistema
 void app_main(void)
 {
+    app_context_t *ctx = (app_context_t *)calloc(1, sizeof(app_context_t));
+    if (!ctx) {
+        ESP_LOGE(TAG, "Sin memoria para app_context_t");
+        return;
+    }
+    ctx->monitor_period_ms = 2000;
     ESP_LOGI(TAG, "=== INICIANDO SISTEMA RTOS - SENSOR NTC ===");
     ESP_LOGI(TAG, "Inicializando componentes de hardware...");
     
     // ===== INICIALIZACIÓN DE HARDWARE =====
-    ntc_sensor_init();
-    button_control_init();
-    pot_init();
-    rgb_led_init();
+    ctx->ntc_ctx = ntc_sensor_create();
+    ctx->button_ctx = button_control_create();
+    ctx->pot_ctx = pot_create();
+    ctx->rgb_ctx = rgb_led_create();
     // Configurar UART0 para recepción de comandos a 115200-8N1
     uart_config_t uart_config = {
         .baud_rate = 115200,
@@ -287,13 +302,13 @@ void app_main(void)
     // ===== CREACIÓN DE COLAS DEL SISTEMA =====
     ESP_LOGI(TAG, "Creando colas del sistema...");
     
-    pot_queue = xQueueCreate(5, sizeof(pot_data_t));
-    ntc_queue = xQueueCreate(5, sizeof(ntc_data_t));
-    led_queue = xQueueCreate(5, sizeof(uint8_t));
+    ctx->pot_queue = xQueueCreate(5, sizeof(pot_data_t));
+    ctx->ntc_queue = xQueueCreate(5, sizeof(ntc_data_t));
+    ctx->led_queue = xQueueCreate(5, sizeof(uint8_t));
     // Cola de comandos UART
-    command_queue = xQueueCreate(5, sizeof(app_command_t));
+    ctx->command_queue = xQueueCreate(5, sizeof(app_command_t));
     
-    if (pot_queue == NULL || ntc_queue == NULL || led_queue == NULL || command_queue == NULL) {
+    if (ctx->pot_queue == NULL || ctx->ntc_queue == NULL || ctx->led_queue == NULL || ctx->command_queue == NULL) {
         ESP_LOGE(TAG, "Error creando colas del sistema");
         return;
     }
@@ -302,12 +317,12 @@ void app_main(void)
     // ===== CREACIÓN DE TAREAS DEL SISTEMA =====
     ESP_LOGI(TAG, "Creando tareas del sistema...");
     
-    if (xTaskCreate(pot_reading_task, "pot_reading_task", 4096, NULL, 5, NULL) != pdPASS ||
-        xTaskCreate(ntc_reading_task, "ntc_reading_task", 4096, NULL, 5, NULL) != pdPASS ||
-        xTaskCreate(display_info_task, "display_info_task", 4096, NULL, 3, NULL) != pdPASS ||
-        xTaskCreate(button_task, "button_task", 4096, NULL, 4, NULL) != pdPASS ||
-        xTaskCreate(rgb_control_task, "rgb_control_task", 4096, NULL, 6, NULL) != pdPASS ||
-        xTaskCreate(uart_receiver_task, "uart_receiver_task", 4096, NULL, 7, NULL) != pdPASS) {
+    if (xTaskCreate(pot_reading_task, "pot_reading_task", 4096, ctx, 5, NULL) != pdPASS ||
+        xTaskCreate(ntc_reading_task, "ntc_reading_task", 4096, ctx, 5, NULL) != pdPASS ||
+        xTaskCreate(display_info_task, "display_info_task", 4096, ctx, 3, NULL) != pdPASS ||
+        xTaskCreate(button_task, "button_task", 4096, ctx->button_ctx, 4, NULL) != pdPASS ||
+        xTaskCreate(rgb_control_task, "rgb_control_task", 4096, ctx, 6, NULL) != pdPASS ||
+        xTaskCreate(uart_receiver_task, "uart_receiver_task", 4096, ctx, 7, NULL) != pdPASS) {
         ESP_LOGE(TAG, "Error creando tareas del sistema");
         return;
     }
@@ -344,6 +359,7 @@ static void print_help_menu(void)
 // Tarea: Lee comandos por UART, los parsea y los envía a la cola de comandos
 void uart_receiver_task(void *arg)
 {
+    app_context_t *ctx = (app_context_t *)arg;
     uint8_t *data = (uint8_t *)malloc(256);
     if (!data) {
         ESP_LOGE(TAG, "Sin memoria para buffer UART");
@@ -368,7 +384,7 @@ void uart_receiver_task(void *arg)
             // IMPLEMENTACIÓN PARCIAL_1 COMANDO PARA IMPRIMIR UNA SOLA VEZ EL VOLTAJE DEL POTENCIOMETRO
             // Lectura única del potenciómetro en mV
             if (strncmp((char*)data, "potmv", 5) == 0) {
-                uint32_t mv = pot_get_voltage_mv();
+                uint32_t mv = pot_get_voltage_mv(ctx->pot_ctx);
                 printf("POT: %lu mV\n> ", mv);
                 fflush(stdout);
                 continue;
@@ -379,7 +395,7 @@ void uart_receiver_task(void *arg)
             if (sscanf((char*)data, " rate %u", &rate_ms) == 1) {
                 if (rate_ms < 100) rate_ms = 100;          // clamp mínimo
                 if (rate_ms > 60000) rate_ms = 60000;      // clamp máximo
-                monitor_period_ms = rate_ms;
+                ctx->monitor_period_ms = rate_ms;
                 printf("OK: rate %u ms\n> ", rate_ms);
                 fflush(stdout);
                 continue;
@@ -392,7 +408,7 @@ void uart_receiver_task(void *arg)
                 else if (type_char == 'B' || type_char == 'b') cmd.type = CMD_SET_BLUE;
                 else send = false;
                 if (send) {
-                    (void)xQueueSend(command_queue, &cmd, pdMS_TO_TICKS(10));
+                    (void)xQueueSend(ctx->command_queue, &cmd, pdMS_TO_TICKS(10));
                     printf("OK: %c %.2f %.2f\n> ", type_char, cmd.value1, cmd.value2);
                     fflush(stdout);
                 }
@@ -405,7 +421,7 @@ void uart_receiver_task(void *arg)
                 else if (strcmp(pot_target, "g") == 0 || strcmp(pot_target, "G") == 0) cmd.value1 = 2;
                 else if (strcmp(pot_target, "b") == 0 || strcmp(pot_target, "B") == 0) cmd.value1 = 3;
                 else cmd.value1 = 0; // none
-                (void)xQueueSend(command_queue, &cmd, pdMS_TO_TICKS(10));
+                (void)xQueueSend(ctx->command_queue, &cmd, pdMS_TO_TICKS(10));
                 printf("OK: pot %s\n> ", pot_target);
                 fflush(stdout);
                 continue;

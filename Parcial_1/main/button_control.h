@@ -30,15 +30,17 @@ typedef struct {
 } button_state_t;
 
 // --- Cola de eventos del botón ---
-extern QueueHandle_t button_queue;
+// La cola queda encapsulada dentro del módulo
 
-// --- Funciones públicas ---
-void button_control_init(void);
-void button_task(void *arg);
-bool is_print_enabled(void);
-void set_print_enabled(bool enabled);
-button_state_t get_button_state(void);
-// IMPLEMENTACIÓN PARCIAL_1 BOTON ALTERNADO DEL LED
-bool is_led_forced_off(void);
+// Contexto opaco del botón
+typedef struct button_ctx button_ctx_t;
+
+button_ctx_t* button_control_create(void);
+void button_control_destroy(button_ctx_t* ctx);
+void button_task(void *arg); // arg = button_ctx_t*
+bool is_print_enabled(button_ctx_t* ctx);
+void set_print_enabled(button_ctx_t* ctx, bool enabled);
+button_state_t get_button_state(button_ctx_t* ctx);
+bool is_led_forced_off(button_ctx_t* ctx);
 
 #endif // BUTTON_CONTROL_H

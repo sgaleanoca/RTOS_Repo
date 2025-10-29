@@ -3,8 +3,12 @@
 
 #include <stdint.h>
 
-void pot_init(void);
-uint8_t pot_get_percent(void); // devuelve 0..100
-uint32_t pot_get_voltage_mv(void); // devuelve mV medido
+// Contexto opaco del potenciómetro
+typedef struct pot_ctx pot_ctx_t;
+
+pot_ctx_t* pot_create(void);
+void pot_destroy(pot_ctx_t* ctx);
+uint8_t pot_get_percent(pot_ctx_t* ctx); // 0..100
+uint32_t pot_get_voltage_mv(pot_ctx_t* ctx); // mV
 
 #endif // POTENTIOMETER_H

@@ -21,8 +21,10 @@ typedef struct {
     int raw_adc_value;
 } ntc_data_t;
 
-// Funciones públicas
-void ntc_sensor_init(void);
-ntc_data_t ntc_read_temperature(void);
+typedef struct ntc_sensor_ctx ntc_sensor_ctx_t;
+
+ntc_sensor_ctx_t* ntc_sensor_create(void);
+void ntc_sensor_destroy(ntc_sensor_ctx_t* ctx);
+ntc_data_t ntc_read_temperature(ntc_sensor_ctx_t* ctx);
 
 #endif // NTC_SENSOR_H

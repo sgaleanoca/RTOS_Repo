@@ -14,6 +14,7 @@ static button_state_t button_state = {0};
 QueueHandle_t button_queue = NULL;
 
 // ===== FUNCIONES DE INICIALIZACIÓN =====
+// Configura el GPIO del botón, estado inicial y crea la cola de eventos
 void button_control_init(void) {
     ESP_LOGI(TAG, "Inicializando control de botón en GPIO%d...", BUTTON_PIN);
     
@@ -45,12 +46,17 @@ void button_control_init(void) {
 }
 
 // ===== FUNCIONES DE LECTURA DEL BOTÓN =====
+// Lee el estado físico del botón (activo en bajo)
 static bool read_button_state(void) { return !gpio_get_level(BUTTON_PIN); }
+// Devuelve tiempo actual en ms a partir del temporizador de ESP-IDF
 static uint32_t get_current_time_ms(void) { return (uint32_t)(esp_timer_get_time() / 1000); }
+// Verifica si pasó el tiempo de debounce para aceptar un nuevo evento
 static bool is_debounce_ready(void) { return (get_current_time_ms() - button_state.last_event_time) >= BUTTON_DEBOUNCE_TIME; }
+// Determina si la pulsación actual ya es considerada larga
 static bool is_long_press(void) { return button_state.is_pressed && (get_current_time_ms() - button_state.press_start_time) >= BUTTON_LONG_PRESS_TIME; }
 
 // ===== FUNCIONES DE CONTROL =====
+// Tarea: detecta pulsaciones cortas/largas y alterna impresión en pulsación corta
 void button_task(void *arg) {
     ESP_LOGI(TAG, "Tarea de control de botón iniciada");
     
@@ -77,7 +83,7 @@ void button_task(void *arg) {
             button_state.last_event_time = current_time;
             
             if (!long_press_detected) {
-                // Pulsación corta: alternar impresión
+                // Pulsación corta: alternar estado de impresión por consola
                 button_state.print_enabled = !button_state.print_enabled;
                 ESP_LOGI(TAG, "Pulsación corta - Impresión %s", 
                          button_state.print_enabled ? "HABILITADA" : "DESHABILITADA");

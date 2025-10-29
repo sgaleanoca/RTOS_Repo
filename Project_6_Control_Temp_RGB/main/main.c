@@ -54,6 +54,7 @@ static void conditional_log_info(const char *tag, const char *format, ...) {
 }
 
 // ===== TAREAS DEL SISTEMA =====
+// Tarea: Lee el potenciómetro periódicamente y envía porcentaje y mV a la cola
 void pot_reading_task(void *arg)
 {
     pot_data_t pot_data;
@@ -77,6 +78,7 @@ void pot_reading_task(void *arg)
     }
 }
 
+// Tarea: Lee temperatura del NTC, valida rangos y publica datos a la cola
 void ntc_reading_task(void *arg)
 {
     ntc_data_t ntc_data;
@@ -98,6 +100,7 @@ void ntc_reading_task(void *arg)
 }
 
 // ===== TAREA DE CONTROL DEL LED RGB =====
+// Tarea: Controla el LED RGB según temperatura (automático) o potenciómetro (manual)
 void rgb_control_task(void *arg)
 {
     pot_data_t pot_data;
@@ -116,6 +119,7 @@ void rgb_control_task(void *arg)
     
     while (1) {
         // Procesar comandos UART si existen (no bloqueante)
+        // Gestión de comandos recibidos por UART para ajustar umbrales o control del pot
         if (command_queue != NULL && xQueueReceive(command_queue, &received_cmd, 0) == pdPASS) {
             switch (received_cmd.type) {
                 case CMD_SET_RED:
@@ -136,11 +140,11 @@ void rgb_control_task(void *arg)
             }
         }
         
-        // Leer pot sin bloquear; usaremos current_pot_data
+        // Leer pot sin bloquear; se apoya en current_pot_data actualizado por su tarea
         pot_status = xQueueReceive(pot_queue, &pot_data, pdMS_TO_TICKS(1));
         (void)pot_status; (void)pot_data;
 
-        // Si el pot controla un color, aplicar en tiempo real y saltar NTC
+        // Modo manual: si el pot controla un color, se aplica intensidad y se omite control por NTC
         if (pot_control_target != 0) {
             uint8_t intensity = current_pot_data.pot_percent;
             if (pot_control_target == 1) {
@@ -155,7 +159,7 @@ void rgb_control_task(void *arg)
             continue;
         }
         
-        // Procesar datos del sensor NTC: control por rangos configurables
+        // Modo automático: decidir color según rangos configurables de temperatura
         ntc_status = xQueueReceive(ntc_queue, &ntc_data, pdMS_TO_TICKS(10));
         if (ntc_status == pdPASS) {
             float temp = ntc_data.temperature_c;
@@ -163,7 +167,7 @@ void rgb_control_task(void *arg)
             bool in_green = (temp >= green_min && temp <= green_max);
             bool in_blue  = (temp >= blue_min && temp <= blue_max);
 
-            // Modo automático: decidir color por NTC (manejo de solapamientos)
+            // Resolver solapamientos de rangos mezclando colores (blanco/amarillo/magenta/cian)
             if (!in_red && !in_green && !in_blue) {
                 rgb_led_off();
                 any_color_active = false;
@@ -190,7 +194,7 @@ void rgb_control_task(void *arg)
                 any_color_active = true;
             }
         }
-        // Actualizar intensidad en tiempo real en modo automático si hay color activo
+        // Actualizar intensidad desde el pot incluso en modo automático si hay color activo
         if (any_color_active) {
             rgb_led_set_intensity(current_pot_data.pot_percent);
         }
@@ -199,6 +203,7 @@ void rgb_control_task(void *arg)
     }
 }
 
+// Tarea: Muestra por consola el estado del sistema cada 2s si la impresión está habilitada
 void display_info_task(void *arg)
 {
     ESP_LOGI(TAG, "Tarea de visualización iniciada");
@@ -232,6 +237,7 @@ void display_info_task(void *arg)
 
 
 // ===== FUNCIÓN PRINCIPAL DEL SISTEMA =====
+// Punto de entrada: inicializa hardware, crea colas y tareas del sistema
 void app_main(void)
 {
     ESP_LOGI(TAG, "=== INICIANDO SISTEMA RTOS - SENSOR NTC ===");
@@ -296,6 +302,7 @@ void app_main(void)
 }
 
 // ====== TAREA: Recepción de comandos por UART ======
+// Muestra el menú de ayuda para comandos UART
 static void print_help_menu(void)
 {
     printf("\n\n=== MODO CONFIGURACIÓN ===\n");
@@ -311,6 +318,7 @@ static void print_help_menu(void)
     fflush(stdout);
 }
 
+// Tarea: Lee comandos por UART, los parsea y los envía a la cola de comandos
 void uart_receiver_task(void *arg)
 {
     uint8_t *data = (uint8_t *)malloc(256);

@@ -15,6 +15,7 @@ static adc_oneshot_unit_handle_t adc2_handle;
 static adc_cali_handle_t adc2_cali_handle = NULL;
 
 // ===== FUNCIONES DE CALIBRACIÓN DEL ADC =====
+// Crea el manejador de calibración del ADC si el esquema está soportado
 static bool adc_calibration_init(adc_unit_t unit, adc_atten_t atten, adc_cali_handle_t *out_handle)
 {
     adc_cali_handle_t handle = NULL;
@@ -49,6 +50,7 @@ static bool adc_calibration_init(adc_unit_t unit, adc_atten_t atten, adc_cali_ha
 }
 
 // ===== FUNCIONES DE INICIALIZACIÓN =====
+// Inicializa el ADC y el canal del NTC (GPIO26) con atenuación y calibración
 void ntc_sensor_init(void) {
     ESP_LOGI(TAG, "Inicializando ADC2 para sensor NTC...");
     
@@ -64,6 +66,7 @@ void ntc_sensor_init(void) {
 
 
 // ===== FUNCIONES DE LECTURA Y CÁLCULO =====
+// Lee el ADC, calcula la resistencia del NTC y estima la temperatura en °C
 ntc_data_t ntc_read_temperature(void) {
     ntc_data_t ntc_data = {0};
     int raw_adc_value;

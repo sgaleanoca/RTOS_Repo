@@ -21,6 +21,7 @@ static uint8_t current_green = 255;
 static uint8_t current_blue = 255;
 
 // ===== FUNCIONES PRIVADAS =====
+// Actualiza los tres canales PWM según color e intensidad actuales
 static void rgb_led_update_pwm(void)
 {
     uint8_t values[3] = {(current_red * current_intensity) / 100, 
@@ -35,6 +36,7 @@ static void rgb_led_update_pwm(void)
 }
 
 // ===== FUNCIONES PÚBLICAS =====
+// Inicializa timer y canales PWM y deja el LED apagado
 void rgb_led_init(void)
 {
     ESP_LOGI(TAG, "Inicializando LED RGB...");
@@ -63,12 +65,14 @@ void rgb_led_init(void)
              RGB_RED_PIN, RGB_GREEN_PIN, RGB_BLUE_PIN, RGB_PWM_FREQ);
 }
 
+// Ajusta la intensidad global (0-100%) y actualiza PWM
 void rgb_led_set_intensity(uint8_t intensity)
 {
     current_intensity = intensity > 100 ? 100 : intensity;
     rgb_led_update_pwm();
 }
 
+// Define el color base (0-255 por canal) y actualiza PWM
 void rgb_led_set_color(uint8_t red, uint8_t green, uint8_t blue)
 {
     current_red = red;
@@ -77,6 +81,7 @@ void rgb_led_set_color(uint8_t red, uint8_t green, uint8_t blue)
     rgb_led_update_pwm();
 }
 
+// Apaga el LED estableciendo intensidad a 0 y actualizando PWM
 void rgb_led_off(void)
 {
     current_intensity = 0;
@@ -90,6 +95,7 @@ uint8_t rgb_led_get_green(void) { return current_green; }
 uint8_t rgb_led_get_blue(void) { return current_blue; }
 bool rgb_led_is_on(void) { return current_intensity > 0; }
 
+// Devuelve un nombre aproximado del color actual según componentes RGB
 const char* rgb_led_get_color_name(void)
 {
     if (!rgb_led_is_on()) return "APAGADO";

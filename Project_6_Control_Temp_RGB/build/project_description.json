@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "Project_6_Control_Temp_RGB",
-    "project_version":    "e8e9d0d-dirty",
+    "project_version":    "ec23e78-dirty",
     "project_path":       "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB",
     "idf_path":           "/home/zerendor/esp/esp-idf",
     "build_dir":          "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build",
@@ -952,7 +952,7 @@
             "priv_reqs": [ "esp_driver_uart", "esp_driver_usb_serial_jtag" ],
             "managed_reqs": [],
             "managed_priv_reqs": [],
-            "include_dirs": [ "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build" ]
+            "include_dirs": [ "/home/zerendor/Documents/RTOS_Raiz/Parcial_1/build" ]
         },
         "cxx": {
             "alias": "idf::cxx",
@@ -1000,7 +1000,7 @@
             "priv_reqs": [ "http_parser", "esp_timer", "lwip" ],
             "managed_reqs": [],
             "managed_priv_reqs": [],
-            "include_dirs": [ "/home/zerendor/Documents/RTOS_Raiz/Project_6_Control_Temp_RGB/build", "esp-tls-crypto" ]
+            "include_dirs": [ "/home/zerendor/Documents/RTOS_Raiz/Parcial_1/build", "esp-tls-crypto" ]
         },
         "esp_adc": {
             "alias": "idf::esp_adc",

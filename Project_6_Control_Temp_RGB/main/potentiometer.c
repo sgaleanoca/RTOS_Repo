@@ -105,3 +105,4 @@ uint8_t pot_get_percent(void)
     uint32_t mv = pot_get_voltage_mv();
     return mv >= 3300 ? 100 : (uint8_t)((mv * 100) / 3300);
 }
+    

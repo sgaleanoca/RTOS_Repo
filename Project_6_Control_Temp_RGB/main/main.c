@@ -29,24 +29,24 @@ static QueueHandle_t pot_queue = NULL;
 static QueueHandle_t ntc_queue = NULL;
 static QueueHandle_t led_queue = NULL;
 // Cola para comandos recibidos por UART
-typedef enum { CMD_SET_RED, CMD_SET_GREEN, CMD_SET_BLUE, CMD_SET_POT } command_type_t;
+typedef enum { CMD_SET_RED, CMD_SET_GREEN, CMD_SET_BLUE, CMD_SET_POT } command_type_t; 
 typedef struct {
     command_type_t type;
     float value1; // min_temp o canal del pot (1=r,2=g,3=b,0=none)
     float value2; // max_temp
 } app_command_t;
-static QueueHandle_t command_queue = NULL;
+static QueueHandle_t command_queue = NULL; 
 
 // Prototipo de tarea UART
-void uart_receiver_task(void *arg);
+void uart_receiver_task(void *arg); //
 
 // Variables globales (mantenidas para compatibilidad)
-static pot_data_t current_pot_data = {0};
+static pot_data_t current_pot_data = {0}; 
 static ntc_data_t current_ntc_data = {0};
 static bool data_ready = false;
 
 // ===== FUNCIÓN AUXILIAR PARA LOGS CONDICIONALES =====
-static void conditional_log_info(const char *tag, const char *format, ...) {
+static void conditional_log_info(const char *tag, const char *format, ...) { 
     if (is_print_enabled()) {
         va_list args; va_start(args, format);
         esp_log_writev(ESP_LOG_INFO, tag, format, args); va_end(args);
@@ -124,7 +124,7 @@ void rgb_control_task(void *arg)
             switch (received_cmd.type) {
                 case CMD_SET_RED:
                     red_min = received_cmd.value1;
-                    red_max = (received_cmd.value2 <= received_cmd.value1) ? (received_cmd.value1 + 0.1f) : received_cmd.value2;
+                    red_max = (received_cmd.value2 <= received_cmd.value1) ? (received_cmd.value1 + 0.1f) : received_cmd.value2; 
                     break;
                 case CMD_SET_GREEN:
                     green_min = received_cmd.value1;

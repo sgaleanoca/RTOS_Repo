@@ -130,7 +130,7 @@ void rgb_control_task(void *arg)
     
     while (1) {
         // IMPLEMENTACIÓN PARCIAL_1 BOTON ALTERNADO DEL LED
-        // Si el LED está forzado apagado por el botón, mantenerlo apagado y omitir controles
+        // Si el LED está forzado apagado por el botón, mantenerlo apagado
         if (is_led_forced_off(ctx->button_ctx)) {
             if (rgb_led_is_on(ctx->rgb_ctx)) {
                 rgb_led_off(ctx->rgb_ctx);

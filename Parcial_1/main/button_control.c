@@ -100,6 +100,7 @@ void button_task(void *arg) {
             if (!long_press_detected) {
                 // IMPLEMENTACIÓN PARCIAL_1 BOTON ALTERNADO DEL LED
                 // Pulsación corta: alterna forzado de LED apagado (una sola vez por pulsación)
+                
                 ctx->state.led_forced_off = !ctx->state.led_forced_off;
                 ESP_LOGI(TAG, "Pulsación corta - LED %s", 
                          ctx->state.led_forced_off ? "FORZADO APAGADO" : "CONTROL NORMAL");

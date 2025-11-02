@@ -24,6 +24,65 @@ El sistema funciona mediante una arquitectura multitarea donde diferentes tareas
    - `uart_receiver_task`: Procesa comandos UART para configuración
    - `button_task`: Detecta pulsaciones del botón físico
 
+## Implementaciones del Parcial_1
+
+Durante el desarrollo del parcial se implementaron tres funcionalidades principales que están marcadas en el código con los comentarios `IMPLEMENTACIÓN PARCIAL_1`:
+
+### 1. Control Alternado del LED mediante Botón
+
+**Ubicación**: `button_control.c` (línea 101) y `rgb_control_task` en `main.c` (línea 132)
+
+**Funcionalidad implementada**:
+- Se añadió la capacidad del botón físico para forzar el apagado del LED RGB de forma alternada mediante pulsaciones cortas.
+- Cuando el usuario presiona el botón brevemente, se alterna el estado `led_forced_off` del contexto del botón.
+- La tarea `rgb_control_task` verifica continuamente si `led_forced_off` está activo. Si es así, mantiene el LED apagado independientemente de otros controles (temperatura o potenciómetro) y continúa el ciclo sin procesar otros comandos.
+
+**Comportamiento**:
+- **Pulsación corta**: Alterna entre LED forzado apagado y control normal
+- **Pulsación larga**: Se mantiene la detección para posibles usos futuros
+- El LED se mantiene apagado mientras `led_forced_off` esté activo, incluso si la temperatura o el potenciómetro indican que debería estar encendido
+
+### 2. Comando `potmv` - Lectura Única del Voltaje del Potenciómetro
+
+**Ubicación**: `uart_receiver_task` en `main.c` (líneas 384-390) y menú de ayuda (línea 350)
+
+**Funcionalidad implementada**:
+- Se implementó el comando UART `potmv` que permite leer el voltaje del potenciómetro en milivoltios una sola vez, a demanda.
+- Este comando lee directamente del ADC usando `pot_get_voltage_mv()` y muestra el resultado inmediatamente.
+- Se eliminó la impresión periódica del voltaje en milivoltios del monitor de sistema (`display_info_task`), dejando solo el porcentaje (0-100%) en el monitoreo continuo.
+
+**Uso**:
+```
+> potmv
+POT: 1650 mV
+>
+```
+
+**Motivación**: Permite consultar el voltaje exacto cuando sea necesario sin saturar la salida del monitor periódico, donde solo se muestra el porcentaje más útil para el usuario.
+
+### 3. Comando `rate` - Configuración del Periodo de Impresión del Monitor
+
+**Ubicación**: `uart_receiver_task` en `main.c` (líneas 393-401) y `display_info_task` (líneas 258-262)
+
+**Funcionalidad implementada**:
+- Se implementó el comando UART `rate <ms>` que permite cambiar dinámicamente el periodo de impresión del monitor de sistema.
+- El comando acepta un valor en milisegundos (rango válido: 100ms a 60000ms) y actualiza `ctx->monitor_period_ms`.
+- La tarea `display_info_task` utiliza este periodo configurable mediante `vTaskDelay()`, permitiendo ajustar la frecuencia de visualización del estado del sistema.
+
+**Validación**:
+- Valores menores a 100ms se ajustan automáticamente a 100ms (mínimo)
+- Valores mayores a 60000ms se ajustan automáticamente a 60000ms (máximo)
+
+**Uso**:
+```
+> rate 5000
+OK: rate 5000 ms
+>
+```
+Esto cambia el periodo de impresión del monitor de 2000ms (por defecto) a 5000ms.
+
+**Beneficios**: Permite al usuario ajustar la frecuencia de actualización del monitor según sus necesidades, reduciendo la salida de datos cuando se requiere menos información o aumentándola para depuración.
+
 ## Resumen de Módulos
 
 ### `main.c`

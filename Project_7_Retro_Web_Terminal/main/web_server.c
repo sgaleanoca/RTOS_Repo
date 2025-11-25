@@ -1,5 +1,6 @@
 #include "web_server.h"
 #include "gpio_driver.h"
+#include "ntc_sensor.h"
 #include <esp_http_server.h>
 #include <esp_spiffs.h>
 #include <esp_log.h>
@@ -9,6 +10,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <errno.h>
+#include <math.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "lwip/inet.h"
@@ -170,6 +172,68 @@ esp_err_t style_get_handler(httpd_req_t *req) {
 esp_err_t script_get_handler(httpd_req_t *req) {
     ESP_LOGI(TAG, "GET /script.js");
     return send_file_from_spiffs(req, "/spiffs/script.js", "application/javascript");
+}
+
+// GET /favicon.ico (evitar 404)
+esp_err_t favicon_get_handler(httpd_req_t *req) {
+    httpd_resp_set_status(req, "204 No Content");
+    httpd_resp_send(req, NULL, 0);
+    return ESP_OK;
+}
+
+// GET /temperature
+esp_err_t temperature_get_handler(httpd_req_t *req) {
+    ESP_LOGI(TAG, "GET /temperature recibido");
+    
+    if (!is_authenticated(req)) {
+        ESP_LOGW(TAG, "GET /temperature: No autenticado");
+        httpd_resp_set_status(req, "401 Unauthorized");
+        httpd_resp_send(req, "Unauthorized", HTTPD_RESP_USE_STRLEN);
+        return ESP_OK;
+    }
+    
+    // Obtener la temperatura actual almacenada por la tarea
+    ntc_data_t temp_data = ntc_get_current_temperature();
+    char response[128];
+    int len;
+    
+    // Log para debugging
+    ESP_LOGI(TAG, "GET /temperature - Temp: %.1f°C, ADC: %d, R: %.0fΩ", 
+             temp_data.temperature_c, temp_data.raw_adc_value, temp_data.resistance);
+    
+    // Enviar la temperatura si es válida (no es -999.0)
+    if (temp_data.temperature_c < -900.0 || isnan(temp_data.temperature_c) || !isfinite(temp_data.temperature_c)) {
+        // Error en la lectura o datos no disponibles aún
+        ESP_LOGW(TAG, "Temperatura no disponible: %.1f°C", temp_data.temperature_c);
+        len = snprintf(response, sizeof(response), "{\"error\":\"No data available\"}");
+    } else {
+        // Enviar la temperatura siempre que sea un número válido
+        // Usar formato más explícito para asegurar que sea JSON válido
+        len = snprintf(response, sizeof(response), "{\"temperature\":%.1f}", temp_data.temperature_c);
+        ESP_LOGI(TAG, "Enviando temperatura a web: %.1f°C (JSON: %s)", temp_data.temperature_c, response);
+        
+        // Verificar que el JSON se formateó correctamente
+        if (len >= sizeof(response)) {
+            ESP_LOGE(TAG, "Buffer de respuesta demasiado pequeño!");
+            len = snprintf(response, sizeof(response), "{\"error\":\"Buffer overflow\"}");
+        }
+    }
+    
+    // Configurar headers antes de enviar
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-cache, no-store, must-revalidate");
+    httpd_resp_set_hdr(req, "Pragma", "no-cache");
+    httpd_resp_set_hdr(req, "Expires", "0");
+    
+    ESP_LOGI(TAG, "Enviando respuesta JSON (%d bytes): %s", len, response);
+    esp_err_t ret = httpd_resp_send(req, response, len);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Error al enviar respuesta de temperatura: %s", esp_err_to_name(ret));
+        return ret;
+    }
+    
+    ESP_LOGI(TAG, "Respuesta de temperatura enviada exitosamente");
+    return ESP_OK;
 }
 
 // Decodificar URL (simple, solo espacios)
@@ -539,17 +603,42 @@ void start_webserver(void) {
     } else {
         ESP_LOGI(TAG, "Ruta /logout registrada");
     }
-    
-    // Registrar handler catch-all con wildcard (debe ser el último)
-    httpd_uri_t catch_all_uri = {
-        .uri = "/*",
-        .method = HTTP_GET,
-        .handler = catch_all_handler,
+
+    httpd_uri_t temperature_uri = { 
+        .uri = "/temperature", 
+        .method = HTTP_GET, 
+        .handler = temperature_get_handler,
         .user_ctx = NULL
     };
+    if (httpd_register_uri_handler(server, &temperature_uri) != ESP_OK) {
+        ESP_LOGE(TAG, "Error al registrar ruta /temperature");
+    } else {
+        ESP_LOGI(TAG, "Ruta /temperature registrada");
+    }
+
+    // Handler para favicon.ico (evitar 404)
+    httpd_uri_t favicon_uri = {
+        .uri = "/favicon.ico",
+        .method = HTTP_GET,
+        .handler = favicon_get_handler,
+        .user_ctx = NULL
+    };
+    if (httpd_register_uri_handler(server, &favicon_uri) != ESP_OK) {
+        ESP_LOGW(TAG, "No se pudo registrar /favicon.ico (no crítico)");
+    } else {
+        ESP_LOGI(TAG, "Ruta /favicon.ico registrada");
+    }
+    
+    // Registrar handler catch-all con wildcard (debe ser el último)
     // Nota: Para usar wildcard, necesitamos habilitar uri_match_fn
     // Por ahora, no lo registramos para evitar conflictos
+    // httpd_uri_t catch_all_uri = {
+    //     .uri = "/*",
+    //     .method = HTTP_GET,
+    //     .handler = catch_all_handler,
+    //     .user_ctx = NULL
+    // };
     
     ESP_LOGI(TAG, "Servidor Web Iniciado correctamente en puerto %d", config.server_port);
-    ESP_LOGI(TAG, "Total de handlers registrados: 6 (/, /style.css, /script.js, /cmd, /login, /logout)");
+    ESP_LOGI(TAG, "Total de handlers registrados: 7 (/, /style.css, /script.js, /cmd, /login, /logout, /temperature)");
 }

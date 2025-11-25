@@ -4,8 +4,10 @@
 #include <stdint.h>
 
 // --- Configuración de Pines ---
-#define NTC_PIN         ADC_CHANNEL_9   // GPIO26 es ADC_CHANNEL_9
-#define ADC_UNIT        ADC_UNIT_2
+// Nota: ADC2 no funciona con WiFi activo, por lo que usamos ADC1
+// GPIO32 es ADC_CHANNEL_4 (ADC1) y funciona correctamente con WiFi
+#define NTC_PIN         ADC_CHANNEL_4   // GPIO32 es ADC_CHANNEL_4 (ADC1)
+#define ADC_UNIT        ADC_UNIT_1
 
 // --- Constantes del Termistor NTC 10k ---
 #define NOMINAL_RESISTANCE      10000.0 // Resistencia nominal a 25°C
@@ -24,5 +26,7 @@ typedef struct {
 // Funciones públicas
 void ntc_sensor_init(void);
 ntc_data_t ntc_read_temperature(void);
+ntc_data_t ntc_get_current_temperature(void);
+void ntc_start_reading_task(void);
 
 #endif // NTC_SENSOR_H

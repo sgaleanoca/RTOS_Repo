@@ -585,6 +585,13 @@
 /home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/esp_wifi/CMakeFiles/install.dir
 /home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/esp_wifi/CMakeFiles/install/local.dir
 /home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/esp_wifi/CMakeFiles/install/strip.dir
+/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/esp_adc/CMakeFiles/__idf_esp_adc.dir
+/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/esp_adc/CMakeFiles/edit_cache.dir
+/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/esp_adc/CMakeFiles/rebuild_cache.dir
+/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/esp_adc/CMakeFiles/list_install_components.dir
+/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/esp_adc/CMakeFiles/install.dir
+/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/esp_adc/CMakeFiles/install/local.dir
+/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/esp_adc/CMakeFiles/install/strip.dir
 /home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/main/CMakeFiles/__idf_main.dir
 /home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/main/CMakeFiles/edit_cache.dir
 /home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/main/CMakeFiles/rebuild_cache.dir

@@ -2,6 +2,7 @@
 #include "wifi_app.h"
 #include "web_server.h"
 #include "gpio_driver.h"
+#include "ntc_sensor.h"
 
 void app_main(void) {
     // 1. Inicializar NVS (Necesario para WiFi)
@@ -14,6 +15,8 @@ void app_main(void) {
 
     // 2. Inicializar Hardware
     gpio_init_leds();
+    ntc_sensor_init();
+    ntc_start_reading_task(); // Iniciar tarea de lectura periódica
 
     // 3. Inicializar WiFi (SoftAP)
     // (Implementa wifi_init_softap en wifi_app.c usando ejemplos standard de ESP-IDF)

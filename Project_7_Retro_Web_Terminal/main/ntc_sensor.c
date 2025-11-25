@@ -4,15 +4,20 @@
 #include "esp_adc/adc_oneshot.h"
 #include "esp_adc/adc_cali.h"
 #include "esp_adc/adc_cali_scheme.h"
+#include "hal/adc_types.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/semphr.h"
 #include <math.h>
 
 static const char *TAG = "NTC_TEMP_CONTROL";
 
 // ===== VARIABLES GLOBALES =====
-static adc_oneshot_unit_handle_t adc2_handle;
-static adc_cali_handle_t adc2_cali_handle = NULL;
+static adc_oneshot_unit_handle_t adc1_handle;
+static adc_cali_handle_t adc1_cali_handle = NULL;
+static ntc_data_t current_ntc_data = {.temperature_c = -999.0, .resistance = 0.0, .raw_adc_value = 0};
+static bool data_ready = false;
+static SemaphoreHandle_t data_mutex = NULL; // Mutex para proteger acceso concurrente
 
 // ===== FUNCIONES DE CALIBRACIÓN DEL ADC =====
 // Crea el manejador de calibración del ADC si el esquema está soportado
@@ -50,18 +55,26 @@ static bool adc_calibration_init(adc_unit_t unit, adc_atten_t atten, adc_cali_ha
 }
 
 // ===== FUNCIONES DE INICIALIZACIÓN =====
-// Inicializa el ADC y el canal del NTC (GPIO26) con atenuación y calibración
+// Inicializa el ADC y el canal del NTC (GPIO32) con atenuación y calibración
+// Usamos ADC1 porque ADC2 no funciona cuando WiFi está activo
 void ntc_sensor_init(void) {
-    ESP_LOGI(TAG, "Inicializando ADC2 para sensor NTC...");
+    ESP_LOGI(TAG, "Inicializando ADC1 para sensor NTC en GPIO32...");
+    
+    // Crear mutex para proteger acceso concurrente a los datos
+    data_mutex = xSemaphoreCreateMutex();
+    if (data_mutex == NULL) {
+        ESP_LOGE(TAG, "Error al crear mutex para datos del sensor");
+        return;
+    }
     
     adc_oneshot_unit_init_cfg_t init_config1 = {.unit_id = ADC_UNIT};
-    ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config1, &adc2_handle));
+    ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config1, &adc1_handle));
 
     adc_oneshot_chan_cfg_t config = {.bitwidth = ADC_BITWIDTH_DEFAULT, .atten = ADC_ATTEN_DB_12};
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc2_handle, NTC_PIN, &config));
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, NTC_PIN, &config));
 
-    adc_calibration_init(ADC_UNIT, ADC_ATTEN_DB_12, &adc2_cali_handle);
-    ESP_LOGI(TAG, "ADC2 inicializado correctamente en GPIO26 (ADC_CHANNEL_9)");
+    adc_calibration_init(ADC_UNIT, ADC_ATTEN_DB_12, &adc1_cali_handle);
+    ESP_LOGI(TAG, "ADC1 inicializado correctamente en GPIO32 (ADC_CHANNEL_4)");
 }
 
 
@@ -71,8 +84,8 @@ ntc_data_t ntc_read_temperature(void) {
     ntc_data_t ntc_data = {0};
     int raw_adc_value;
     
-    if (adc_oneshot_read(adc2_handle, NTC_PIN, &raw_adc_value) != ESP_OK) {
-        ESP_LOGE(TAG, "Error al leer ADC2");
+    if (adc_oneshot_read(adc1_handle, NTC_PIN, &raw_adc_value) != ESP_OK) {
+        ESP_LOGE(TAG, "Error al leer ADC1");
         ntc_data.temperature_c = -999.0;
         return ntc_data;
     }
@@ -100,5 +113,67 @@ ntc_data_t ntc_read_temperature(void) {
     
     ESP_LOGD(TAG, "Lectura exitosa: ADC=%d, R=%.0fΩ, T=%.1f°C", raw_adc_value, resistance, ntc_data.temperature_c);
     return ntc_data;
+}
+
+// ===== TAREA DE LECTURA PERIÓDICA =====
+// Tarea: Lee temperatura del NTC, valida rangos y almacena datos
+static void ntc_reading_task(void *arg)
+{
+    ntc_data_t ntc_data;
+    ESP_LOGI(TAG, "Tarea de lectura del sensor NTC iniciada");
+    
+    // Esperar un poco para que el ADC se estabilice
+    vTaskDelay(pdMS_TO_TICKS(100));
+    
+    while (1) {
+        ntc_data = ntc_read_temperature();
+        
+        // Proteger acceso concurrente con mutex
+        if (xSemaphoreTake(data_mutex, portMAX_DELAY) == pdTRUE) {
+            // Siempre almacenar los últimos datos leídos, incluso si no son perfectos
+            // Esto permite que el web server vea qué está leyendo el sensor
+            current_ntc_data = ntc_data;
+            
+            // Validar datos para marcar como "ready"
+            // Ser más permisivo: aceptar cualquier temperatura calculada que no sea -999.0
+            if (ntc_data.raw_adc_value > 0 && ntc_data.raw_adc_value < 4096 && 
+                ntc_data.temperature_c != -999.0 && 
+                isfinite(ntc_data.temperature_c) && !isnan(ntc_data.temperature_c)) {
+                data_ready = true;
+                // Log cada lectura válida para verificar que funciona
+                ESP_LOGI(TAG, "Temperatura: %.1f°C (ADC=%d, R=%.0fΩ)", 
+                         ntc_data.temperature_c, ntc_data.raw_adc_value, ntc_data.resistance);
+            } else {
+                data_ready = false;
+                // Log para debugging
+                ESP_LOGW(TAG, "Datos inválidos: Temp=%.1f°C, ADC=%d, R=%.0fΩ", 
+                         ntc_data.temperature_c, ntc_data.raw_adc_value, ntc_data.resistance);
+            }
+            
+            xSemaphoreGive(data_mutex);
+        }
+        
+        vTaskDelay(pdMS_TO_TICKS(1000)); // Leer cada segundo
+    }
+}
+
+// ===== FUNCIÓN GETTER =====
+// Obtiene la temperatura actual almacenada
+ntc_data_t ntc_get_current_temperature(void) {
+    ntc_data_t temp_data = {.temperature_c = -999.0, .resistance = 0.0, .raw_adc_value = 0};
+    
+    // Proteger acceso concurrente con mutex
+    if (data_mutex != NULL && xSemaphoreTake(data_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+        temp_data = current_ntc_data;
+        xSemaphoreGive(data_mutex);
+    }
+    
+    return temp_data;
+}
+
+// Inicia la tarea de lectura periódica
+void ntc_start_reading_task(void) {
+    xTaskCreate(ntc_reading_task, "ntc_reader", 4096, NULL, 5, NULL);
+    ESP_LOGI(TAG, "Tarea de lectura periódica del NTC iniciada");
 }
 

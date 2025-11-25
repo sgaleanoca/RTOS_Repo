@@ -1,5 +1,6 @@
 source "/home/zerendor/esp/esp-idf/components/driver/Kconfig"
 source "/home/zerendor/esp/esp-idf/components/efuse/Kconfig"
+source "/home/zerendor/esp/esp-idf/components/esp_adc/Kconfig"
 source "/home/zerendor/esp/esp-idf/components/esp_coex/Kconfig"
 source "/home/zerendor/esp/esp-idf/components/esp_common/Kconfig"
 source "/home/zerendor/esp/esp-idf/components/esp_driver_ana_cmpr/Kconfig"

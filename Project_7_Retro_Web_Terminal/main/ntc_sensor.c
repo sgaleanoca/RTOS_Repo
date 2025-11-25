@@ -111,7 +111,6 @@ ntc_data_t ntc_read_temperature(void) {
     float steinhart = log(resistance / NOMINAL_RESISTANCE) / B_COEFFICIENT + 1.0 / (NOMINAL_TEMPERATURE + 273.15);
     ntc_data.temperature_c = 1.0 / steinhart - 273.15;
     
-    ESP_LOGD(TAG, "Lectura exitosa: ADC=%d, R=%.0fΩ, T=%.1f°C", raw_adc_value, resistance, ntc_data.temperature_c);
     return ntc_data;
 }
 
@@ -140,14 +139,8 @@ static void ntc_reading_task(void *arg)
                 ntc_data.temperature_c != -999.0 && 
                 isfinite(ntc_data.temperature_c) && !isnan(ntc_data.temperature_c)) {
                 data_ready = true;
-                // Log cada lectura válida para verificar que funciona
-                ESP_LOGI(TAG, "Temperatura: %.1f°C (ADC=%d, R=%.0fΩ)", 
-                         ntc_data.temperature_c, ntc_data.raw_adc_value, ntc_data.resistance);
             } else {
                 data_ready = false;
-                // Log para debugging
-                ESP_LOGW(TAG, "Datos inválidos: Temp=%.1f°C, ADC=%d, R=%.0fΩ", 
-                         ntc_data.temperature_c, ntc_data.raw_adc_value, ntc_data.resistance);
             }
             
             xSemaphoreGive(data_mutex);

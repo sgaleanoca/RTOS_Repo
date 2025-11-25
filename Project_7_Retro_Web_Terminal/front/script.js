@@ -54,52 +54,66 @@ updateClock(); // Primera llamada inmediata
 console.log("[CLOCK] Reloj inicializado");
 
 // --- TEMPERATURA EN TIEMPO REAL ---
+let isUpdatingTemperature = false; // Evitar peticiones superpuestas
+
 function updateTemperature() {
     const tempElement = document.getElementById('tempDisplay');
-    if (tempElement) {
-        fetch("/temperature")
-            .then(resp => {
-                if (!resp.ok) {
-                    if (resp.status === 401) {
-                        return Promise.reject(new Error("Unauthorized"));
-                    }
-                    throw new Error(`HTTP ${resp.status}`);
+    if (!tempElement) {
+        return;
+    }
+    
+    // Evitar peticiones superpuestas
+    if (isUpdatingTemperature) {
+        return;
+    }
+    
+    isUpdatingTemperature = true;
+    
+    fetch("/temperature")
+        .then(resp => {
+            if (!resp.ok) {
+                if (resp.status === 401) {
+                    return Promise.reject(new Error("Unauthorized"));
                 }
-                return resp.text().then(text => {
-                    try {
-                        return JSON.parse(text);
-                    } catch (e) {
-                        console.error("[TEMP] Error parseando JSON:", text);
-                        throw e;
-                    }
-                });
-            })
-            .then(data => {
-                if (data && typeof data.temperature === 'number' && isFinite(data.temperature)) {
-                    const temp = data.temperature;
-                    if (temp > -900 && temp < 200) {
-                        tempElement.innerText = `Temp: ${temp.toFixed(1)}°C`;
-                    } else {
-                        tempElement.innerText = "Temp: --°C";
-                    }
+                throw new Error(`HTTP ${resp.status}`);
+            }
+            return resp.text().then(text => {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error("[TEMP] Error parseando JSON:", text);
+                    throw e;
+                }
+            });
+        })
+        .then(data => {
+            if (data && typeof data.temperature === 'number' && isFinite(data.temperature)) {
+                const temp = data.temperature;
+                if (temp > -900 && temp < 200) {
+                    tempElement.innerText = `Temp: ${temp.toFixed(1)}°C`;
                 } else {
                     tempElement.innerText = "Temp: --°C";
                 }
-            })
-            .catch(err => {
-                // No hacer nada si es error de autenticación (el usuario no está logueado)
-                if (err.message !== "Unauthorized") {
-                    const tempEl = document.getElementById('tempDisplay');
-                    if (tempEl) {
-                        tempEl.innerText = "Temp: --°C";
-                    }
+            } else {
+                tempElement.innerText = "Temp: --°C";
+            }
+        })
+        .catch(err => {
+            // No hacer nada si es error de autenticación (el usuario no está logueado)
+            if (err.message !== "Unauthorized") {
+                const tempEl = document.getElementById('tempDisplay');
+                if (tempEl) {
+                    tempEl.innerText = "Temp: --°C";
                 }
-            });
-    }
+            }
+        })
+        .finally(() => {
+            isUpdatingTemperature = false;
+        });
 }
 setInterval(updateTemperature, 1000);
 updateTemperature(); // Primera llamada inmediata
-console.log("[TEMP] Temperatura inicializada");
+console.log("[TEMP] Temperatura inicializada - actualización cada 1 segundo");
 
 // --- LÓGICA DE LA TERMINAL ---
 const term = document.getElementById("term");

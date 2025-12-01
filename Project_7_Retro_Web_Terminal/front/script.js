@@ -27,8 +27,8 @@ if (loginForm) {
             const text = await res.text();
 
             if (res.ok) {
-                // Si el ESP32 responde 200 OK, recargamos para ir a la terminal
-                window.location.href = "/";
+                // Si el ESP32 responde 200 OK, redirigimos al dashboard
+                window.location.href = "/dashboard";
             } else {
                 // Si responde 401, mostramos el error
                 errorDiv.textContent = text || "Credenciales incorrectas.";
@@ -219,6 +219,11 @@ if (term && input) {
     }, 2000);
 
     showWelcome();
+}
+
+// Función para ir al dashboard
+function goToDashboard() {
+    window.location.href = "/dashboard";
 }
 
 // Función de logout

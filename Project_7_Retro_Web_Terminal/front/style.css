@@ -109,9 +109,34 @@ body {
     font-size: 0.95em;
 }
 
-.bar-right { }
+.bar-right { 
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
 
 /* Elementos individuales */
+.dashboard-btn {
+    background: none; 
+    border: 1px solid #33ff33; 
+    color: #33ff33;
+    padding: 2px 10px; 
+    border-radius: 3px; 
+    cursor: pointer; 
+    font-family: inherit; 
+    font-size: 0.8em;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.dashboard-btn:hover { 
+    background: #33ff33; 
+    color: black; 
+    box-shadow: 0 0 8px rgba(51, 255, 51, 0.6);
+}
+
 .logout-btn {
     background: none; 
     border: 1px solid #ff5555; 
@@ -127,6 +152,7 @@ body {
 .logout-btn:hover { 
     background: #ff5555; 
     color: black; 
+    box-shadow: 0 0 8px rgba(255, 85, 85, 0.6);
 }
 
 /* Terminal Area */
@@ -169,4 +195,161 @@ body {
     border-top: 1px dashed #33ff33;
     margin: 10px 0; 
     opacity: 0.5;
+}
+
+/* --- ESTILOS DEL DASHBOARD --- */
+body.dashboard-body {
+    overflow: auto;
+}
+
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 20px;
+    background: black;
+}
+
+.dashboard-title {
+    font-size: 2em;
+    font-weight: bold;
+    color: #44ee44;
+    text-shadow: 0 0 10px #33ff33;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.dashboard-subtitle {
+    font-size: 1.1em;
+    color: #aaa;
+    margin-bottom: 60px;
+    text-align: center;
+}
+
+.icons-container {
+    display: flex;
+    gap: 80px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.icon-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.icon-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Cuadrado decorativo para el icono de terminal */
+.decorative-square {
+    position: absolute;
+    width: 140px;
+    height: 140px;
+    border: 2px solid #33ff33;
+    border-radius: 8px;
+    opacity: 0.6;
+    z-index: 0;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.6;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
+.icon-box {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #33ff33;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1;
+    animation: zoomIn 0.6s ease-out;
+}
+
+@keyframes zoomIn {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.icon-box:hover {
+    transform: scale(1.15);
+    box-shadow: 0 0 20px #33ff33, 0 0 40px rgba(51, 255, 51, 0.5);
+    border-color: #44ee44;
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.icon-box svg {
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+}
+
+.icon-box:hover svg {
+    stroke: #44ee44;
+    filter: drop-shadow(0 0 5px #33ff33);
+}
+
+.icon-label {
+    font-size: 0.9em;
+    color: #33ff33;
+    text-align: center;
+    margin-top: 5px;
+    transition: color 0.3s ease;
+}
+
+.icon-box:hover .icon-label {
+    color: #44ee44;
+    text-shadow: 0 0 5px #33ff33;
+}
+
+/* Responsive para pantallas pequeñas */
+@media (max-width: 768px) {
+    .icons-container {
+        gap: 40px;
+    }
+    
+    .dashboard-title {
+        font-size: 1.5em;
+    }
+    
+    .icon-box {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .decorative-square {
+        width: 120px;
+        height: 120px;
+    }
 }

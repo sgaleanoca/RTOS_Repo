@@ -2,6 +2,50 @@
 console.log("=== SCRIPT.JS CARGADO ===");
 console.log("Estado del DOM:", document.readyState);
 
+// --- FORZAR ORIENTACIÓN VERTICAL EN MÓVIL ---
+function lockOrientation() {
+    // Intentar bloquear la orientación a vertical
+    if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('portrait').catch(function(err) {
+            console.log('No se pudo bloquear la orientación:', err);
+        });
+    } else if (screen.lockOrientation) {
+        screen.lockOrientation('portrait');
+    } else if (screen.mozLockOrientation) {
+        screen.mozLockOrientation('portrait');
+    } else if (screen.msLockOrientation) {
+        screen.msLockOrientation('portrait');
+    }
+}
+
+// Detectar si es móvil
+function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+           (window.innerWidth <= 768);
+}
+
+// Aplicar bloqueo de orientación si es móvil
+if (isMobile()) {
+    // Intentar bloquear al cargar
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', lockOrientation);
+    } else {
+        lockOrientation();
+    }
+    
+    // Reintentar si cambia la orientación
+    window.addEventListener('orientationchange', function() {
+        setTimeout(lockOrientation, 100);
+    });
+    
+    // También escuchar cambios de resize
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(lockOrientation, 100);
+    });
+}
+
 // --- LÓGICA DE LOGIN ---
 const loginForm = document.getElementById("loginForm");
 

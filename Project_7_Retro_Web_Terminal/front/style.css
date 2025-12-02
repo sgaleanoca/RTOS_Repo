@@ -639,7 +639,8 @@ body {
         line-height: 1.5 !important;
     }
     
-    /* Botones del ventilador en grid 2x2 */
+    /* Botones del ventilador en grid 2x2 para móvil */
+    /* 4 botones: Apagado, Horario, Rendimiento, Manual */
     .fan-buttons {
         grid-template-columns: repeat(2, 1fr) !important;
         gap: 10px !important;
@@ -668,7 +669,7 @@ body {
         color: #00bfff !important;
     }
     
-    /* Botón Manual ocupa todo el ancho en móvil */
+    /* Botón Manual ocupa todo el ancho en móvil (fila completa) */
     .fan-btn-manual {
         grid-column: 1 / -1 !important;
         border-color: rgba(255, 187, 51, 0.7) !important;
@@ -885,62 +886,99 @@ body {
         border-radius: 5px !important;
     }
     
-    /* Estilos del modo horario en móvil */
+    /* Estilos del modo horario en móvil - Optimizado */
+    .fan-schedule-view {
+        width: 100% !important;
+    }
+    
     .fan-schedule-content {
-        gap: 20px !important;
-        padding: 5px 0 !important;
+        gap: 18px !important;
+        padding: 8px 0 !important;
+    }
+    
+    /* Slider del modo horario en móvil */
+    .fan-schedule-content .fan-slider-container {
+        gap: 12px !important;
+    }
+    
+    .fan-schedule-content .fan-slider-label {
+        font-size: 0.9em !important;
+        color: #87ceeb !important;
+    }
+    
+    .fan-schedule-content .fan-slider-value {
+        font-size: 1.2em !important;
+        color: #00bfff !important;
+        text-shadow: 0 0 8px rgba(0, 191, 255, 0.6) !important;
+    }
+    
+    .fan-schedule-content .fan-slider-wrapper {
+        padding: 20px 0 !important;
     }
     
     .fan-schedule-controls {
-        gap: 15px !important;
+        gap: 16px !important;
     }
     
     .fan-schedule-selectors {
-        gap: 12px !important;
+        gap: 14px !important;
+    }
+    
+    .fan-schedule-selector {
+        gap: 8px !important;
     }
     
     .fan-schedule-label {
         font-size: 0.85em !important;
         color: #87ceeb !important;
+        letter-spacing: 0.5px !important;
     }
     
     .fan-schedule-select,
     .fan-schedule-time {
-        padding: 12px 14px !important;
-        font-size: 0.95em !important;
+        padding: 14px 16px !important;
+        font-size: 1em !important;
+        border-width: 2px !important;
         border-color: rgba(0, 191, 255, 0.7) !important;
         color: #87ceeb !important;
         background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 30, 60, 0.3) 100%) !important;
         border-radius: 10px !important;
-        min-height: 44px !important;
+        min-height: 48px !important;
+        -webkit-tap-highlight-color: rgba(0, 191, 255, 0.3) !important;
     }
     
     .fan-schedule-select:active,
     .fan-schedule-time:active {
         background: linear-gradient(135deg, rgba(0, 191, 255, 0.3) 0%, rgba(0, 100, 200, 0.2) 100%) !important;
         border-color: rgba(0, 191, 255, 0.9) !important;
+        transform: scale(0.98) !important;
     }
     
     .fan-schedule-select:focus,
     .fan-schedule-time:focus {
         border-color: rgba(0, 191, 255, 0.9) !important;
         box-shadow: 0 0 20px rgba(0, 191, 255, 0.6) !important;
+        outline: none !important;
     }
     
     .fan-schedule-buttons {
-        gap: 10px !important;
-        margin-top: 8px !important;
+        gap: 12px !important;
+        margin-top: 10px !important;
+        flex-direction: column !important;
     }
     
     .fan-schedule-btn {
-        padding: 18px 16px !important;
-        min-height: 80px !important;
-        border-width: 2px !important;
-        border-radius: 10px !important;
+        padding: 20px 18px !important;
+        min-height: 85px !important;
+        border-width: 3px !important;
+        border-radius: 12px !important;
+        font-size: 0.95em !important;
+        gap: 10px !important;
+        -webkit-tap-highlight-color: transparent !important;
     }
     
     .fan-schedule-btn:active {
-        transform: scale(0.98) !important;
+        transform: scale(0.97) !important;
     }
     
     .fan-schedule-btn-delete {
@@ -951,7 +989,8 @@ body {
     
     .fan-schedule-btn-delete:active {
         background: linear-gradient(135deg, rgba(255, 85, 85, 0.5) 0%, rgba(200, 50, 50, 0.4) 100%) !important;
-        box-shadow: 0 0 25px rgba(255, 85, 85, 0.6) !important;
+        box-shadow: 0 0 30px rgba(255, 85, 85, 0.7) !important;
+        border-color: rgba(255, 100, 100, 0.9) !important;
     }
     
     .fan-schedule-btn-register {
@@ -962,12 +1001,18 @@ body {
     
     .fan-schedule-btn-register:active {
         background: linear-gradient(135deg, rgba(0, 191, 255, 0.5) 0%, rgba(0, 100, 200, 0.4) 100%) !important;
-        box-shadow: 0 0 25px rgba(0, 191, 255, 0.6) !important;
+        box-shadow: 0 0 30px rgba(0, 191, 255, 0.7) !important;
+        border-color: rgba(0, 191, 255, 0.9) !important;
     }
     
     .fan-schedule-btn-icon {
-        font-size: 1.8em !important;
-        filter: drop-shadow(0 0 8px rgba(0, 191, 255, 0.6)) !important;
+        font-size: 2em !important;
+        filter: drop-shadow(0 0 10px rgba(0, 191, 255, 0.6)) !important;
+    }
+    
+    .fan-schedule-btn-label {
+        font-size: 1em !important;
+        font-weight: 600 !important;
     }
     
     /* Estilos para la lista de registros en móvil */
@@ -1004,184 +1049,275 @@ body {
         font-size: 0.85em !important;
     }
     
-    /* Mensaje de confirmación en móvil */
+    /* Mensaje de confirmación en móvil - Optimizado */
     .schedule-confirmation-message {
-        top: 15px !important;
+        top: 20px !important;
         right: 15px !important;
         left: 15px !important;
-        padding: 12px 18px !important;
-        font-size: 0.9em !important;
-        border-width: 2px !important;
-        border-radius: 10px !important;
+        padding: 14px 20px !important;
+        font-size: 0.95em !important;
+        border-width: 3px !important;
+        border-radius: 12px !important;
+        text-align: center !important;
+        box-shadow: 0 0 30px rgba(0, 191, 255, 0.7), 0 6px 20px rgba(0, 0, 0, 0.6) !important;
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.25) 0%, rgba(0, 100, 200, 0.2) 100%) !important;
+        border-color: rgba(0, 191, 255, 0.8) !important;
+        color: #87ceeb !important;
+        text-shadow: 0 0 12px rgba(0, 191, 255, 0.8) !important;
+        font-weight: 600 !important;
     }
     
-    /* Barra de registros en móvil */
+    /* Barra de registros en móvil - Optimizado */
     .logs-bar {
-        padding: 10px 12px !important;
-        border-width: 2px !important;
-        border-radius: 10px !important;
+        padding: 14px 15px !important;
+        border-width: 3px !important;
+        border-radius: 12px !important;
+        border-color: rgba(0, 191, 255, 0.7) !important;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 30, 60, 0.4) 100%) !important;
+        min-height: 70px !important;
+        -webkit-tap-highlight-color: rgba(0, 191, 255, 0.2) !important;
+    }
+    
+    .logs-bar:active {
+        transform: scale(0.98) !important;
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.2) 0%, rgba(0, 100, 200, 0.15) 100%) !important;
+        border-color: rgba(0, 191, 255, 0.9) !important;
+        box-shadow: 0 0 25px rgba(0, 191, 255, 0.6) !important;
     }
     
     .logs-bar-content {
-        gap: 10px !important;
+        gap: 12px !important;
+        align-items: center !important;
     }
     
     .logs-bar-icon {
-        font-size: 1.3em !important;
+        font-size: 1.5em !important;
+        filter: drop-shadow(0 0 10px rgba(0, 191, 255, 0.6)) !important;
+    }
+    
+    .logs-bar-text {
+        flex: 1 !important;
+        gap: 6px !important;
     }
     
     .logs-bar-count {
-        font-size: 0.95em !important;
+        font-size: 1em !important;
         color: #00bfff !important;
-        text-shadow: 0 0 8px rgba(0, 191, 255, 0.6) !important;
+        text-shadow: 0 0 10px rgba(0, 191, 255, 0.7) !important;
+        font-weight: 600 !important;
     }
     
     .logs-bar-latest {
-        font-size: 0.8em !important;
+        font-size: 0.85em !important;
         color: #87ceeb !important;
+        line-height: 1.4 !important;
     }
     
     .logs-bar-arrow {
-        font-size: 1.1em !important;
+        font-size: 1.3em !important;
         color: #00bfff !important;
-        text-shadow: 0 0 8px rgba(0, 191, 255, 0.6) !important;
+        text-shadow: 0 0 10px rgba(0, 191, 255, 0.7) !important;
+        transition: transform 0.3s ease !important;
     }
     
-    /* Popup de registros en móvil */
+    .logs-bar:active .logs-bar-arrow {
+        transform: translateY(5px) !important;
+    }
+    
+    .logs-bar-empty {
+        padding: 18px !important;
+        font-size: 0.9em !important;
+        border-width: 2px !important;
+        border-color: rgba(0, 191, 255, 0.4) !important;
+        border-radius: 12px !important;
+        color: #87ceeb !important;
+        min-height: 60px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    .logs-bar-empty:active {
+        border-color: rgba(0, 191, 255, 0.7) !important;
+        background: rgba(0, 191, 255, 0.1) !important;
+    }
+    
+    /* Popup de registros en móvil - Optimizado */
     .logs-popup {
-        padding: 15px !important;
+        padding: 10px !important;
+        align-items: flex-end !important;
     }
     
     .logs-popup-content {
         max-width: 100% !important;
-        max-height: 85vh !important;
-        border-width: 2px !important;
-        border-radius: 12px !important;
+        max-height: 90vh !important;
+        width: 100% !important;
+        border-width: 3px !important;
+        border-radius: 16px 16px 0 0 !important;
+        border-bottom: none !important;
+        animation: slideUpMobile 0.3s ease !important;
+    }
+    
+    @keyframes slideUpMobile {
+        from {
+            transform: translateY(100%);
+        }
+        to {
+            transform: translateY(0);
+        }
     }
     
     .logs-popup-header {
-        padding: 12px 15px !important;
+        padding: 15px 18px !important;
+        border-bottom-width: 2px !important;
     }
     
     .logs-popup-title {
-        font-size: 1.1em !important;
+        font-size: 1.15em !important;
         color: #00bfff !important;
-        text-shadow: 0 0 10px rgba(0, 191, 255, 0.6) !important;
+        text-shadow: 0 0 12px rgba(0, 191, 255, 0.7) !important;
+        font-weight: 600 !important;
     }
     
     .logs-popup-close {
-        width: 28px !important;
-        height: 28px !important;
-        font-size: 1.3em !important;
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 1.5em !important;
+        border-width: 2px !important;
         border-color: rgba(0, 191, 255, 0.7) !important;
         color: #87ceeb !important;
+        min-height: 36px !important;
+        -webkit-tap-highlight-color: rgba(0, 191, 255, 0.3) !important;
     }
     
-    .logs-popup-close:hover {
-        background: rgba(0, 191, 255, 0.2) !important;
-        box-shadow: 0 0 15px rgba(0, 191, 255, 0.6) !important;
+    .logs-popup-close:active {
+        background: rgba(0, 191, 255, 0.3) !important;
+        box-shadow: 0 0 20px rgba(0, 191, 255, 0.6) !important;
+        transform: rotate(90deg) scale(0.95) !important;
     }
     
     .logs-popup-list {
-        padding: 12px 15px !important;
-        max-height: calc(85vh - 70px) !important;
-        gap: 8px !important;
+        padding: 15px 18px !important;
+        max-height: calc(90vh - 140px) !important;
+        gap: 10px !important;
+        -webkit-overflow-scrolling: touch !important;
     }
     
     .logs-popup-item {
-        padding: 10px !important;
-        gap: 10px !important;
-        border-color: rgba(0, 191, 255, 0.3) !important;
-        background: rgba(0, 0, 0, 0.4) !important;
+        padding: 14px 12px !important;
+        gap: 12px !important;
+        border-width: 2px !important;
+        border-color: rgba(0, 191, 255, 0.4) !important;
+        background: rgba(0, 0, 0, 0.5) !important;
+        border-radius: 10px !important;
+        min-height: 70px !important;
+        -webkit-tap-highlight-color: rgba(0, 191, 255, 0.2) !important;
     }
     
-    .logs-popup-item:hover {
-        background: rgba(0, 191, 255, 0.15) !important;
-        border-color: rgba(0, 191, 255, 0.5) !important;
+    .logs-popup-item:active {
+        background: rgba(0, 191, 255, 0.2) !important;
+        border-color: rgba(0, 191, 255, 0.7) !important;
+        transform: translateX(3px) scale(0.98) !important;
     }
     
     .logs-popup-item-number {
-        width: 26px !important;
-        height: 26px !important;
-        font-size: 0.85em !important;
-        border-color: rgba(0, 191, 255, 0.7) !important;
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 0.9em !important;
+        border-width: 2px !important;
+        border-color: rgba(0, 191, 255, 0.8) !important;
         color: #87ceeb !important;
-        background: rgba(0, 191, 255, 0.2) !important;
+        background: rgba(0, 191, 255, 0.25) !important;
+        font-weight: 600 !important;
     }
     
     .logs-popup-item-day {
         color: #00bfff !important;
-        text-shadow: 0 0 8px rgba(0, 191, 255, 0.6) !important;
-        font-size: 0.95em !important;
+        text-shadow: 0 0 10px rgba(0, 191, 255, 0.7) !important;
+        font-size: 1em !important;
+        font-weight: 600 !important;
     }
     
     .logs-popup-item-time {
         color: #87ceeb !important;
-        text-shadow: 0 0 5px rgba(0, 191, 255, 0.5) !important;
-        font-size: 1em !important;
+        text-shadow: 0 0 8px rgba(0, 191, 255, 0.6) !important;
+        font-size: 1.05em !important;
+        font-weight: 600 !important;
     }
     
     .logs-popup-item-speed {
         color: #87ceeb !important;
-        font-size: 0.8em !important;
+        font-size: 0.85em !important;
+        font-weight: 500 !important;
     }
     
     .logs-popup-item-date {
         color: #aaa !important;
-        font-size: 0.85em !important;
+        font-size: 0.8em !important;
     }
     
     /* Estado seleccionado en móvil */
     .logs-popup-item.selected {
-        background: rgba(0, 191, 255, 0.25) !important;
-        border-color: rgba(0, 191, 255, 0.9) !important;
-        border-width: 2px !important;
-        box-shadow: 0 0 20px rgba(0, 191, 255, 0.5) !important;
+        background: rgba(0, 191, 255, 0.3) !important;
+        border-color: rgba(0, 191, 255, 1) !important;
+        border-width: 3px !important;
+        box-shadow: 0 0 25px rgba(0, 191, 255, 0.6), inset 0 0 20px rgba(0, 191, 255, 0.2) !important;
+    }
+    
+    .logs-popup-item.selected:active {
+        transform: translateX(3px) scale(0.97) !important;
     }
     
     .logs-popup-item-check {
-        width: 22px !important;
-        height: 22px !important;
-        font-size: 0.85em !important;
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 0.95em !important;
         background: #00bfff !important;
         color: #000 !important;
-        box-shadow: 0 0 15px rgba(0, 191, 255, 0.8) !important;
-        top: 6px !important;
-        right: 6px !important;
+        box-shadow: 0 0 20px rgba(0, 191, 255, 1) !important;
+        top: 8px !important;
+        right: 8px !important;
+        font-weight: bold !important;
     }
     
     /* Footer del popup en móvil */
     .logs-popup-footer {
-        padding: 12px 15px !important;
-        border-top-color: rgba(0, 191, 255, 0.3) !important;
-        background: rgba(0, 191, 255, 0.05) !important;
+        padding: 15px 18px !important;
+        border-top-width: 2px !important;
+        border-top-color: rgba(0, 191, 255, 0.4) !important;
+        background: rgba(0, 191, 255, 0.08) !important;
     }
     
     .logs-popup-assign-btn {
-        padding: 14px 25px !important;
-        font-size: 0.95em !important;
-        border-color: rgba(0, 191, 255, 0.7) !important;
+        padding: 16px 20px !important;
+        font-size: 1em !important;
+        border-width: 3px !important;
+        border-color: rgba(0, 191, 255, 0.8) !important;
         color: #87ceeb !important;
-        background: linear-gradient(135deg, rgba(0, 100, 200, 0.3) 0%, rgba(0, 50, 150, 0.2) 100%) !important;
-        box-shadow: 0 0 20px rgba(0, 191, 255, 0.4) !important;
-        min-height: 48px !important;
+        background: linear-gradient(135deg, rgba(0, 100, 200, 0.4) 0%, rgba(0, 50, 150, 0.3) 100%) !important;
+        box-shadow: 0 0 25px rgba(0, 191, 255, 0.5) !important;
+        min-height: 56px !important;
         width: 100% !important;
-    }
-    
-    .logs-popup-assign-btn:hover {
-        background: linear-gradient(135deg, rgba(0, 191, 255, 0.4) 0%, rgba(0, 100, 200, 0.3) 100%) !important;
-        border-color: rgba(0, 191, 255, 0.9) !important;
-        box-shadow: 0 0 30px rgba(0, 191, 255, 0.6) !important;
-        color: #00bfff !important;
+        border-radius: 12px !important;
+        font-weight: 600 !important;
+        -webkit-tap-highlight-color: transparent !important;
     }
     
     .logs-popup-assign-btn:active {
-        transform: scale(0.98) !important;
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.5) 0%, rgba(0, 100, 200, 0.4) 100%) !important;
+        border-color: rgba(0, 191, 255, 1) !important;
+        box-shadow: 0 0 35px rgba(0, 191, 255, 0.7) !important;
+        color: #00bfff !important;
+        transform: scale(0.97) !important;
     }
     
     .logs-popup-assign-icon {
-        font-size: 1.1em !important;
-        filter: drop-shadow(0 0 8px rgba(0, 191, 255, 0.6)) !important;
+        font-size: 1.3em !important;
+        filter: drop-shadow(0 0 10px rgba(0, 191, 255, 0.7)) !important;
+    }
+    
+    .logs-popup-assign-label {
+        font-size: 1.05em !important;
     }
     
     /* Optimizar animaciones para móvil - reducir animaciones complejas */

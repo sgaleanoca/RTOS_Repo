@@ -422,9 +422,21 @@ body.slider-body {
     margin: 0 auto;
 }
 
+@media (max-width: 768px) {
+    .slider-container {
+        padding: 20px 15px;
+    }
+}
+
 .slider-header {
     text-align: center;
     margin-bottom: 40px;
+}
+
+@media (max-width: 768px) {
+    .slider-header {
+        margin-bottom: 25px;
+    }
 }
 
 .slider-title {
@@ -436,6 +448,12 @@ body.slider-body {
     animation: fadeIn 0.6s ease-out;
 }
 
+@media (max-width: 768px) {
+    .slider-title {
+        font-size: 1.6em;
+    }
+}
+
 .slider-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -443,15 +461,12 @@ body.slider-body {
     margin-bottom: 30px;
 }
 
-@media (max-width: 1200px) {
-    .slider-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
+/* Diseño vertical para móvil */
 @media (max-width: 768px) {
     .slider-grid {
         grid-template-columns: 1fr;
+        gap: 15px;
+        margin-bottom: 25px;
     }
 }
 
@@ -465,6 +480,13 @@ body.slider-body {
     box-shadow: 0 0 10px rgba(51, 255, 51, 0.2);
     display: flex;
     flex-direction: column;
+}
+
+@media (max-width: 768px) {
+    .slider-box {
+        padding: 15px;
+        border-radius: 10px;
+    }
 }
 
 .slider-box:hover {
@@ -482,9 +504,23 @@ body.slider-body {
     border-bottom: 1px solid rgba(51, 255, 51, 0.3);
 }
 
+@media (max-width: 768px) {
+    .slider-box-header {
+        gap: 6px;
+        margin-bottom: 10px;
+        padding-bottom: 6px;
+    }
+}
+
 .slider-box-icon {
     font-size: 1.5em;
     filter: drop-shadow(0 0 5px #33ff33);
+}
+
+@media (max-width: 768px) {
+    .slider-box-icon {
+        font-size: 1.3em;
+    }
 }
 
 .slider-box-title {
@@ -492,6 +528,12 @@ body.slider-body {
     color: #44ee44;
     margin: 0;
     text-shadow: 0 0 5px #33ff33;
+}
+
+@media (max-width: 768px) {
+    .slider-box-title {
+        font-size: 1em;
+    }
 }
 
 .slider-box-content {
@@ -511,6 +553,13 @@ body.slider-body {
     padding: 15px 0;
 }
 
+@media (max-width: 768px) {
+    .temperature-display {
+        font-size: 1.8em;
+        padding: 12px 0;
+    }
+}
+
 .time-display {
     font-size: 2.2em;
     font-weight: bold;
@@ -521,12 +570,26 @@ body.slider-body {
     font-family: 'Courier New', monospace;
 }
 
+@media (max-width: 768px) {
+    .time-display {
+        font-size: 1.8em;
+        padding: 12px 0;
+    }
+}
+
 .logs-display {
     font-size: 0.9em;
     color: #aaa;
     text-align: center;
     padding: 15px 0;
     line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .logs-display {
+        font-size: 0.85em;
+        padding: 12px 0;
+    }
 }
 
 .logs-display p {
@@ -536,12 +599,6 @@ body.slider-body {
 /* Estilos para el cuadro del ventilador */
 .fan-box {
     grid-column: span 3;
-}
-
-@media (max-width: 1200px) {
-    .fan-box {
-        grid-column: span 2;
-    }
 }
 
 @media (max-width: 768px) {
@@ -560,6 +617,8 @@ body.slider-body {
 @media (max-width: 768px) {
     .fan-buttons {
         grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 12px;
     }
 }
 
@@ -577,6 +636,14 @@ body.slider-body {
     transition: all 0.3s ease;
     font-family: inherit;
     font-size: 0.85em;
+}
+
+@media (max-width: 768px) {
+    .fan-btn {
+        padding: 12px 8px;
+        font-size: 0.8em;
+        gap: 4px;
+    }
 }
 
 .fan-btn:hover {
@@ -598,6 +665,12 @@ body.slider-body {
     filter: drop-shadow(0 0 5px #33ff33);
 }
 
+@media (max-width: 768px) {
+    .fan-btn-icon {
+        font-size: 1.5em;
+    }
+}
+
 .fan-btn-label {
     font-weight: 500;
 }
@@ -609,6 +682,14 @@ body.slider-body {
     margin-top: 10px;
     color: #aaa;
     font-size: 0.9em;
+}
+
+@media (max-width: 768px) {
+    .fan-status {
+        padding: 8px;
+        margin-top: 8px;
+        font-size: 0.85em;
+    }
 }
 
 #fanStatusText {
@@ -625,6 +706,13 @@ body.slider-body {
     flex-wrap: wrap;
 }
 
+@media (max-width: 768px) {
+    .slider-actions {
+        gap: 12px;
+        margin-top: 25px;
+    }
+}
+
 .slider-action-btn {
     padding: 12px 24px;
     border: 2px solid;
@@ -638,6 +726,17 @@ body.slider-body {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+@media (max-width: 768px) {
+    .slider-action-btn {
+        padding: 10px 18px;
+        font-size: 0.9em;
+        gap: 6px;
+        flex: 1;
+        min-width: 140px;
+        justify-content: center;
+    }
 }
 
 .dashboard-action-btn {

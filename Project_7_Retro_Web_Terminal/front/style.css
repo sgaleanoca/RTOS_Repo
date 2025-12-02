@@ -1131,6 +1131,59 @@ body {
         font-size: 0.85em !important;
     }
     
+    /* Estado seleccionado en móvil */
+    .logs-popup-item.selected {
+        background: rgba(0, 191, 255, 0.25) !important;
+        border-color: rgba(0, 191, 255, 0.9) !important;
+        border-width: 2px !important;
+        box-shadow: 0 0 20px rgba(0, 191, 255, 0.5) !important;
+    }
+    
+    .logs-popup-item-check {
+        width: 22px !important;
+        height: 22px !important;
+        font-size: 0.85em !important;
+        background: #00bfff !important;
+        color: #000 !important;
+        box-shadow: 0 0 15px rgba(0, 191, 255, 0.8) !important;
+        top: 6px !important;
+        right: 6px !important;
+    }
+    
+    /* Footer del popup en móvil */
+    .logs-popup-footer {
+        padding: 12px 15px !important;
+        border-top-color: rgba(0, 191, 255, 0.3) !important;
+        background: rgba(0, 191, 255, 0.05) !important;
+    }
+    
+    .logs-popup-assign-btn {
+        padding: 14px 25px !important;
+        font-size: 0.95em !important;
+        border-color: rgba(0, 191, 255, 0.7) !important;
+        color: #87ceeb !important;
+        background: linear-gradient(135deg, rgba(0, 100, 200, 0.3) 0%, rgba(0, 50, 150, 0.2) 100%) !important;
+        box-shadow: 0 0 20px rgba(0, 191, 255, 0.4) !important;
+        min-height: 48px !important;
+        width: 100% !important;
+    }
+    
+    .logs-popup-assign-btn:hover {
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.4) 0%, rgba(0, 100, 200, 0.3) 100%) !important;
+        border-color: rgba(0, 191, 255, 0.9) !important;
+        box-shadow: 0 0 30px rgba(0, 191, 255, 0.6) !important;
+        color: #00bfff !important;
+    }
+    
+    .logs-popup-assign-btn:active {
+        transform: scale(0.98) !important;
+    }
+    
+    .logs-popup-assign-icon {
+        font-size: 1.1em !important;
+        filter: drop-shadow(0 0 8px rgba(0, 191, 255, 0.6)) !important;
+    }
+    
     /* Optimizar animaciones para móvil - reducir animaciones complejas */
     .fan-power-toggle.fan-power-on {
         animation: pulseGlowMobile 2s ease-in-out infinite !important;
@@ -2495,6 +2548,56 @@ body.slider-body {
     transform: translateX(5px);
 }
 
+.logs-popup-item {
+    cursor: pointer;
+    position: relative;
+}
+
+.logs-popup-item.selected {
+    background: rgba(51, 255, 51, 0.2);
+    border-color: #33ff33;
+    border-width: 2px;
+    box-shadow: 0 0 15px rgba(51, 255, 51, 0.4);
+}
+
+.logs-popup-item.selected:hover {
+    background: rgba(51, 255, 51, 0.25);
+    border-color: #44ee44;
+    box-shadow: 0 0 20px rgba(51, 255, 51, 0.5);
+}
+
+.logs-popup-item-check {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    background: #33ff33;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    font-weight: bold;
+    font-size: 0.9em;
+    box-shadow: 0 0 10px rgba(51, 255, 51, 0.8);
+    animation: checkPulse 0.3s ease;
+}
+
+@keyframes checkPulse {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
 .logs-popup-item-number {
     display: flex;
     align-items: center;
@@ -2555,6 +2658,55 @@ body.slider-body {
 .logs-popup-item-date {
     color: #888;
     font-size: 0.9em;
+}
+
+/* Estilos para el footer del popup (botón Asignar) */
+.logs-popup-footer {
+    display: none;
+    padding: 15px 20px;
+    border-top: 1px solid rgba(51, 255, 51, 0.3);
+    background: rgba(51, 255, 51, 0.05);
+    justify-content: center;
+    align-items: center;
+}
+
+.logs-popup-assign-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 30px;
+    border: 2px solid #33ff33;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(51, 255, 51, 0.2) 0%, rgba(68, 238, 68, 0.15) 100%);
+    color: #33ff33;
+    font-family: inherit;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(51, 255, 51, 0.3);
+    text-shadow: 0 0 5px #33ff33;
+}
+
+.logs-popup-assign-btn:hover {
+    background: linear-gradient(135deg, rgba(51, 255, 51, 0.3) 0%, rgba(68, 238, 68, 0.25) 100%);
+    border-color: #44ee44;
+    box-shadow: 0 0 25px rgba(51, 255, 51, 0.6);
+    transform: translateY(-2px);
+}
+
+.logs-popup-assign-btn:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 0 15px rgba(51, 255, 51, 0.4);
+}
+
+.logs-popup-assign-icon {
+    font-size: 1.2em;
+    filter: drop-shadow(0 0 5px #33ff33);
+}
+
+.logs-popup-assign-label {
+    font-size: 1em;
 }
 
 .fan-btn-manual:hover {

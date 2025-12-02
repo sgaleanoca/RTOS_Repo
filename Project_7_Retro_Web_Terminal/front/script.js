@@ -342,6 +342,7 @@ let fanScheduleSpeed = 0;
 let fanScheduleDay = 'lunes';
 let fanScheduleTime = '00:00';
 let fanScheduleRecords = []; // Array para almacenar los registros
+let selectedScheduleRecord = null; // Registro seleccionado en el popup
 
 // Función para establecer el modo del ventilador
 function setFanMode(mode) {
@@ -671,7 +672,7 @@ function registerFanSchedule() {
 }
 
 // Función para mostrar mensaje de confirmación
-function showScheduleConfirmationMessage() {
+function showScheduleConfirmationMessage(message) {
     // Crear o obtener el contenedor del mensaje
     let messageContainer = document.getElementById('scheduleConfirmationMessage');
     
@@ -682,8 +683,8 @@ function showScheduleConfirmationMessage() {
         document.body.appendChild(messageContainer);
     }
     
-    // Configurar el mensaje
-    messageContainer.textContent = '✓ Registro guardado correctamente';
+    // Configurar el mensaje (usar mensaje personalizado o el por defecto)
+    messageContainer.textContent = message || '✓ Registro guardado correctamente';
     messageContainer.style.display = 'block';
     messageContainer.style.opacity = '0';
     messageContainer.style.transform = 'translateY(-20px)';
@@ -781,8 +782,13 @@ function createLogsPopup() {
     popupList.id = 'logsPopupList';
     popupList.className = 'logs-popup-list';
     
+    const popupFooter = document.createElement('div');
+    popupFooter.id = 'logsPopupFooter';
+    popupFooter.className = 'logs-popup-footer';
+    
     popupContent.appendChild(popupHeader);
     popupContent.appendChild(popupList);
+    popupContent.appendChild(popupFooter);
     popup.appendChild(popupContent);
     
     document.body.appendChild(popup);
@@ -795,6 +801,7 @@ function createLogsPopup() {
     });
     
     updateLogsPopupContent();
+    updateLogsPopupFooter();
     showLogsPopup();
 }
 
@@ -820,6 +827,16 @@ function updateLogsPopupContent() {
         const logItem = document.createElement('div');
         logItem.className = 'logs-popup-item';
         
+        // Agregar clase selected si este registro está seleccionado
+        if (selectedScheduleRecord && selectedScheduleRecord.id === record.id) {
+            logItem.classList.add('selected');
+        }
+        
+        // Agregar evento de clic para seleccionar
+        logItem.onclick = function() {
+            selectScheduleRecord(record);
+        };
+        
         // Formatear el día con primera letra mayúscula
         const dayFormatted = record.day.charAt(0).toUpperCase() + record.day.slice(1);
         
@@ -835,10 +852,98 @@ function updateLogsPopupContent() {
                     <span class="logs-popup-item-date">${record.timestamp}</span>
                 </div>
             </div>
+            ${selectedScheduleRecord && selectedScheduleRecord.id === record.id ? '<div class="logs-popup-item-check">✓</div>' : ''}
         `;
         
         popupList.appendChild(logItem);
     });
+    
+    // Actualizar el footer después de actualizar el contenido
+    updateLogsPopupFooter();
+}
+
+// Función para seleccionar un registro
+function selectScheduleRecord(record) {
+    // Si se hace clic en el mismo registro, deseleccionar
+    if (selectedScheduleRecord && selectedScheduleRecord.id === record.id) {
+        selectedScheduleRecord = null;
+    } else {
+        selectedScheduleRecord = record;
+    }
+    
+    // Actualizar la visualización
+    updateLogsPopupContent();
+    updateLogsPopupFooter();
+    
+    console.log('[FAN SCHEDULE] Registro seleccionado:', selectedScheduleRecord);
+}
+
+// Función para actualizar el footer del popup (botón Asignar)
+function updateLogsPopupFooter() {
+    const popupFooter = document.getElementById('logsPopupFooter');
+    if (!popupFooter) {
+        return;
+    }
+    
+    popupFooter.innerHTML = '';
+    
+    if (selectedScheduleRecord) {
+        const assignButton = document.createElement('button');
+        assignButton.className = 'logs-popup-assign-btn';
+        assignButton.innerHTML = `
+            <span class="logs-popup-assign-icon">✓</span>
+            <span class="logs-popup-assign-label">Asignar</span>
+        `;
+        assignButton.onclick = assignSchedule;
+        
+        popupFooter.appendChild(assignButton);
+        popupFooter.style.display = 'flex';
+    } else {
+        popupFooter.style.display = 'none';
+    }
+}
+
+// Función para asignar el registro seleccionado
+function assignSchedule() {
+    if (!selectedScheduleRecord) {
+        console.warn('[FAN SCHEDULE] No hay registro seleccionado');
+        return;
+    }
+    
+    console.log('[FAN SCHEDULE] Asignando registro:', selectedScheduleRecord);
+    
+    // Aquí se implementará la lógica para enviar las instrucciones al ESP32
+    // Por ahora solo mostramos un mensaje en consola
+    console.log(`[FAN SCHEDULE] Instrucciones a enviar:
+        - Día: ${selectedScheduleRecord.day}
+        - Hora: ${selectedScheduleRecord.time}
+        - Velocidad: ${selectedScheduleRecord.speed}%`);
+    
+    // TODO: Implementar envío de instrucciones al ESP32
+    // Ejemplo:
+    // fetch('/fan/schedule/assign', {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({
+    //         day: selectedScheduleRecord.day,
+    //         time: selectedScheduleRecord.time,
+    //         speed: selectedScheduleRecord.speed
+    //     })
+    // })
+    // .then(resp => resp.text())
+    // .then(data => {
+    //     console.log('[FAN SCHEDULE] Respuesta del servidor:', data);
+    //     showScheduleConfirmationMessage('Horario asignado correctamente');
+    // })
+    // .catch(err => {
+    //     console.error('[FAN SCHEDULE] Error al asignar:', err);
+    // });
+    
+    // Mostrar mensaje de confirmación temporal
+    showScheduleConfirmationMessage('Horario asignado correctamente');
+    
+    // Opcional: Cerrar el popup después de asignar
+    // hideLogsPopup();
 }
 
 // Función para mostrar el popup
@@ -849,7 +954,11 @@ function showLogsPopup() {
         return;
     }
     
+    // Resetear selección al abrir el popup
+    selectedScheduleRecord = null;
+    
     updateLogsPopupContent();
+    updateLogsPopupFooter();
     
     popup.style.display = 'flex';
     popup.style.opacity = '0';
@@ -875,6 +984,9 @@ function hideLogsPopup() {
     if (!popup) {
         return;
     }
+    
+    // Resetear selección al cerrar
+    selectedScheduleRecord = null;
     
     const content = popup.querySelector('.logs-popup-content');
     if (content) {

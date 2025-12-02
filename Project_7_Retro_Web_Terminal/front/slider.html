@@ -54,32 +54,81 @@
             </div>
 
             <!-- Cuadro de Ventilador -->
-            <div class="slider-box fan-box">
-                <div class="slider-box-header">
-                    <span class="slider-box-icon">🌀</span>
-                    <h2 class="slider-box-title">Ventilador</h2>
-                </div>
-                <div class="slider-box-content">
-                    <div class="fan-buttons">
-                        <button class="fan-btn" data-mode="off" onclick="setFanMode('off')">
-                            <span class="fan-btn-icon">⏸</span>
-                            <span class="fan-btn-label">Apagado</span>
-                        </button>
-                        <button class="fan-btn" data-mode="silent" onclick="setFanMode('silent')">
-                            <span class="fan-btn-icon">🔇</span>
-                            <span class="fan-btn-label">Silencioso</span>
-                        </button>
-                        <button class="fan-btn" data-mode="performance" onclick="setFanMode('performance')">
-                            <span class="fan-btn-icon">⚡</span>
-                            <span class="fan-btn-label">Rendimiento</span>
-                        </button>
-                        <button class="fan-btn" data-mode="turbo" onclick="setFanMode('turbo')">
-                            <span class="fan-btn-icon">💨</span>
-                            <span class="fan-btn-label">Turbo</span>
-                        </button>
+            <div class="slider-box fan-box" id="fanBox">
+                <!-- Vista normal del ventilador -->
+                <div class="fan-normal-view" id="fanNormalView">
+                    <div class="slider-box-header">
+                        <span class="slider-box-icon">🌀</span>
+                        <h2 class="slider-box-title">Ventilador</h2>
                     </div>
-                    <div class="fan-status" id="fanStatus">
-                        <span>Estado: <span id="fanStatusText">Selecciona un modo</span></span>
+                    <div class="slider-box-content">
+                        <div class="fan-buttons">
+                            <button class="fan-btn" data-mode="off" onclick="setFanMode('off')">
+                                <span class="fan-btn-icon">⏸</span>
+                                <span class="fan-btn-label">Apagado</span>
+                            </button>
+                            <button class="fan-btn" data-mode="silent" onclick="setFanMode('silent')">
+                                <span class="fan-btn-icon">🔇</span>
+                                <span class="fan-btn-label">Silencioso</span>
+                            </button>
+                            <button class="fan-btn" data-mode="performance" onclick="setFanMode('performance')">
+                                <span class="fan-btn-icon">⚡</span>
+                                <span class="fan-btn-label">Rendimiento</span>
+                            </button>
+                            <button class="fan-btn" data-mode="turbo" onclick="setFanMode('turbo')">
+                                <span class="fan-btn-icon">💨</span>
+                                <span class="fan-btn-label">Turbo</span>
+                            </button>
+                            <button class="fan-btn fan-btn-manual" data-mode="manual" onclick="enterFanManualMode()">
+                                <span class="fan-btn-icon">⚙️</span>
+                                <span class="fan-btn-label">Manual</span>
+                            </button>
+                        </div>
+                        <div class="fan-status" id="fanStatus">
+                            <span>Estado: <span id="fanStatusText">Selecciona un modo</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vista del modo manual -->
+                <div class="fan-manual-view" id="fanManualView" style="display: none;">
+                    <div class="fan-manual-header">
+                        <button class="fan-back-btn" onclick="exitFanManualMode()" title="Volver">
+                            <span class="fan-back-icon">←</span>
+                            <span class="fan-back-label">Atrás</span>
+                        </button>
+                        <div class="fan-manual-title">
+                            <span class="slider-box-icon">🌀</span>
+                            <h2 class="slider-box-title">Modo Manual</h2>
+                        </div>
+                    </div>
+                    <div class="fan-manual-content">
+                        <div class="fan-power-control">
+                            <div class="fan-power-label">Estado del Ventilador</div>
+                            <button class="fan-power-toggle" id="fanPowerToggle" onclick="toggleFanPower()">
+                                <span class="fan-power-icon" id="fanPowerIcon">⏸</span>
+                                <span class="fan-power-text" id="fanPowerText">Apagado</span>
+                            </button>
+                        </div>
+                        <div class="fan-slider-container">
+                            <div class="fan-slider-label">
+                                <span>Velocidad: </span>
+                                <span class="fan-slider-value" id="fanSliderValue">0%</span>
+                            </div>
+                            <div class="fan-slider-wrapper">
+                                <input type="range" 
+                                       class="fan-slider" 
+                                       id="fanSlider" 
+                                       min="0" 
+                                       max="100" 
+                                       value="0" 
+                                       step="1"
+                                       oninput="updateFanSlider(this.value)">
+                                <div class="fan-slider-track">
+                                    <div class="fan-slider-fill" id="fanSliderFill" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

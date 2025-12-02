@@ -333,8 +333,17 @@ function updateSliderClock() {
     }
 }
 
+// Variables globales para el modo manual del ventilador
+let fanManualPowerState = false;
+let fanManualSpeed = 0;
+
 // Función para establecer el modo del ventilador
 function setFanMode(mode) {
+    // No hacer nada si estamos en modo manual
+    if (document.getElementById('fanManualView').style.display !== 'none') {
+        return;
+    }
+    
     // Remover clase active de todos los botones
     const buttons = document.querySelectorAll('.fan-btn');
     buttons.forEach(btn => btn.classList.remove('active'));
@@ -365,6 +374,112 @@ function setFanMode(mode) {
     //     .then(resp => resp.text())
     //     .then(data => console.log(data))
     //     .catch(err => console.error(err));
+}
+
+// Función para entrar al modo manual
+function enterFanManualMode() {
+    const normalView = document.getElementById('fanNormalView');
+    const manualView = document.getElementById('fanManualView');
+    
+    if (normalView && manualView) {
+        normalView.style.display = 'none';
+        manualView.style.display = 'block';
+        
+        // Animación de entrada
+        manualView.style.opacity = '0';
+        manualView.style.transform = 'translateY(10px)';
+        setTimeout(() => {
+            manualView.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            manualView.style.opacity = '1';
+            manualView.style.transform = 'translateY(0)';
+        }, 10);
+        
+        console.log('[FAN] Modo manual activado');
+    }
+}
+
+// Función para salir del modo manual
+function exitFanManualMode() {
+    const normalView = document.getElementById('fanNormalView');
+    const manualView = document.getElementById('fanManualView');
+    
+    if (normalView && manualView) {
+        // Animación de salida
+        manualView.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        manualView.style.opacity = '0';
+        manualView.style.transform = 'translateY(10px)';
+        
+        setTimeout(() => {
+            manualView.style.display = 'none';
+            normalView.style.display = 'block';
+            
+            // Resetear animación para la próxima vez
+            manualView.style.opacity = '1';
+            manualView.style.transform = 'translateY(0)';
+        }, 300);
+        
+        console.log('[FAN] Modo manual desactivado');
+    }
+}
+
+// Función para alternar el estado de encendido/apagado del ventilador
+function toggleFanPower() {
+    fanManualPowerState = !fanManualPowerState;
+    
+    const powerIcon = document.getElementById('fanPowerIcon');
+    const powerText = document.getElementById('fanPowerText');
+    const powerToggle = document.getElementById('fanPowerToggle');
+    const slider = document.getElementById('fanSlider');
+    
+    if (fanManualPowerState) {
+        powerIcon.textContent = '▶';
+        powerText.textContent = 'Encendido';
+        powerToggle.classList.add('fan-power-on');
+        slider.disabled = false;
+        console.log('[FAN] Ventilador encendido');
+    } else {
+        powerIcon.textContent = '⏸';
+        powerText.textContent = 'Apagado';
+        powerToggle.classList.remove('fan-power-on');
+        slider.disabled = true;
+        // Resetear velocidad a 0 cuando se apaga
+        slider.value = 0;
+        updateFanSlider(0);
+        console.log('[FAN] Ventilador apagado');
+    }
+    
+    // Aquí puedes agregar lógica para enviar el comando al ESP32
+    // fetch(`/fan/manual?power=${fanManualPowerState ? 'on' : 'off'}&speed=${fanManualSpeed}`)
+    //     .then(resp => resp.text())
+    //     .then(data => console.log(data))
+    //     .catch(err => console.error(err));
+}
+
+// Función para actualizar el slider de velocidad
+function updateFanSlider(value) {
+    fanManualSpeed = parseInt(value);
+    
+    const sliderValue = document.getElementById('fanSliderValue');
+    const sliderFill = document.getElementById('fanSliderFill');
+    
+    if (sliderValue) {
+        sliderValue.textContent = fanManualSpeed + '%';
+    }
+    
+    if (sliderFill) {
+        sliderFill.style.width = fanManualSpeed + '%';
+    }
+    
+    // Si el ventilador está encendido, enviar el comando
+    if (fanManualPowerState) {
+        console.log(`[FAN] Velocidad ajustada a: ${fanManualSpeed}%`);
+        
+        // Aquí puedes agregar lógica para enviar el comando al ESP32
+        // fetch(`/fan/manual?power=on&speed=${fanManualSpeed}`)
+        //     .then(resp => resp.text())
+        //     .then(data => console.log(data))
+        //     .catch(err => console.error(err));
+    }
 }
 
 // Inicializar funcionalidad del slider cuando la página carga

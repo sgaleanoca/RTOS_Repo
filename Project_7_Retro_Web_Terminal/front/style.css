@@ -1169,7 +1169,7 @@ body.slider-body {
 
 .fan-buttons {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 12px;
     margin-bottom: 15px;
 }
@@ -1255,6 +1255,350 @@ body.slider-body {
 #fanStatusText {
     color: #33ff33;
     font-weight: bold;
+}
+
+/* Estilos para el modo manual del ventilador (solo PC) */
+.fan-normal-view,
+.fan-manual-view {
+    width: 100%;
+}
+
+.fan-manual-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(51, 255, 51, 0.3);
+}
+
+.fan-back-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 2px solid #33ff33;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.4);
+    color: #33ff33;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.fan-back-btn:hover {
+    background: rgba(51, 255, 51, 0.15);
+    border-color: #44ee44;
+    box-shadow: 0 0 15px rgba(51, 255, 51, 0.5);
+    transform: translateX(-3px);
+}
+
+.fan-back-btn:active {
+    transform: translateX(-3px) scale(0.98);
+}
+
+.fan-back-icon {
+    font-size: 1.2em;
+    font-weight: bold;
+    transition: transform 0.3s ease;
+}
+
+.fan-back-btn:hover .fan-back-icon {
+    transform: translateX(-2px);
+}
+
+.fan-manual-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-grow: 1;
+}
+
+.fan-manual-content {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    padding: 10px 0;
+}
+
+/* Control de encendido/apagado */
+.fan-power-control {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.fan-power-label {
+    color: #aaa;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.fan-power-toggle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 20px 40px;
+    border: 3px solid #33ff33;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.4);
+    color: #33ff33;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    min-width: 150px;
+    position: relative;
+    overflow: hidden;
+}
+
+.fan-power-toggle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(51, 255, 51, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.fan-power-toggle:hover::before {
+    left: 100%;
+}
+
+.fan-power-toggle:hover {
+    background: rgba(51, 255, 51, 0.1);
+    border-color: #44ee44;
+    box-shadow: 0 0 20px rgba(51, 255, 51, 0.6);
+    transform: scale(1.05);
+}
+
+.fan-power-toggle:active {
+    transform: scale(1.02);
+}
+
+.fan-power-toggle.fan-power-on {
+    background: rgba(51, 255, 51, 0.15);
+    border-color: #44ee44;
+    box-shadow: 0 0 25px rgba(51, 255, 51, 0.7);
+    color: #44ee44;
+    animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        box-shadow: 0 0 25px rgba(51, 255, 51, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 35px rgba(51, 255, 51, 0.9), 0 0 50px rgba(51, 255, 51, 0.5);
+    }
+}
+
+.fan-power-icon {
+    font-size: 2.5em;
+    filter: drop-shadow(0 0 8px #33ff33);
+    transition: transform 0.3s ease;
+}
+
+.fan-power-toggle:hover .fan-power-icon {
+    transform: scale(1.1);
+}
+
+.fan-power-toggle.fan-power-on .fan-power-icon {
+    animation: rotateIcon 2s linear infinite;
+}
+
+@keyframes rotateIcon {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.fan-power-text {
+    font-size: 1.1em;
+    font-weight: bold;
+    text-shadow: 0 0 5px #33ff33;
+}
+
+/* Control de slider de velocidad */
+.fan-slider-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.fan-slider-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #aaa;
+    font-size: 0.95em;
+}
+
+.fan-slider-value {
+    color: #33ff33;
+    font-weight: bold;
+    font-size: 1.3em;
+    text-shadow: 0 0 10px #33ff33;
+    min-width: 50px;
+    text-align: right;
+    transition: all 0.2s ease;
+}
+
+.fan-slider-wrapper {
+    position: relative;
+    padding: 15px 0;
+}
+
+.fan-slider {
+    width: 100%;
+    height: 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    outline: none;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+}
+
+.fan-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #33ff33;
+    border: 3px solid #0a0a0a;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(51, 255, 51, 0.8), 0 0 30px rgba(51, 255, 51, 0.4);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.fan-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 20px rgba(51, 255, 51, 1), 0 0 40px rgba(51, 255, 51, 0.6);
+}
+
+.fan-slider::-webkit-slider-thumb:active {
+    transform: scale(1.1);
+}
+
+.fan-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #33ff33;
+    border: 3px solid #0a0a0a;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(51, 255, 51, 0.8), 0 0 30px rgba(51, 255, 51, 0.4);
+    transition: all 0.3s ease;
+}
+
+.fan-slider::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 20px rgba(51, 255, 51, 1), 0 0 40px rgba(51, 255, 51, 0.6);
+}
+
+.fan-slider::-moz-range-thumb:active {
+    transform: scale(1.1);
+}
+
+.fan-slider:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.fan-slider:disabled::-webkit-slider-thumb {
+    background: #666;
+    box-shadow: none;
+}
+
+.fan-slider:disabled::-moz-range-thumb {
+    background: #666;
+    box-shadow: none;
+}
+
+.fan-slider-track {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: rgba(51, 255, 51, 0.2);
+    border-radius: 4px;
+    transform: translateY(-50%);
+    z-index: 1;
+}
+
+.fan-slider-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #33ff33 0%, #44ee44 100%);
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(51, 255, 51, 0.6);
+    transition: width 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.fan-slider-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+/* Estilos específicos para el botón Manual */
+
+.fan-btn-manual {
+    border-color: #ffbb33 !important;
+    color: #ffbb33 !important;
+}
+
+.fan-btn-manual:hover {
+    background: rgba(255, 187, 51, 0.15) !important;
+    border-color: #ffcc44 !important;
+    box-shadow: 0 0 15px rgba(255, 187, 51, 0.5) !important;
+}
+
+.fan-btn-manual.active {
+    background: rgba(255, 187, 51, 0.25) !important;
+    border-color: #ffcc44 !important;
+    box-shadow: 0 0 20px rgba(255, 187, 51, 0.7) !important;
+    color: #ffcc44 !important;
+}
+
+/* Ocultar modo manual en móvil - solo PC */
+@media (max-width: 768px) {
+    .fan-btn-manual {
+        display: none !important;
+    }
+    
+    .fan-buttons {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
 }
 
 /* Botones de acción del slider */

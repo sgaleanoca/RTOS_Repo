@@ -1028,43 +1028,60 @@ function startTemperatureMode() {
     
     console.log('[FAN TEMPERATURE] Modo temperatura activado');
     
-    // Monitorear temperatura cada segundo
+    // Optimización para móvil: intervalo más largo para ahorrar batería
+    // Desktop: 1 segundo, Móvil: 2 segundos
+    const updateInterval = isMobileDevice() ? 2000 : 1000;
+    
+    // Primera lectura inmediata
+    updateTemperatureForFan();
+    
+    // Monitorear temperatura periódicamente
     fanTemperatureInterval = setInterval(() => {
         if (!fanTemperatureMode) {
             stopTemperatureMode();
             return;
         }
         
-        // Obtener temperatura actual
-        fetch("/temperature")
-            .then(resp => {
-                if (!resp.ok) {
-                    if (resp.status === 401) {
-                        return Promise.reject(new Error("Unauthorized"));
-                    }
-                    throw new Error(`HTTP ${resp.status}`);
+        updateTemperatureForFan();
+    }, updateInterval);
+}
+
+// Función auxiliar para actualizar temperatura (reutilizable)
+function updateTemperatureForFan() {
+    // No actualizar si la página no está visible (optimización móvil)
+    if (!isPageVisible) {
+        return;
+    }
+    
+    // Obtener temperatura actual
+    fetch("/temperature")
+        .then(resp => {
+            if (!resp.ok) {
+                if (resp.status === 401) {
+                    return Promise.reject(new Error("Unauthorized"));
                 }
-                return resp.text().then(text => {
-                    try {
-                        return JSON.parse(text);
-                    } catch (e) {
-                        console.error("[FAN TEMP] Error parseando JSON:", text);
-                        throw e;
-                    }
-                });
-            })
-            .then(data => {
-                if (data && typeof data.temperature === 'number' && isFinite(data.temperature)) {
-                    const temp = data.temperature;
-                    controlFanByTemperature(temp);
-                }
-            })
-            .catch(err => {
-                if (err.message !== "Unauthorized") {
-                    console.error("[FAN TEMP] Error obteniendo temperatura:", err);
+                throw new Error(`HTTP ${resp.status}`);
+            }
+            return resp.text().then(text => {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error("[FAN TEMP] Error parseando JSON:", text);
+                    throw e;
                 }
             });
-    }, 1000);
+        })
+        .then(data => {
+            if (data && typeof data.temperature === 'number' && isFinite(data.temperature)) {
+                const temp = data.temperature;
+                controlFanByTemperature(temp);
+            }
+        })
+        .catch(err => {
+            if (err.message !== "Unauthorized") {
+                console.error("[FAN TEMP] Error obteniendo temperatura:", err);
+            }
+        });
 }
 
 // Función para detener el modo temperatura
@@ -1091,14 +1108,14 @@ function controlFanByTemperature(temperature) {
         newSpeed = 0;
     }
     
+    // Optimización: solo actualizar si hay cambio significativo (evitar actualizaciones innecesarias)
+    // En móvil, usar umbral más grande para reducir actualizaciones
+    const speedThreshold = isMobileDevice() ? 5 : 1;
+    const speedChanged = Math.abs(newSpeed - fanCurrentSpeed) >= speedThreshold;
+    
     // Si el ventilador ya estaba encendido y la temperatura aumenta,
     // aumentar la velocidad. Si la temperatura baja, ajustar según la nueva temperatura.
-    if (fanCurrentSpeed > 0 && newSpeed > fanCurrentSpeed) {
-        // Aumentar velocidad cuando la temperatura sube
-        fanCurrentSpeed = newSpeed;
-        console.log(`[FAN TEMP] Temperatura: ${temperature.toFixed(1)}°C - Aumentando velocidad a ${newSpeed}%`);
-    } else if (newSpeed !== fanCurrentSpeed) {
-        // Cambiar velocidad (puede ser aumento o disminución)
+    if (speedChanged) {
         const previousSpeed = fanCurrentSpeed;
         fanCurrentSpeed = newSpeed;
         
@@ -1111,26 +1128,46 @@ function controlFanByTemperature(temperature) {
         } else {
             console.log(`[FAN TEMP] Temperatura: ${temperature.toFixed(1)}°C - Apagando ventilador`);
         }
+        
+        // Actualizar estado visual solo cuando hay cambio
+        updateFanTemperatureStatus(temperature, fanCurrentSpeed);
+        
+        // Aquí puedes agregar lógica para enviar el comando al ESP32
+        // fetch(`/fan/temperature?speed=${fanCurrentSpeed}`)
+        //     .then(resp => resp.text())
+        //     .then(data => console.log(data))
+        //     .catch(err => console.error(err));
+    } else {
+        // Actualizar solo la temperatura en el estado (sin cambiar velocidad)
+        updateFanTemperatureStatus(temperature, fanCurrentSpeed, true);
     }
-    
-    // Actualizar estado visual si es necesario
-    updateFanTemperatureStatus(temperature, fanCurrentSpeed);
-    
-    // Aquí puedes agregar lógica para enviar el comando al ESP32
-    // fetch(`/fan/temperature?speed=${fanCurrentSpeed}`)
-    //     .then(resp => resp.text())
-    //     .then(data => console.log(data))
-    //     .catch(err => console.error(err));
 }
 
 // Función para actualizar el estado visual del modo temperatura
-function updateFanTemperatureStatus(temperature, speed) {
+function updateFanTemperatureStatus(temperature, speed, temperatureOnly = false) {
     const statusText = document.getElementById('fanStatusText');
     if (statusText && fanTemperatureMode) {
-        if (speed > 0) {
-            statusText.textContent = `Temperatura: ${temperature.toFixed(1)}°C - ${speed}%`;
+        // Optimización para móvil: formato más compacto
+        if (isMobileDevice()) {
+            if (speed > 0) {
+                statusText.textContent = `${temperature.toFixed(1)}°C | ${speed}%`;
+            } else {
+                statusText.textContent = `${temperature.toFixed(1)}°C | OFF`;
+            }
         } else {
-            statusText.textContent = `Temperatura: ${temperature.toFixed(1)}°C - Apagado`;
+            // Formato completo para desktop
+            if (speed > 0) {
+                statusText.textContent = `Temperatura: ${temperature.toFixed(1)}°C - ${speed}%`;
+            } else {
+                statusText.textContent = `Temperatura: ${temperature.toFixed(1)}°C - Apagado`;
+            }
+        }
+        
+        // Agregar clase para indicar estado activo
+        if (speed > 0) {
+            statusText.classList.add('fan-temp-active');
+        } else {
+            statusText.classList.remove('fan-temp-active');
         }
     }
 }
@@ -1139,6 +1176,29 @@ function updateFanTemperatureStatus(temperature, speed) {
 if (document.getElementById('logsList')) {
     updateLogsDisplay();
 }
+
+// Optimización: Pausar monitoreo cuando la página no está visible (ahorro de batería en móvil)
+let isPageVisible = true;
+document.addEventListener('visibilitychange', function() {
+    isPageVisible = !document.hidden;
+    
+    if (fanTemperatureMode) {
+        if (isPageVisible) {
+            // Reanudar monitoreo si estaba activo
+            if (fanTemperatureInterval === null) {
+                startTemperatureMode();
+            }
+        } else {
+            // Pausar monitoreo cuando la página no está visible
+            stopTemperatureMode();
+        }
+    }
+});
+
+// Limpiar recursos al salir de la página
+window.addEventListener('beforeunload', function() {
+    stopTemperatureMode();
+});
 
 // Inicializar funcionalidad del slider cuando la página carga
 if (document.getElementById('sliderClock')) {

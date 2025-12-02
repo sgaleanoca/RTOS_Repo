@@ -1931,6 +1931,25 @@ body.slider-body {
 #fanStatusText {
     color: #33ff33;
     font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+/* Estilos para el modo temperatura activo */
+#fanStatusText.fan-temp-active {
+    color: #00bfff;
+    text-shadow: 0 0 10px rgba(0, 191, 255, 0.8);
+    animation: pulseTemp 2s ease-in-out infinite;
+}
+
+@keyframes pulseTemp {
+    0%, 100% {
+        opacity: 1;
+        text-shadow: 0 0 10px rgba(0, 191, 255, 0.8);
+    }
+    50% {
+        opacity: 0.8;
+        text-shadow: 0 0 15px rgba(0, 191, 255, 1);
+    }
 }
 
 /* Estilos para el modo manual del ventilador (solo PC) */
@@ -2889,6 +2908,79 @@ body.slider-body {
         border-color: rgba(255, 204, 68, 0.9) !important;
         box-shadow: 0 0 30px rgba(255, 187, 51, 0.7) !important;
         color: #ffdd77 !important;
+    }
+    
+    /* Estilos específicos para el botón de temperatura en móvil */
+    .fan-btn[data-mode="temperature"] {
+        border-color: rgba(0, 191, 255, 0.7) !important;
+        color: #87ceeb !important;
+        background: linear-gradient(135deg, rgba(0, 100, 200, 0.3) 0%, rgba(0, 50, 150, 0.2) 100%) !important;
+    }
+    
+    .fan-btn[data-mode="temperature"]:active {
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.5) 0%, rgba(0, 100, 200, 0.4) 100%) !important;
+        border-color: rgba(0, 191, 255, 0.9) !important;
+        box-shadow: 0 0 25px rgba(0, 191, 255, 0.6) !important;
+        color: #00bfff !important;
+        transform: scale(0.95) !important;
+    }
+    
+    .fan-btn[data-mode="temperature"].active {
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.4) 0%, rgba(0, 100, 200, 0.3) 100%) !important;
+        border-color: rgba(0, 191, 255, 0.9) !important;
+        box-shadow: 0 0 30px rgba(0, 191, 255, 0.7) !important;
+        color: #00bfff !important;
+    }
+    
+    .fan-btn[data-mode="temperature"] .fan-btn-icon {
+        filter: drop-shadow(0 0 8px rgba(0, 191, 255, 0.6)) !important;
+    }
+    
+    .fan-btn[data-mode="temperature"].active .fan-btn-icon {
+        animation: pulseTempIcon 2s ease-in-out infinite !important;
+    }
+    
+    @keyframes pulseTempIcon {
+        0%, 100% {
+            transform: scale(1);
+            filter: drop-shadow(0 0 8px rgba(0, 191, 255, 0.6));
+        }
+        50% {
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 12px rgba(0, 191, 255, 0.9));
+        }
+    }
+    
+    /* Estilos para el estado de temperatura en móvil */
+    #fanStatusText.fan-temp-active {
+        color: #00bfff !important;
+        text-shadow: 0 0 12px rgba(0, 191, 255, 0.8) !important;
+        font-size: 0.9em !important;
+        font-weight: 600 !important;
+        padding: 4px 8px !important;
+        border-radius: 6px !important;
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.15) 0%, rgba(0, 100, 200, 0.1) 100%) !important;
+        display: inline-block !important;
+        animation: pulseTempMobile 2s ease-in-out infinite !important;
+    }
+    
+    @keyframes pulseTempMobile {
+        0%, 100% {
+            opacity: 1;
+            text-shadow: 0 0 12px rgba(0, 191, 255, 0.8);
+        }
+        50% {
+            opacity: 0.9;
+            text-shadow: 0 0 18px rgba(0, 191, 255, 1);
+        }
+    }
+    
+    /* Optimización: reducir animaciones en móvil para mejor rendimiento */
+    @media (prefers-reduced-motion: reduce) {
+        #fanStatusText.fan-temp-active,
+        .fan-btn[data-mode="temperature"].active .fan-btn-icon {
+            animation: none !important;
+        }
     }
     
     /* Header del modo manual en móvil */

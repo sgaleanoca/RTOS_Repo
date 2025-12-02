@@ -337,10 +337,19 @@ function updateSliderClock() {
 let fanManualPowerState = false;
 let fanManualSpeed = 0;
 
+// Variables globales para el modo horario
+let fanScheduleSpeed = 0;
+let fanScheduleDay = 'lunes';
+let fanScheduleTime = '00:00';
+let fanScheduleRecords = []; // Array para almacenar los registros
+
 // Función para establecer el modo del ventilador
 function setFanMode(mode) {
-    // No hacer nada si estamos en modo manual
-    if (document.getElementById('fanManualView').style.display !== 'none') {
+    // No hacer nada si estamos en modo manual o horario
+    const manualView = document.getElementById('fanManualView');
+    const scheduleView = document.getElementById('fanScheduleView');
+    if ((manualView && manualView.style.display !== 'none') || 
+        (scheduleView && scheduleView.style.display !== 'none')) {
         return;
     }
     
@@ -359,9 +368,8 @@ function setFanMode(mode) {
     if (statusText) {
         const modeNames = {
             'off': 'Apagado',
-            'silent': 'Silencioso',
-            'performance': 'Rendimiento',
-            'turbo': 'Turbo'
+            'schedule': 'Horario',
+            'performance': 'Rendimiento'
         };
         statusText.textContent = modeNames[mode] || 'Desconocido';
     }
@@ -492,6 +500,399 @@ function updateFanSlider(value) {
         //     .then(data => console.log(data))
         //     .catch(err => console.error(err));
     }
+}
+
+// ========== FUNCIONES DEL MODO HORARIO ==========
+
+// Función para entrar al modo horario
+function enterFanScheduleMode() {
+    const normalView = document.getElementById('fanNormalView');
+    const scheduleView = document.getElementById('fanScheduleView');
+    
+    if (normalView && scheduleView) {
+        const isMobile = isMobileDevice();
+        const transitionTime = isMobile ? 250 : 300;
+        
+        // Activar el botón de horario
+        const scheduleBtn = document.querySelector('.fan-btn-schedule');
+        if (scheduleBtn) {
+            scheduleBtn.classList.add('active');
+        }
+        
+        normalView.style.display = 'none';
+        scheduleView.style.display = 'block';
+        
+        // Animación de entrada
+        scheduleView.style.opacity = '0';
+        scheduleView.style.transform = 'translateY(10px)';
+        setTimeout(() => {
+            scheduleView.style.transition = `opacity ${transitionTime}ms ease, transform ${transitionTime}ms ease`;
+            scheduleView.style.opacity = '1';
+            scheduleView.style.transform = 'translateY(0)';
+        }, 10);
+        
+        console.log('[FAN] Modo horario activado');
+    }
+}
+
+// Función para salir del modo horario
+function exitFanScheduleMode() {
+    const normalView = document.getElementById('fanNormalView');
+    const scheduleView = document.getElementById('fanScheduleView');
+    
+    if (normalView && scheduleView) {
+        const isMobile = isMobileDevice();
+        const transitionTime = isMobile ? 250 : 300;
+        
+        // Animación de salida
+        scheduleView.style.transition = `opacity ${transitionTime}ms ease, transform ${transitionTime}ms ease`;
+        scheduleView.style.opacity = '0';
+        scheduleView.style.transform = 'translateY(10px)';
+        
+        setTimeout(() => {
+            scheduleView.style.display = 'none';
+            normalView.style.display = 'block';
+            
+            // Resetear animación para la próxima vez
+            scheduleView.style.opacity = '1';
+            scheduleView.style.transform = 'translateY(0)';
+        }, transitionTime);
+        
+        console.log('[FAN] Modo horario desactivado');
+    }
+}
+
+// Función para actualizar el slider de velocidad del modo horario
+function updateFanScheduleSlider(value) {
+    fanScheduleSpeed = parseInt(value);
+    
+    const sliderValue = document.getElementById('fanScheduleSliderValue');
+    const sliderFill = document.getElementById('fanScheduleSliderFill');
+    
+    if (sliderValue) {
+        sliderValue.textContent = fanScheduleSpeed + '%';
+    }
+    
+    if (sliderFill) {
+        sliderFill.style.width = fanScheduleSpeed + '%';
+    }
+    
+    console.log(`[FAN SCHEDULE] Velocidad ajustada a: ${fanScheduleSpeed}%`);
+}
+
+// Función para borrar la configuración actual del modo horario
+function clearFanSchedule() {
+    // Resetear valores
+    fanScheduleSpeed = 0;
+    fanScheduleDay = 'lunes';
+    fanScheduleTime = '00:00';
+    
+    // Resetear UI
+    const slider = document.getElementById('fanScheduleSlider');
+    const daySelect = document.getElementById('fanScheduleDay');
+    const timeInput = document.getElementById('fanScheduleTime');
+    
+    if (slider) {
+        slider.value = 0;
+        updateFanScheduleSlider(0);
+    }
+    
+    if (daySelect) {
+        daySelect.value = 'lunes';
+    }
+    
+    if (timeInput) {
+        timeInput.value = '00:00';
+    }
+    
+    console.log('[FAN SCHEDULE] Configuración borrada');
+    
+    // Mostrar confirmación visual
+    const deleteBtn = event.target.closest('.fan-schedule-btn-delete');
+    if (deleteBtn) {
+        deleteBtn.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            deleteBtn.style.transform = 'scale(1)';
+        }, 150);
+    }
+}
+
+// Función para registrar el horario programado
+function registerFanSchedule() {
+    const daySelect = document.getElementById('fanScheduleDay');
+    const timeInput = document.getElementById('fanScheduleTime');
+    
+    if (!daySelect || !timeInput) {
+        return;
+    }
+    
+    fanScheduleDay = daySelect.value;
+    fanScheduleTime = timeInput.value;
+    
+    // Crear el registro
+    const record = {
+        id: Date.now(), // ID único basado en timestamp
+        day: fanScheduleDay,
+        time: fanScheduleTime,
+        speed: fanScheduleSpeed,
+        date: new Date().toLocaleDateString('es-ES'),
+        timestamp: new Date().toLocaleString('es-ES')
+    };
+    
+    // Agregar al array de registros
+    fanScheduleRecords.push(record);
+    
+    // Actualizar la lista de registros
+    updateLogsDisplay();
+    
+    // Actualizar popup si está abierto
+    const popup = document.getElementById('logsPopup');
+    if (popup && popup.style.display !== 'none') {
+        updateLogsPopupContent();
+    }
+    
+    console.log('[FAN SCHEDULE] Registro creado:', record);
+    
+    // Mostrar mensaje de confirmación
+    showScheduleConfirmationMessage();
+    
+    // Reiniciar campos (como si se diera a borrar)
+    clearFanSchedule();
+    
+    // Aquí puedes agregar lógica para enviar el registro al ESP32
+    // fetch('/fan/schedule', {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify(record)
+    // })
+    // .then(resp => resp.text())
+    // .then(data => console.log(data))
+    // .catch(err => console.error(err));
+}
+
+// Función para mostrar mensaje de confirmación
+function showScheduleConfirmationMessage() {
+    // Crear o obtener el contenedor del mensaje
+    let messageContainer = document.getElementById('scheduleConfirmationMessage');
+    
+    if (!messageContainer) {
+        messageContainer = document.createElement('div');
+        messageContainer.id = 'scheduleConfirmationMessage';
+        messageContainer.className = 'schedule-confirmation-message';
+        document.body.appendChild(messageContainer);
+    }
+    
+    // Configurar el mensaje
+    messageContainer.textContent = '✓ Registro guardado correctamente';
+    messageContainer.style.display = 'block';
+    messageContainer.style.opacity = '0';
+    messageContainer.style.transform = 'translateY(-20px)';
+    
+    // Animación de entrada
+    setTimeout(() => {
+        messageContainer.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        messageContainer.style.opacity = '1';
+        messageContainer.style.transform = 'translateY(0)';
+    }, 10);
+    
+    // Ocultar después de 4 segundos
+    setTimeout(() => {
+        messageContainer.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        messageContainer.style.opacity = '0';
+        messageContainer.style.transform = 'translateY(-20px)';
+        
+        setTimeout(() => {
+            messageContainer.style.display = 'none';
+        }, 300);
+    }, 4000);
+}
+
+// Función para actualizar la visualización de registros (barra clickeable)
+function updateLogsDisplay() {
+    const logsList = document.getElementById('logsList');
+    if (!logsList) {
+        return;
+    }
+    
+    // Limpiar contenido anterior
+    logsList.innerHTML = '';
+    
+    if (fanScheduleRecords.length === 0) {
+        logsList.innerHTML = '<div class="logs-bar-empty" onclick="toggleLogsPopup()">No hay registros disponibles</div>';
+        return;
+    }
+    
+    // Crear barra clickeable con resumen
+    const logsBar = document.createElement('div');
+    logsBar.className = 'logs-bar';
+    logsBar.onclick = toggleLogsPopup;
+    
+    const recordCount = fanScheduleRecords.length;
+    const latestRecord = fanScheduleRecords[fanScheduleRecords.length - 1];
+    const dayFormatted = latestRecord.day.charAt(0).toUpperCase() + latestRecord.day.slice(1);
+    
+    logsBar.innerHTML = `
+        <div class="logs-bar-content">
+            <span class="logs-bar-icon">📋</span>
+            <span class="logs-bar-text">
+                <span class="logs-bar-count">${recordCount} registro${recordCount > 1 ? 's' : ''}</span>
+                <span class="logs-bar-latest">Último: ${dayFormatted} ${latestRecord.time} - ${latestRecord.speed}%</span>
+            </span>
+            <span class="logs-bar-arrow">▼</span>
+        </div>
+    `;
+    
+    logsList.appendChild(logsBar);
+}
+
+// Función para mostrar/ocultar el popup de registros
+function toggleLogsPopup() {
+    const popup = document.getElementById('logsPopup');
+    
+    if (!popup) {
+        createLogsPopup();
+        return;
+    }
+    
+    if (popup.style.display === 'none' || popup.style.display === '') {
+        showLogsPopup();
+    } else {
+        hideLogsPopup();
+    }
+}
+
+// Función para crear el popup de registros
+function createLogsPopup() {
+    const popup = document.createElement('div');
+    popup.id = 'logsPopup';
+    popup.className = 'logs-popup';
+    
+    const popupContent = document.createElement('div');
+    popupContent.className = 'logs-popup-content';
+    
+    const popupHeader = document.createElement('div');
+    popupHeader.className = 'logs-popup-header';
+    popupHeader.innerHTML = `
+        <h3 class="logs-popup-title">Registros de Horario</h3>
+        <button class="logs-popup-close" onclick="hideLogsPopup()">×</button>
+    `;
+    
+    const popupList = document.createElement('div');
+    popupList.id = 'logsPopupList';
+    popupList.className = 'logs-popup-list';
+    
+    popupContent.appendChild(popupHeader);
+    popupContent.appendChild(popupList);
+    popup.appendChild(popupContent);
+    
+    document.body.appendChild(popup);
+    
+    // Cerrar al hacer clic fuera del popup
+    popup.addEventListener('click', function(e) {
+        if (e.target === popup) {
+            hideLogsPopup();
+        }
+    });
+    
+    updateLogsPopupContent();
+    showLogsPopup();
+}
+
+// Función para actualizar el contenido del popup
+function updateLogsPopupContent() {
+    const popupList = document.getElementById('logsPopupList');
+    if (!popupList) {
+        return;
+    }
+    
+    popupList.innerHTML = '';
+    
+    if (fanScheduleRecords.length === 0) {
+        popupList.innerHTML = '<p class="logs-popup-empty">No hay registros disponibles</p>';
+        return;
+    }
+    
+    // Obtener los últimos 5 registros (más recientes primero)
+    const sortedRecords = [...fanScheduleRecords].reverse();
+    const last5Records = sortedRecords.slice(0, 5);
+    
+    last5Records.forEach((record, index) => {
+        const logItem = document.createElement('div');
+        logItem.className = 'logs-popup-item';
+        
+        // Formatear el día con primera letra mayúscula
+        const dayFormatted = record.day.charAt(0).toUpperCase() + record.day.slice(1);
+        
+        logItem.innerHTML = `
+            <div class="logs-popup-item-number">${index + 1}</div>
+            <div class="logs-popup-item-content">
+                <div class="logs-popup-item-header">
+                    <span class="logs-popup-item-day">${dayFormatted}</span>
+                    <span class="logs-popup-item-time">${record.time}</span>
+                </div>
+                <div class="logs-popup-item-details">
+                    <span class="logs-popup-item-speed">Velocidad: ${record.speed}%</span>
+                    <span class="logs-popup-item-date">${record.timestamp}</span>
+                </div>
+            </div>
+        `;
+        
+        popupList.appendChild(logItem);
+    });
+}
+
+// Función para mostrar el popup
+function showLogsPopup() {
+    const popup = document.getElementById('logsPopup');
+    if (!popup) {
+        createLogsPopup();
+        return;
+    }
+    
+    updateLogsPopupContent();
+    
+    popup.style.display = 'flex';
+    popup.style.opacity = '0';
+    
+    setTimeout(() => {
+        popup.style.transition = 'opacity 0.3s ease';
+        popup.style.opacity = '1';
+        
+        const content = popup.querySelector('.logs-popup-content');
+        if (content) {
+            content.style.transform = 'scale(0.9) translateY(-20px)';
+            setTimeout(() => {
+                content.style.transition = 'transform 0.3s ease';
+                content.style.transform = 'scale(1) translateY(0)';
+            }, 10);
+        }
+    }, 10);
+}
+
+// Función para ocultar el popup
+function hideLogsPopup() {
+    const popup = document.getElementById('logsPopup');
+    if (!popup) {
+        return;
+    }
+    
+    const content = popup.querySelector('.logs-popup-content');
+    if (content) {
+        content.style.transition = 'transform 0.3s ease';
+        content.style.transform = 'scale(0.9) translateY(-20px)';
+    }
+    
+    popup.style.transition = 'opacity 0.3s ease';
+    popup.style.opacity = '0';
+    
+    setTimeout(() => {
+        popup.style.display = 'none';
+    }, 300);
+}
+
+// Inicializar la visualización de registros al cargar
+if (document.getElementById('logsList')) {
+    updateLogsDisplay();
 }
 
 // Inicializar funcionalidad del slider cuando la página carga

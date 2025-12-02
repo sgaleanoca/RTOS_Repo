@@ -646,6 +646,28 @@ body {
         margin-bottom: 12px !important;
     }
     
+    /* Botón Horario en móvil */
+    .fan-btn-schedule {
+        border-color: rgba(0, 191, 255, 0.7) !important;
+        color: #87ceeb !important;
+        background: linear-gradient(135deg, rgba(0, 100, 200, 0.3) 0%, rgba(0, 50, 150, 0.2) 100%) !important;
+    }
+    
+    .fan-btn-schedule:active {
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.5) 0%, rgba(0, 100, 200, 0.4) 100%) !important;
+        border-color: rgba(0, 191, 255, 0.9) !important;
+        box-shadow: 0 0 25px rgba(0, 191, 255, 0.6) !important;
+        color: #00bfff !important;
+        transform: scale(0.95) !important;
+    }
+    
+    .fan-btn-schedule.active {
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.4) 0%, rgba(0, 100, 200, 0.3) 100%) !important;
+        border-color: rgba(0, 191, 255, 0.9) !important;
+        box-shadow: 0 0 30px rgba(0, 191, 255, 0.7) !important;
+        color: #00bfff !important;
+    }
+    
     /* Botón Manual ocupa todo el ancho en móvil */
     .fan-btn-manual {
         grid-column: 1 / -1 !important;
@@ -861,6 +883,252 @@ body {
         background: linear-gradient(90deg, #00bfff 0%, #87ceeb 100%) !important;
         box-shadow: 0 0 15px rgba(0, 191, 255, 0.6) !important;
         border-radius: 5px !important;
+    }
+    
+    /* Estilos del modo horario en móvil */
+    .fan-schedule-content {
+        gap: 20px !important;
+        padding: 5px 0 !important;
+    }
+    
+    .fan-schedule-controls {
+        gap: 15px !important;
+    }
+    
+    .fan-schedule-selectors {
+        gap: 12px !important;
+    }
+    
+    .fan-schedule-label {
+        font-size: 0.85em !important;
+        color: #87ceeb !important;
+    }
+    
+    .fan-schedule-select,
+    .fan-schedule-time {
+        padding: 12px 14px !important;
+        font-size: 0.95em !important;
+        border-color: rgba(0, 191, 255, 0.7) !important;
+        color: #87ceeb !important;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 30, 60, 0.3) 100%) !important;
+        border-radius: 10px !important;
+        min-height: 44px !important;
+    }
+    
+    .fan-schedule-select:active,
+    .fan-schedule-time:active {
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.3) 0%, rgba(0, 100, 200, 0.2) 100%) !important;
+        border-color: rgba(0, 191, 255, 0.9) !important;
+    }
+    
+    .fan-schedule-select:focus,
+    .fan-schedule-time:focus {
+        border-color: rgba(0, 191, 255, 0.9) !important;
+        box-shadow: 0 0 20px rgba(0, 191, 255, 0.6) !important;
+    }
+    
+    .fan-schedule-buttons {
+        gap: 10px !important;
+        margin-top: 8px !important;
+    }
+    
+    .fan-schedule-btn {
+        padding: 18px 16px !important;
+        min-height: 80px !important;
+        border-width: 2px !important;
+        border-radius: 10px !important;
+    }
+    
+    .fan-schedule-btn:active {
+        transform: scale(0.98) !important;
+    }
+    
+    .fan-schedule-btn-delete {
+        border-color: rgba(255, 85, 85, 0.7) !important;
+        color: #ff8888 !important;
+        background: linear-gradient(135deg, rgba(200, 50, 50, 0.3) 0%, rgba(150, 30, 30, 0.2) 100%) !important;
+    }
+    
+    .fan-schedule-btn-delete:active {
+        background: linear-gradient(135deg, rgba(255, 85, 85, 0.5) 0%, rgba(200, 50, 50, 0.4) 100%) !important;
+        box-shadow: 0 0 25px rgba(255, 85, 85, 0.6) !important;
+    }
+    
+    .fan-schedule-btn-register {
+        border-color: rgba(0, 191, 255, 0.7) !important;
+        color: #87ceeb !important;
+        background: linear-gradient(135deg, rgba(0, 100, 200, 0.3) 0%, rgba(0, 50, 150, 0.2) 100%) !important;
+    }
+    
+    .fan-schedule-btn-register:active {
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.5) 0%, rgba(0, 100, 200, 0.4) 100%) !important;
+        box-shadow: 0 0 25px rgba(0, 191, 255, 0.6) !important;
+    }
+    
+    .fan-schedule-btn-icon {
+        font-size: 1.8em !important;
+        filter: drop-shadow(0 0 8px rgba(0, 191, 255, 0.6)) !important;
+    }
+    
+    /* Estilos para la lista de registros en móvil */
+    .logs-list {
+        max-height: 250px !important;
+    }
+    
+    .log-item {
+        padding: 10px 0 !important;
+    }
+    
+    .log-item-day {
+        font-size: 0.95em !important;
+        color: #00bfff !important;
+        text-shadow: 0 0 8px rgba(0, 191, 255, 0.6) !important;
+    }
+    
+    .log-item-time {
+        font-size: 1em !important;
+        color: #87ceeb !important;
+        text-shadow: 0 0 5px rgba(0, 191, 255, 0.5) !important;
+    }
+    
+    .log-item-details {
+        font-size: 0.8em !important;
+    }
+    
+    .log-item-speed {
+        color: #87ceeb !important;
+    }
+    
+    .log-item-date {
+        color: #aaa !important;
+        font-size: 0.85em !important;
+    }
+    
+    /* Mensaje de confirmación en móvil */
+    .schedule-confirmation-message {
+        top: 15px !important;
+        right: 15px !important;
+        left: 15px !important;
+        padding: 12px 18px !important;
+        font-size: 0.9em !important;
+        border-width: 2px !important;
+        border-radius: 10px !important;
+    }
+    
+    /* Barra de registros en móvil */
+    .logs-bar {
+        padding: 10px 12px !important;
+        border-width: 2px !important;
+        border-radius: 10px !important;
+    }
+    
+    .logs-bar-content {
+        gap: 10px !important;
+    }
+    
+    .logs-bar-icon {
+        font-size: 1.3em !important;
+    }
+    
+    .logs-bar-count {
+        font-size: 0.95em !important;
+        color: #00bfff !important;
+        text-shadow: 0 0 8px rgba(0, 191, 255, 0.6) !important;
+    }
+    
+    .logs-bar-latest {
+        font-size: 0.8em !important;
+        color: #87ceeb !important;
+    }
+    
+    .logs-bar-arrow {
+        font-size: 1.1em !important;
+        color: #00bfff !important;
+        text-shadow: 0 0 8px rgba(0, 191, 255, 0.6) !important;
+    }
+    
+    /* Popup de registros en móvil */
+    .logs-popup {
+        padding: 15px !important;
+    }
+    
+    .logs-popup-content {
+        max-width: 100% !important;
+        max-height: 85vh !important;
+        border-width: 2px !important;
+        border-radius: 12px !important;
+    }
+    
+    .logs-popup-header {
+        padding: 12px 15px !important;
+    }
+    
+    .logs-popup-title {
+        font-size: 1.1em !important;
+        color: #00bfff !important;
+        text-shadow: 0 0 10px rgba(0, 191, 255, 0.6) !important;
+    }
+    
+    .logs-popup-close {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 1.3em !important;
+        border-color: rgba(0, 191, 255, 0.7) !important;
+        color: #87ceeb !important;
+    }
+    
+    .logs-popup-close:hover {
+        background: rgba(0, 191, 255, 0.2) !important;
+        box-shadow: 0 0 15px rgba(0, 191, 255, 0.6) !important;
+    }
+    
+    .logs-popup-list {
+        padding: 12px 15px !important;
+        max-height: calc(85vh - 70px) !important;
+        gap: 8px !important;
+    }
+    
+    .logs-popup-item {
+        padding: 10px !important;
+        gap: 10px !important;
+        border-color: rgba(0, 191, 255, 0.3) !important;
+        background: rgba(0, 0, 0, 0.4) !important;
+    }
+    
+    .logs-popup-item:hover {
+        background: rgba(0, 191, 255, 0.15) !important;
+        border-color: rgba(0, 191, 255, 0.5) !important;
+    }
+    
+    .logs-popup-item-number {
+        width: 26px !important;
+        height: 26px !important;
+        font-size: 0.85em !important;
+        border-color: rgba(0, 191, 255, 0.7) !important;
+        color: #87ceeb !important;
+        background: rgba(0, 191, 255, 0.2) !important;
+    }
+    
+    .logs-popup-item-day {
+        color: #00bfff !important;
+        text-shadow: 0 0 8px rgba(0, 191, 255, 0.6) !important;
+        font-size: 0.95em !important;
+    }
+    
+    .logs-popup-item-time {
+        color: #87ceeb !important;
+        text-shadow: 0 0 5px rgba(0, 191, 255, 0.5) !important;
+        font-size: 1em !important;
+    }
+    
+    .logs-popup-item-speed {
+        color: #87ceeb !important;
+        font-size: 0.8em !important;
+    }
+    
+    .logs-popup-item-date {
+        color: #aaa !important;
+        font-size: 0.85em !important;
     }
     
     /* Optimizar animaciones para móvil - reducir animaciones complejas */
@@ -1388,7 +1656,7 @@ body.slider-body {
 
 .fan-buttons {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 12px;
     margin-bottom: 15px;
 }
@@ -1790,10 +2058,503 @@ body.slider-body {
 }
 
 /* Estilos específicos para el botón Manual */
-
 .fan-btn-manual {
     border-color: #ffbb33 !important;
     color: #ffbb33 !important;
+}
+
+/* Estilos específicos para el botón Horario */
+.fan-btn-schedule {
+    border-color: #33bbff !important;
+    color: #33bbff !important;
+}
+
+.fan-btn-schedule:hover {
+    background: rgba(51, 187, 255, 0.15) !important;
+    border-color: #44ccff !important;
+    box-shadow: 0 0 15px rgba(51, 187, 255, 0.5) !important;
+}
+
+.fan-btn-schedule.active {
+    background: rgba(51, 187, 255, 0.25) !important;
+    border-color: #44ccff !important;
+    box-shadow: 0 0 20px rgba(51, 187, 255, 0.7) !important;
+    color: #44ccff !important;
+}
+
+/* Estilos para la vista del modo horario */
+.fan-schedule-view {
+    width: 100%;
+}
+
+.fan-schedule-content {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    padding: 10px 0;
+}
+
+.fan-schedule-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.fan-schedule-selectors {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.fan-schedule-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.fan-schedule-label {
+    color: #aaa;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.fan-schedule-select,
+.fan-schedule-time {
+    padding: 10px 12px;
+    border: 2px solid #33ff33;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.4);
+    color: #33ff33;
+    font-family: inherit;
+    font-size: 0.95em;
+    outline: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.fan-schedule-select:hover,
+.fan-schedule-time:hover {
+    border-color: #44ee44;
+    background: rgba(51, 255, 51, 0.1);
+    box-shadow: 0 0 10px rgba(51, 255, 51, 0.3);
+}
+
+.fan-schedule-select:focus,
+.fan-schedule-time:focus {
+    border-color: #44ee44;
+    background: rgba(51, 255, 51, 0.15);
+    box-shadow: 0 0 15px rgba(51, 255, 51, 0.5);
+}
+
+.fan-schedule-select option {
+    background: #0a0a0a;
+    color: #33ff33;
+}
+
+.fan-schedule-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.fan-schedule-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 15px 20px;
+    border: 2px solid;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.4);
+    color: #33ff33;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+    min-height: 70px;
+}
+
+.fan-schedule-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(51, 255, 51, 0.4);
+}
+
+.fan-schedule-btn:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.fan-schedule-btn-delete {
+    border-color: #ff5555;
+    color: #ff5555;
+}
+
+.fan-schedule-btn-delete:hover {
+    background: rgba(255, 85, 85, 0.15);
+    border-color: #ff6666;
+    box-shadow: 0 0 20px rgba(255, 85, 85, 0.6);
+}
+
+.fan-schedule-btn-register {
+    border-color: #33ff33;
+    color: #33ff33;
+}
+
+.fan-schedule-btn-register:hover {
+    background: rgba(51, 255, 51, 0.15);
+    border-color: #44ee44;
+    box-shadow: 0 0 20px rgba(51, 255, 51, 0.6);
+}
+
+.fan-schedule-btn-icon {
+    font-size: 1.5em;
+    filter: drop-shadow(0 0 5px currentColor);
+}
+
+.fan-schedule-btn-label {
+    font-weight: 500;
+}
+
+/* Estilos para la lista de registros */
+.logs-list {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 5px 0;
+}
+
+.logs-empty {
+    color: #aaa;
+    text-align: center;
+    margin: 0;
+    padding: 15px 0;
+    font-style: italic;
+}
+
+.log-item {
+    border-bottom: 1px solid rgba(51, 255, 51, 0.2);
+    padding: 12px 0;
+    transition: background 0.2s ease;
+}
+
+.log-item:last-child {
+    border-bottom: none;
+}
+
+.log-item:hover {
+    background: rgba(51, 255, 51, 0.05);
+}
+
+.log-item-content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.log-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.log-item-day {
+    color: #33ff33;
+    font-weight: bold;
+    font-size: 1em;
+    text-shadow: 0 0 5px #33ff33;
+}
+
+.log-item-time {
+    color: #44ee44;
+    font-size: 1.1em;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 5px #33ff33;
+}
+
+.log-item-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85em;
+}
+
+.log-item-speed {
+    color: #aaa;
+}
+
+.log-item-date {
+    color: #888;
+    font-size: 0.9em;
+}
+
+/* Estilos para el mensaje de confirmación */
+.schedule-confirmation-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, rgba(51, 255, 51, 0.2) 0%, rgba(68, 238, 68, 0.15) 100%);
+    border: 2px solid #33ff33;
+    border-radius: 8px;
+    padding: 15px 25px;
+    color: #33ff33;
+    font-family: inherit;
+    font-size: 0.95em;
+    font-weight: bold;
+    box-shadow: 0 0 20px rgba(51, 255, 51, 0.6), 0 4px 15px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    pointer-events: none;
+    text-shadow: 0 0 10px #33ff33;
+    backdrop-filter: blur(10px);
+}
+
+/* Estilos para la barra de registros clickeable */
+.logs-bar {
+    cursor: pointer;
+    border: 2px solid #33ff33;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 12px 15px;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.logs-bar:hover {
+    background: rgba(51, 255, 51, 0.1);
+    border-color: #44ee44;
+    box-shadow: 0 0 15px rgba(51, 255, 51, 0.4);
+    transform: translateY(-2px);
+}
+
+.logs-bar:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.logs-bar-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logs-bar-icon {
+    font-size: 1.5em;
+    filter: drop-shadow(0 0 5px #33ff33);
+}
+
+.logs-bar-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.logs-bar-count {
+    color: #33ff33;
+    font-weight: bold;
+    font-size: 1em;
+    text-shadow: 0 0 5px #33ff33;
+}
+
+.logs-bar-latest {
+    color: #aaa;
+    font-size: 0.85em;
+}
+
+.logs-bar-arrow {
+    color: #33ff33;
+    font-size: 1.2em;
+    transition: transform 0.3s ease;
+    text-shadow: 0 0 5px #33ff33;
+}
+
+.logs-bar:hover .logs-bar-arrow {
+    transform: translateY(3px);
+}
+
+.logs-bar-empty {
+    text-align: center;
+    color: #aaa;
+    padding: 15px;
+    font-style: italic;
+    cursor: pointer;
+    border: 2px dashed rgba(51, 255, 51, 0.3);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.logs-bar-empty:hover {
+    border-color: rgba(51, 255, 51, 0.6);
+    color: #888;
+}
+
+/* Estilos para el popup de registros */
+.logs-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 20px;
+}
+
+.logs-popup-content {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(10, 10, 10, 0.98) 100%);
+    border: 2px solid #33ff33;
+    border-radius: 12px;
+    box-shadow: 0 0 30px rgba(51, 255, 51, 0.5), 0 10px 40px rgba(0, 0, 0, 0.7);
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.logs-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(51, 255, 51, 0.3);
+    background: rgba(51, 255, 51, 0.05);
+}
+
+.logs-popup-title {
+    color: #33ff33;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin: 0;
+    text-shadow: 0 0 10px #33ff33;
+}
+
+.logs-popup-close {
+    background: none;
+    border: 2px solid #33ff33;
+    color: #33ff33;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.5em;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    padding: 0;
+}
+
+.logs-popup-close:hover {
+    background: rgba(51, 255, 51, 0.2);
+    box-shadow: 0 0 15px rgba(51, 255, 51, 0.6);
+    transform: rotate(90deg);
+}
+
+.logs-popup-close:active {
+    transform: rotate(90deg) scale(0.9);
+}
+
+.logs-popup-list {
+    padding: 15px 20px;
+    overflow-y: auto;
+    max-height: calc(80vh - 80px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.logs-popup-empty {
+    text-align: center;
+    color: #aaa;
+    padding: 30px;
+    font-style: italic;
+}
+
+.logs-popup-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid rgba(51, 255, 51, 0.2);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.logs-popup-item:hover {
+    background: rgba(51, 255, 51, 0.1);
+    border-color: rgba(51, 255, 51, 0.4);
+    transform: translateX(5px);
+}
+
+.logs-popup-item-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(51, 255, 51, 0.2);
+    border: 1px solid #33ff33;
+    color: #33ff33;
+    font-weight: bold;
+    font-size: 0.9em;
+    flex-shrink: 0;
+    text-shadow: 0 0 5px #33ff33;
+}
+
+.logs-popup-item-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.logs-popup-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.logs-popup-item-day {
+    color: #33ff33;
+    font-weight: bold;
+    font-size: 1em;
+    text-shadow: 0 0 5px #33ff33;
+}
+
+.logs-popup-item-time {
+    color: #44ee44;
+    font-size: 1.1em;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 5px #33ff33;
+}
+
+.logs-popup-item-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85em;
+}
+
+.logs-popup-item-speed {
+    color: #aaa;
+}
+
+.logs-popup-item-date {
+    color: #888;
+    font-size: 0.9em;
 }
 
 .fan-btn-manual:hover {

@@ -226,6 +226,11 @@ function goToDashboard() {
     window.location.href = "/dashboard";
 }
 
+// Función para suspender (bloquear) la sesión
+function suspendSession() {
+    doLogout();
+}
+
 // Función de logout
 function doLogout() {
     fetch("/logout").then(() => { 

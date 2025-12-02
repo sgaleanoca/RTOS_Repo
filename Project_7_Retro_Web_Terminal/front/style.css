@@ -1936,18 +1936,6 @@ body.slider-body {
     border-radius: 8px;
 }
 
-@media (max-width: 768px) {
-    .fan-status {
-        padding: 15px 10px;
-        margin-top: 15px;
-        font-size: 0.9em;
-        min-height: 70px;
-        border-radius: 10px;
-        background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 30, 60, 0.3) 100%);
-        border: 2px solid rgba(0, 191, 255, 0.7);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-    }
-}
 
 #fanStatusText {
     color: #00bfff;

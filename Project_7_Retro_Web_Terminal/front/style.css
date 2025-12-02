@@ -192,8 +192,8 @@ body {
 /* --- ESTILO MÓVIL MODERNO PARA LA TERMINAL --- */
 /* Media query para móviles - siempre vertical */
 @media screen and (max-width: 768px) {
-    /* Forzar orientación vertical */
-    html, body {
+    /* Forzar orientación vertical - Solo para terminal (no dashboard ni slider) */
+    html, body:not(.slider-body):not(.dashboard-body) {
         width: 100vw !important;
         height: 100vh !important;
         overflow: hidden !important;
@@ -201,13 +201,43 @@ body {
         transform: rotate(0deg) !important;
     }
     
-    /* Fondo con gradiente sutil para móvil - MUY DIFERENTE */
-    body {
+    /* Fondo con gradiente sutil para móvil - Solo para terminal */
+    body:not(.slider-body):not(.dashboard-body) {
         padding: 0 !important;
         background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%) !important;
         background-attachment: fixed !important;
         min-height: 100vh !important;
         max-height: 100vh !important;
+    }
+    
+    /* FORZAR SCROLL en dashboard y slider - Muy importante */
+    /* HTML debe permitir scroll cuando hay slider o dashboard */
+    html {
+        overflow-y: auto !important;
+        height: auto !important;
+        position: relative !important;
+    }
+    
+    body.slider-body, body.dashboard-body {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        position: relative !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        max-height: none !important;
+        width: 100% !important;
+        display: block !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    /* Asegurar que los contenedores no bloqueen */
+    body.slider-body .slider-container,
+    body.dashboard-body .dashboard-container {
+        overflow: visible !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        position: relative !important;
+        padding-bottom: 120px !important; /* Espacio para botones fijos */
     }
     
     /* Barra superior con diseño moderno - AZUL CIAN */
@@ -359,6 +389,358 @@ body {
     .separator-line {
         border-top: 2px dashed rgba(0, 191, 255, 0.5) !important;
         opacity: 0.7 !important;
+    }
+    
+    /* --- ESTILOS MÓVILES PARA LOGIN --- */
+    .box {
+        border: 3px solid rgba(0, 191, 255, 0.7) !important;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 50, 100, 0.3) 100%) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 191, 255, 0.3) !important;
+    }
+    
+    .title {
+        color: #00bfff !important;
+        text-shadow: 0 0 10px rgba(0, 191, 255, 0.8), 0 0 20px rgba(0, 150, 255, 0.5) !important;
+    }
+    
+    .input-field {
+        border: 2px solid rgba(0, 191, 255, 0.6) !important;
+        background: rgba(0, 0, 0, 0.6) !important;
+        color: #b0e0e6 !important;
+        box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4), 0 0 8px rgba(0, 191, 255, 0.2) !important;
+    }
+    
+    .input-field:focus {
+        border-color: rgba(0, 191, 255, 0.9) !important;
+        box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4), 0 0 15px rgba(0, 191, 255, 0.5) !important;
+        outline: none !important;
+    }
+    
+    .btn {
+        border: 2px solid rgba(0, 191, 255, 0.7) !important;
+        color: #87ceeb !important;
+        background: linear-gradient(180deg, rgba(0, 100, 200, 0.3) 0%, rgba(0, 50, 150, 0.2) 100%) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(0, 191, 255, 0.4) !important;
+    }
+    
+    .btn:active {
+        background: linear-gradient(180deg, rgba(0, 191, 255, 0.5) 0%, rgba(0, 100, 200, 0.4) 100%) !important;
+        color: #ffffff !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    .error {
+        color: #ffaaaa !important;
+        text-shadow: 0 0 5px rgba(255, 100, 100, 0.5) !important;
+    }
+    
+    .smiley svg {
+        stroke: rgba(0, 191, 255, 0.8) !important;
+        filter: drop-shadow(0 0 8px rgba(0, 191, 255, 0.6)) !important;
+    }
+    
+    .small {
+        color: #87ceeb !important;
+    }
+    
+    /* --- ESTILOS MÓVILES PARA DASHBOARD --- */
+    body.dashboard-body {
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%) !important;
+        background-attachment: fixed !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        position: relative !important;
+        height: auto !important;
+        min-height: 100vh !important;
+    }
+    
+    body.dashboard-body .dashboard-container {
+        background: transparent !important;
+        overflow: visible !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        position: relative !important;
+    }
+    
+    .dashboard-title {
+        color: #00bfff !important;
+        text-shadow: 0 0 15px rgba(0, 191, 255, 0.8), 0 0 30px rgba(0, 150, 255, 0.5) !important;
+    }
+    
+    .dashboard-subtitle {
+        color: #87ceeb !important;
+    }
+    
+    .decorative-square {
+        border: 2px solid rgba(0, 191, 255, 0.6) !important;
+        box-shadow: 0 0 15px rgba(0, 191, 255, 0.4) !important;
+    }
+    
+    .icon-box {
+        border: 2px solid rgba(0, 191, 255, 0.7) !important;
+        background: rgba(0, 0, 0, 0.6) !important;
+        box-shadow: 0 0 15px rgba(0, 191, 255, 0.3) !important;
+    }
+    
+    .icon-box:active {
+        transform: scale(1.1) !important;
+        box-shadow: 0 0 25px rgba(0, 191, 255, 0.6), 0 0 50px rgba(0, 150, 255, 0.4) !important;
+        border-color: rgba(0, 191, 255, 0.9) !important;
+        background: rgba(0, 0, 0, 0.8) !important;
+    }
+    
+    .icon-box svg {
+        stroke: rgba(0, 191, 255, 0.8) !important;
+        filter: drop-shadow(0 0 8px rgba(0, 191, 255, 0.6)) !important;
+    }
+    
+    .icon-label {
+        color: #87ceeb !important;
+    }
+    
+    .icon-box:active .icon-label {
+        color: #00bfff !important;
+        text-shadow: 0 0 10px rgba(0, 191, 255, 0.8) !important;
+    }
+    
+    .suspend-btn {
+        border: 2px solid rgba(255, 187, 51, 0.7) !important;
+        color: #ffcc66 !important;
+        background: linear-gradient(180deg, rgba(200, 150, 50, 0.2) 0%, rgba(150, 100, 30, 0.1) 100%) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 187, 51, 0.4) !important;
+    }
+    
+    .suspend-btn:active {
+        background: linear-gradient(180deg, rgba(255, 187, 51, 0.4) 0%, rgba(200, 150, 50, 0.3) 100%) !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+        transform: translateY(1px) !important;
+    }
+    
+    .suspend-hint {
+        color: #87ceeb !important;
+    }
+    
+    /* --- ESTILOS MÓVILES PARA SLIDER - DISEÑO APP-LIKE --- */
+    body.slider-body {
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%) !important;
+        background-attachment: fixed !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        position: relative !important;
+        height: auto !important;
+        min-height: 100vh !important;
+    }
+    
+    /* Contenedor principal con scroll */
+    body.slider-body .slider-container {
+        padding: 0 !important;
+        max-width: 100% !important;
+        min-height: 100vh !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: visible !important;
+        position: relative !important;
+    }
+    
+    /* Header fijo estilo app */
+    .slider-header {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 100 !important;
+        background: linear-gradient(180deg, rgba(0, 50, 100, 0.95) 0%, rgba(0, 0, 0, 0.9) 100%) !important;
+        backdrop-filter: blur(20px) !important;
+        padding: 15px 20px !important;
+        margin: 0 !important;
+        margin-bottom: 0 !important;
+        border-bottom: 2px solid rgba(0, 191, 255, 0.5) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+    }
+    
+    .slider-title {
+        color: #00bfff !important;
+        text-shadow: 0 0 15px rgba(0, 191, 255, 0.8), 0 0 30px rgba(0, 150, 255, 0.5) !important;
+        font-size: 1.4em !important;
+        margin: 0 !important;
+    }
+    
+    /* Grid vertical estilo app */
+    .slider-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        padding: 15px !important;
+        padding-bottom: 100px !important; /* Espacio para botones fijos */
+    }
+    
+    /* Tarjetas compactas estilo app */
+    .slider-box {
+        border: 2px solid rgba(0, 191, 255, 0.6) !important;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 30, 60, 0.4) 100%) !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 191, 255, 0.2) !important;
+        border-radius: 12px !important;
+        padding: 15px !important;
+        margin: 0 !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    .slider-box:active {
+        transform: scale(0.98) !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3), 0 0 30px rgba(0, 191, 255, 0.4) !important;
+    }
+    
+    /* Header de tarjeta más compacto */
+    .slider-box-header {
+        border-bottom: 1px solid rgba(0, 191, 255, 0.3) !important;
+        padding-bottom: 10px !important;
+        margin-bottom: 12px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+    }
+    
+    .slider-box-icon {
+        font-size: 1.4em !important;
+        filter: drop-shadow(0 0 8px rgba(0, 191, 255, 0.6)) !important;
+    }
+    
+    .slider-box-title {
+        color: #00bfff !important;
+        text-shadow: 0 0 10px rgba(0, 191, 255, 0.7) !important;
+        font-size: 1em !important;
+        margin: 0 !important;
+    }
+    
+    .slider-box-content {
+        color: #b0e0e6 !important;
+    }
+    
+    /* Display de temperatura más compacto */
+    .temperature-display {
+        color: #00bfff !important;
+        text-shadow: 0 0 15px rgba(0, 191, 255, 0.8), 0 0 30px rgba(0, 150, 255, 0.5) !important;
+        font-size: 2em !important;
+        padding: 10px 0 !important;
+    }
+    
+    /* Display de hora más compacto */
+    .time-display {
+        color: #00bfff !important;
+        text-shadow: 0 0 15px rgba(0, 191, 255, 0.8), 0 0 30px rgba(0, 150, 255, 0.5) !important;
+        font-size: 2em !important;
+        padding: 10px 0 !important;
+    }
+    
+    .logs-display {
+        color: #87ceeb !important;
+        font-size: 0.9em !important;
+        padding: 8px 0 !important;
+        line-height: 1.5 !important;
+    }
+    
+    /* Botones del ventilador en grid 2x2 */
+    .fan-buttons {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+        margin-bottom: 12px !important;
+    }
+    
+    .fan-btn {
+        border: 2px solid rgba(0, 191, 255, 0.7) !important;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 30, 60, 0.3) 100%) !important;
+        color: #87ceeb !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+        padding: 15px 10px !important;
+        border-radius: 10px !important;
+        min-height: 70px !important;
+    }
+    
+    .fan-btn:active {
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.3) 0%, rgba(0, 100, 200, 0.2) 100%) !important;
+        border-color: rgba(0, 191, 255, 0.9) !important;
+        box-shadow: 0 0 25px rgba(0, 191, 255, 0.6) !important;
+        color: #00bfff !important;
+        transform: scale(0.95) !important;
+    }
+    
+    .fan-btn.active {
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.4) 0%, rgba(0, 100, 200, 0.3) 100%) !important;
+        border-color: rgba(0, 191, 255, 0.9) !important;
+        box-shadow: 0 0 30px rgba(0, 191, 255, 0.7) !important;
+        color: #00bfff !important;
+    }
+    
+    .fan-btn-icon {
+        font-size: 1.8em !important;
+        filter: drop-shadow(0 0 8px rgba(0, 191, 255, 0.6)) !important;
+    }
+    
+    .fan-status {
+        border-top: 1px solid rgba(0, 191, 255, 0.4) !important;
+        color: #87ceeb !important;
+        padding: 10px 0 0 0 !important;
+        margin-top: 10px !important;
+        font-size: 0.9em !important;
+    }
+    
+    #fanStatusText {
+        color: #00bfff !important;
+        text-shadow: 0 0 8px rgba(0, 191, 255, 0.6) !important;
+    }
+    
+    /* Botones de acción fijos en la parte inferior */
+    .slider-actions {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        display: flex !important;
+        gap: 10px !important;
+        padding: 15px !important;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.95) 0%, rgba(0, 30, 60, 0.9) 100%) !important;
+        backdrop-filter: blur(20px) !important;
+        border-top: 2px solid rgba(0, 191, 255, 0.5) !important;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5) !important;
+        z-index: 100 !important;
+        margin: 0 !important;
+    }
+    
+    .slider-action-btn {
+        flex: 1 !important;
+        border: 2px solid !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+        padding: 14px 20px !important;
+        font-size: 0.95em !important;
+        border-radius: 10px !important;
+        min-height: 50px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    .dashboard-action-btn {
+        border-color: rgba(0, 191, 255, 0.7) !important;
+        color: #87ceeb !important;
+        background: linear-gradient(135deg, rgba(0, 100, 200, 0.3) 0%, rgba(0, 50, 150, 0.2) 100%) !important;
+    }
+    
+    .dashboard-action-btn:active {
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.5) 0%, rgba(0, 100, 200, 0.4) 100%) !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+        transform: scale(0.95) !important;
+    }
+    
+    .suspend-action-btn {
+        border-color: rgba(255, 187, 51, 0.7) !important;
+        color: #ffcc66 !important;
+        background: linear-gradient(135deg, rgba(200, 150, 50, 0.3) 0%, rgba(150, 100, 30, 0.2) 100%) !important;
+    }
+    
+    .suspend-action-btn:active {
+        background: linear-gradient(135deg, rgba(255, 187, 51, 0.5) 0%, rgba(200, 150, 50, 0.4) 100%) !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+        transform: scale(0.95) !important;
     }
 }
 
@@ -584,8 +966,11 @@ body.dashboard-body {
 
 /* --- ESTILOS DE LA PÁGINA SLIDER --- */
 body.slider-body {
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     background: black;
+    height: auto;
+    min-height: 100vh;
 }
 
 .slider-container {
@@ -598,6 +983,8 @@ body.slider-body {
 @media (max-width: 768px) {
     .slider-container {
         padding: 20px 15px;
+        min-height: 100vh;
+        padding-bottom: 40px; /* Espacio extra al final para los botones */
     }
 }
 

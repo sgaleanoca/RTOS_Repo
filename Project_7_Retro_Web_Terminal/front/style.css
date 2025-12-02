@@ -723,11 +723,20 @@ body {
     }
     
     .fan-status {
-        border-top: 1px solid rgba(0, 191, 255, 0.4) !important;
+        border-top: none !important;
+        border: 2px solid rgba(0, 191, 255, 0.7) !important;
         color: #87ceeb !important;
-        padding: 10px 0 0 0 !important;
-        margin-top: 10px !important;
+        padding: 15px 10px !important;
+        margin-top: 15px !important;
         font-size: 0.9em !important;
+        min-height: 70px !important;
+        border-radius: 10px !important;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 30, 60, 0.3) 100%) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+        text-align: center !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
     
     #fanStatusText {
@@ -1737,7 +1746,7 @@ body.slider-body {
     gap: 8px;
     margin-bottom: 12px;
     padding-bottom: 8px;
-    border-bottom: 1px solid rgba(51, 255, 51, 0.3);
+    border-bottom: 1px solid rgba(0, 191, 255, 0.3);
 }
 
 @media (max-width: 768px) {
@@ -1750,7 +1759,7 @@ body.slider-body {
 
 .slider-box-icon {
     font-size: 1.5em;
-    filter: drop-shadow(0 0 5px #33ff33);
+    filter: drop-shadow(0 0 8px rgba(0, 191, 255, 0.6));
 }
 
 @media (max-width: 768px) {
@@ -1761,9 +1770,9 @@ body.slider-body {
 
 .slider-box-title {
     font-size: 1.1em;
-    color: #44ee44;
+    color: #00bfff;
     margin: 0;
-    text-shadow: 0 0 5px #33ff33;
+    text-shadow: 0 0 8px rgba(0, 191, 255, 0.7);
 }
 
 @media (max-width: 768px) {
@@ -1773,7 +1782,7 @@ body.slider-body {
 }
 
 .slider-box-content {
-    color: #33ff33;
+    color: #87ceeb;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -1864,10 +1873,10 @@ body.slider-body {
     align-items: center;
     gap: 6px;
     padding: 15px 10px;
-    border: 2px solid #33ff33;
+    border: 2px solid rgba(0, 191, 255, 0.7);
     border-radius: 8px;
-    background: rgba(0, 0, 0, 0.4);
-    color: #33ff33;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 30, 60, 0.3) 100%);
+    color: #87ceeb;
     cursor: pointer;
     transition: all 0.3s ease;
     font-family: inherit;
@@ -1883,22 +1892,23 @@ body.slider-body {
 }
 
 .fan-btn:hover {
-    background: rgba(51, 255, 51, 0.15);
-    border-color: #44ee44;
-    box-shadow: 0 0 15px rgba(51, 255, 51, 0.5);
+    background: linear-gradient(135deg, rgba(0, 191, 255, 0.2) 0%, rgba(0, 100, 200, 0.15) 100%);
+    border-color: rgba(0, 191, 255, 0.9);
+    box-shadow: 0 0 15px rgba(0, 191, 255, 0.5);
     transform: translateY(-2px);
+    color: #00bfff;
 }
 
 .fan-btn.active {
-    background: rgba(51, 255, 51, 0.25);
-    border-color: #44ee44;
-    box-shadow: 0 0 20px rgba(51, 255, 51, 0.7);
-    color: #44ee44;
+    background: linear-gradient(135deg, rgba(0, 191, 255, 0.3) 0%, rgba(0, 100, 200, 0.2) 100%);
+    border-color: rgba(0, 191, 255, 0.9);
+    box-shadow: 0 0 20px rgba(0, 191, 255, 0.7);
+    color: #00bfff;
 }
 
 .fan-btn-icon {
     font-size: 1.8em;
-    filter: drop-shadow(0 0 5px #33ff33);
+    filter: drop-shadow(0 0 5px rgba(0, 191, 255, 0.6));
 }
 
 @media (max-width: 768px) {
@@ -1913,25 +1923,37 @@ body.slider-body {
 
 .fan-status {
     text-align: center;
-    padding: 10px;
-    border-top: 1px solid rgba(51, 255, 51, 0.3);
-    margin-top: 10px;
-    color: #aaa;
-    font-size: 0.9em;
+    padding: 20px;
+    border-top: 1px solid rgba(0, 191, 255, 0.3);
+    margin-top: 15px;
+    color: #87ceeb;
+    font-size: 1em;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 30, 60, 0.15) 100%);
+    border-radius: 8px;
 }
 
 @media (max-width: 768px) {
     .fan-status {
-        padding: 8px;
-        margin-top: 8px;
-        font-size: 0.85em;
+        padding: 15px 10px;
+        margin-top: 15px;
+        font-size: 0.9em;
+        min-height: 70px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 30, 60, 0.3) 100%);
+        border: 2px solid rgba(0, 191, 255, 0.7);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     }
 }
 
 #fanStatusText {
-    color: #33ff33;
+    color: #00bfff;
     font-weight: bold;
     transition: all 0.3s ease;
+    text-shadow: 0 0 8px rgba(0, 191, 255, 0.6);
 }
 
 /* Estilos para el modo temperatura activo */
@@ -1964,7 +1986,7 @@ body.slider-body {
     gap: 15px;
     margin-bottom: 20px;
     padding-bottom: 12px;
-    border-bottom: 1px solid rgba(51, 255, 51, 0.3);
+    border-bottom: 1px solid rgba(0, 191, 255, 0.3);
 }
 
 .fan-back-btn {
@@ -1972,10 +1994,10 @@ body.slider-body {
     align-items: center;
     gap: 6px;
     padding: 8px 14px;
-    border: 2px solid #33ff33;
+    border: 2px solid rgba(0, 191, 255, 0.7);
     border-radius: 6px;
-    background: rgba(0, 0, 0, 0.4);
-    color: #33ff33;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 30, 60, 0.3) 100%);
+    color: #87ceeb;
     cursor: pointer;
     font-family: inherit;
     font-size: 0.9em;
@@ -1984,10 +2006,11 @@ body.slider-body {
 }
 
 .fan-back-btn:hover {
-    background: rgba(51, 255, 51, 0.15);
-    border-color: #44ee44;
-    box-shadow: 0 0 15px rgba(51, 255, 51, 0.5);
+    background: linear-gradient(135deg, rgba(0, 191, 255, 0.2) 0%, rgba(0, 100, 200, 0.15) 100%);
+    border-color: rgba(0, 191, 255, 0.9);
+    box-shadow: 0 0 15px rgba(0, 191, 255, 0.5);
     transform: translateX(-3px);
+    color: #00bfff;
 }
 
 .fan-back-btn:active {
@@ -2039,10 +2062,10 @@ body.slider-body {
     align-items: center;
     gap: 10px;
     padding: 20px 40px;
-    border: 3px solid #33ff33;
+    border: 3px solid rgba(0, 191, 255, 0.7);
     border-radius: 12px;
-    background: rgba(0, 0, 0, 0.4);
-    color: #33ff33;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 30, 60, 0.3) 100%);
+    color: #87ceeb;
     cursor: pointer;
     font-family: inherit;
     transition: all 0.3s ease;
@@ -2058,7 +2081,7 @@ body.slider-body {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(51, 255, 51, 0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(0, 191, 255, 0.1), transparent);
     transition: left 0.5s ease;
 }
 
@@ -2067,10 +2090,11 @@ body.slider-body {
 }
 
 .fan-power-toggle:hover {
-    background: rgba(51, 255, 51, 0.1);
-    border-color: #44ee44;
-    box-shadow: 0 0 20px rgba(51, 255, 51, 0.6);
+    background: linear-gradient(135deg, rgba(0, 191, 255, 0.15) 0%, rgba(0, 100, 200, 0.1) 100%);
+    border-color: rgba(0, 191, 255, 0.9);
+    box-shadow: 0 0 20px rgba(0, 191, 255, 0.6);
     transform: scale(1.05);
+    color: #00bfff;
 }
 
 .fan-power-toggle:active {
@@ -2078,25 +2102,25 @@ body.slider-body {
 }
 
 .fan-power-toggle.fan-power-on {
-    background: rgba(51, 255, 51, 0.15);
-    border-color: #44ee44;
-    box-shadow: 0 0 25px rgba(51, 255, 51, 0.7);
-    color: #44ee44;
+    background: linear-gradient(135deg, rgba(0, 191, 255, 0.2) 0%, rgba(0, 100, 200, 0.15) 100%);
+    border-color: rgba(0, 191, 255, 0.9);
+    box-shadow: 0 0 25px rgba(0, 191, 255, 0.7);
+    color: #00bfff;
     animation: pulseGlow 2s ease-in-out infinite;
 }
 
 @keyframes pulseGlow {
     0%, 100% {
-        box-shadow: 0 0 25px rgba(51, 255, 51, 0.7);
+        box-shadow: 0 0 25px rgba(0, 191, 255, 0.7);
     }
     50% {
-        box-shadow: 0 0 35px rgba(51, 255, 51, 0.9), 0 0 50px rgba(51, 255, 51, 0.5);
+        box-shadow: 0 0 35px rgba(0, 191, 255, 0.9), 0 0 50px rgba(0, 191, 255, 0.5);
     }
 }
 
 .fan-power-icon {
     font-size: 2.5em;
-    filter: drop-shadow(0 0 8px #33ff33);
+    filter: drop-shadow(0 0 8px rgba(0, 191, 255, 0.6));
     transition: transform 0.3s ease;
 }
 
@@ -2886,6 +2910,11 @@ body.slider-body {
     
     .fan-btn-manual {
         grid-column: 1 / -1 !important; /* Ocupa ambas columnas */
+        /* Mismo tamaño que los otros botones */
+        padding: 15px 10px !important;
+        min-height: 70px !important;
+        border-radius: 10px !important;
+        border-width: 2px !important;
     }
     
     /* Estilos del botón Manual en móvil */

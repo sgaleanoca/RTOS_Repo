@@ -954,11 +954,13 @@ function assignSchedule() {
     //     console.error('[FAN SCHEDULE] Error al asignar:', err);
     // });
     
-    // Mostrar mensaje de confirmación temporal
-    showScheduleConfirmationMessage('Horario asignado correctamente');
+    // Cerrar el popup automáticamente antes de mostrar el mensaje
+    hideLogsPopup();
     
-    // Opcional: Cerrar el popup después de asignar
-    // hideLogsPopup();
+    // Mostrar mensaje de confirmación después de cerrar el popup
+    setTimeout(() => {
+        showScheduleConfirmationMessage('Horario asignado correctamente');
+    }, 350); // Esperar a que termine la animación de cierre
 }
 
 // Función para mostrar el popup

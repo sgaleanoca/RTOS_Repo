@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slider - ESP32 Terminal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="slider-body">
+    <div class="slider-container">
+        <div class="slider-header">
+            <h1 class="slider-title">ESP32 CONTROL PANEL</h1>
+        </div>
+
+        <div class="slider-grid">
+            <!-- Cuadro de Temperatura -->
+            <div class="slider-box">
+                <div class="slider-box-header">
+                    <span class="slider-box-icon">🌡️</span>
+                    <h2 class="slider-box-title">Temperatura</h2>
+                </div>
+                <div class="slider-box-content">
+                    <div class="temperature-display" id="sliderTemperature">--°C</div>
+                </div>
+            </div>
+
+            <!-- Cuadro de Hora -->
+            <div class="slider-box">
+                <div class="slider-box-header">
+                    <span class="slider-box-icon">🕐</span>
+                    <h2 class="slider-box-title">Hora</h2>
+                </div>
+                <div class="slider-box-content">
+                    <div class="time-display" id="sliderClock">00:00:00</div>
+                </div>
+            </div>
+
+            <!-- Cuadro de Registros -->
+            <div class="slider-box">
+                <div class="slider-box-header">
+                    <span class="slider-box-icon">📋</span>
+                    <h2 class="slider-box-title">Registros</h2>
+                </div>
+                <div class="slider-box-content">
+                    <div class="logs-display" id="logsDisplay">
+                        <p>No hay registros disponibles</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cuadro de Ventilador -->
+            <div class="slider-box fan-box">
+                <div class="slider-box-header">
+                    <span class="slider-box-icon">🌀</span>
+                    <h2 class="slider-box-title">Ventilador</h2>
+                </div>
+                <div class="slider-box-content">
+                    <div class="fan-buttons">
+                        <button class="fan-btn" data-mode="off" onclick="setFanMode('off')">
+                            <span class="fan-btn-icon">⏸</span>
+                            <span class="fan-btn-label">Apagado</span>
+                        </button>
+                        <button class="fan-btn" data-mode="silent" onclick="setFanMode('silent')">
+                            <span class="fan-btn-icon">🔇</span>
+                            <span class="fan-btn-label">Silencioso</span>
+                        </button>
+                        <button class="fan-btn" data-mode="performance" onclick="setFanMode('performance')">
+                            <span class="fan-btn-icon">⚡</span>
+                            <span class="fan-btn-label">Rendimiento</span>
+                        </button>
+                        <button class="fan-btn" data-mode="turbo" onclick="setFanMode('turbo')">
+                            <span class="fan-btn-icon">💨</span>
+                            <span class="fan-btn-label">Turbo</span>
+                        </button>
+                    </div>
+                    <div class="fan-status" id="fanStatus">
+                        <span>Estado: <span id="fanStatusText">Selecciona un modo</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="slider-actions">
+            <button class="slider-action-btn dashboard-action-btn" onclick="goToDashboard()">
+                <span>← Dashboard</span>
+            </button>
+            <button class="slider-action-btn suspend-action-btn" onclick="suspendSession()">
+                <span>⏾ Suspender</span>
+            </button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
+

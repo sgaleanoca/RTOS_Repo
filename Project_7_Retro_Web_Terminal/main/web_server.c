@@ -337,10 +337,7 @@ esp_err_t slider_get_handler(httpd_req_t *req) {
         httpd_resp_send(req, NULL, 0);
         return ESP_OK;
     }
-    // Por ahora, servir una página básica para slider (se implementará más adelante)
-    httpd_resp_set_type(req, "text/html");
-    httpd_resp_send(req, "<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"UTF-8\"><title>Slider - ESP32</title><link rel=\"stylesheet\" href=\"style.css\"></head><body><div class=\"box\"><div class=\"title\">Slider</div><p style=\"color: #33ff33; text-align: center;\">Esta funcionalidad se implementará más adelante.</p><a href=\"/dashboard\" style=\"color: #33ff33; text-decoration: none; border: 1px solid #33ff33; padding: 8px 16px; display: inline-block; margin-top: 20px; border-radius: 4px;\">Volver al Dashboard</a></div></body></html>", HTTPD_RESP_USE_STRLEN);
-    return ESP_OK;
+    return send_file_from_spiffs(req, "/spiffs/slider.html", "text/html");
 }
 
 // GET /favicon.ico (evitar 404)
@@ -683,9 +680,10 @@ void start_webserver(void) {
     // Verificar que los archivos existan en SPIFFS
     ESP_LOGI(TAG, "Verificando archivos en SPIFFS...");
     const char *files_to_check[] = {"/spiffs/index.html", "/spiffs/login.html", 
-                                    "/spiffs/dashboard.html", "/spiffs/style.css", "/spiffs/script.js"};
+                                    "/spiffs/dashboard.html", "/spiffs/slider.html", 
+                                    "/spiffs/style.css", "/spiffs/script.js"};
     int files_found = 0;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 6; i++) {
         FILE *f = fopen(files_to_check[i], "r");
         if (f) {
             // Obtener tamaño del archivo
@@ -706,10 +704,10 @@ void start_webserver(void) {
         ESP_LOGE(TAG, "Los archivos deben ser flasheados a la partición SPIFFS");
         ESP_LOGE(TAG, "Ejecuta: ./flash_all.sh [PORT] o idf.py flash");
         ESP_LOGE(TAG, "==========================================");
-    } else if (files_found < 5) {
-        ESP_LOGW(TAG, "Advertencia: Solo %d de 5 archivos encontrados", files_found);
+    } else if (files_found < 6) {
+        ESP_LOGW(TAG, "Advertencia: Solo %d de 6 archivos encontrados", files_found);
     } else {
-        ESP_LOGI(TAG, "✓ Todos los archivos encontrados correctamente (%d/5)", files_found);
+        ESP_LOGI(TAG, "✓ Todos los archivos encontrados correctamente (%d/6)", files_found);
     }
 
     // 2. Configurar Server

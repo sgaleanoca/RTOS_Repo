@@ -231,6 +231,111 @@ function suspendSession() {
     doLogout();
 }
 
+// --- FUNCIONALIDAD PARA LA PÁGINA SLIDER ---
+
+// Actualizar temperatura en el slider
+function updateSliderTemperature() {
+    const tempElement = document.getElementById('sliderTemperature');
+    if (!tempElement) {
+        return;
+    }
+    
+    fetch("/temperature")
+        .then(resp => {
+            if (!resp.ok) {
+                if (resp.status === 401) {
+                    return Promise.reject(new Error("Unauthorized"));
+                }
+                throw new Error(`HTTP ${resp.status}`);
+            }
+            return resp.text().then(text => {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error("[SLIDER TEMP] Error parseando JSON:", text);
+                    throw e;
+                }
+            });
+        })
+        .then(data => {
+            if (data && typeof data.temperature === 'number' && isFinite(data.temperature)) {
+                const temp = data.temperature;
+                if (temp > -900 && temp < 200) {
+                    tempElement.textContent = `${temp.toFixed(1)}°C`;
+                } else {
+                    tempElement.textContent = "--°C";
+                }
+            } else {
+                tempElement.textContent = "--°C";
+            }
+        })
+        .catch(err => {
+            if (err.message !== "Unauthorized") {
+                const tempEl = document.getElementById('sliderTemperature');
+                if (tempEl) {
+                    tempEl.textContent = "--°C";
+                }
+            }
+        });
+}
+
+// Actualizar hora en el slider
+function updateSliderClock() {
+    const clockElement = document.getElementById('sliderClock');
+    if (clockElement) {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('es-ES', { hour12: false });
+        clockElement.textContent = timeString;
+    }
+}
+
+// Función para establecer el modo del ventilador
+function setFanMode(mode) {
+    // Remover clase active de todos los botones
+    const buttons = document.querySelectorAll('.fan-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    
+    // Agregar clase active al botón seleccionado
+    const selectedBtn = document.querySelector(`.fan-btn[data-mode="${mode}"]`);
+    if (selectedBtn) {
+        selectedBtn.classList.add('active');
+    }
+    
+    // Actualizar el texto de estado
+    const statusText = document.getElementById('fanStatusText');
+    if (statusText) {
+        const modeNames = {
+            'off': 'Apagado',
+            'silent': 'Silencioso',
+            'performance': 'Rendimiento',
+            'turbo': 'Turbo'
+        };
+        statusText.textContent = modeNames[mode] || 'Desconocido';
+    }
+    
+    // Aquí puedes agregar lógica para enviar el comando al ESP32
+    console.log(`[FAN] Modo del ventilador cambiado a: ${mode}`);
+    
+    // Ejemplo: enviar comando al servidor (puedes implementar esto más adelante)
+    // fetch(`/fan?mode=${mode}`)
+    //     .then(resp => resp.text())
+    //     .then(data => console.log(data))
+    //     .catch(err => console.error(err));
+}
+
+// Inicializar funcionalidad del slider cuando la página carga
+if (document.getElementById('sliderClock')) {
+    // Actualizar reloj cada segundo
+    setInterval(updateSliderClock, 1000);
+    updateSliderClock();
+    
+    // Actualizar temperatura cada segundo
+    setInterval(updateSliderTemperature, 1000);
+    updateSliderTemperature();
+    
+    console.log("[SLIDER] Funcionalidad del slider inicializada");
+}
+
 // Función de logout
 function doLogout() {
     fetch("/logout").then(() => { 

@@ -646,6 +646,29 @@ body {
         margin-bottom: 12px !important;
     }
     
+    /* Botón Manual ocupa todo el ancho en móvil */
+    .fan-btn-manual {
+        grid-column: 1 / -1 !important;
+        border-color: rgba(255, 187, 51, 0.7) !important;
+        color: #ffcc66 !important;
+        background: linear-gradient(135deg, rgba(200, 150, 50, 0.3) 0%, rgba(150, 100, 30, 0.2) 100%) !important;
+    }
+    
+    .fan-btn-manual:active {
+        background: linear-gradient(135deg, rgba(255, 187, 51, 0.5) 0%, rgba(200, 150, 50, 0.4) 100%) !important;
+        border-color: rgba(255, 204, 68, 0.9) !important;
+        box-shadow: 0 0 25px rgba(255, 187, 51, 0.6) !important;
+        color: #ffdd77 !important;
+        transform: scale(0.95) !important;
+    }
+    
+    .fan-btn-manual.active {
+        background: linear-gradient(135deg, rgba(255, 187, 51, 0.4) 0%, rgba(200, 150, 50, 0.3) 100%) !important;
+        border-color: rgba(255, 204, 68, 0.9) !important;
+        box-shadow: 0 0 30px rgba(255, 187, 51, 0.7) !important;
+        color: #ffdd77 !important;
+    }
+    
     .fan-btn {
         border: 2px solid rgba(0, 191, 255, 0.7) !important;
         background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 30, 60, 0.3) 100%) !important;
@@ -687,6 +710,202 @@ body {
     #fanStatusText {
         color: #00bfff !important;
         text-shadow: 0 0 8px rgba(0, 191, 255, 0.6) !important;
+    }
+    
+    /* Estilos del modo manual en móvil - dentro de la sección móvil principal */
+    .fan-normal-view,
+    .fan-manual-view {
+        width: 100% !important;
+    }
+    
+    .fan-manual-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+        margin-bottom: 15px !important;
+        padding-bottom: 10px !important;
+        border-bottom: 1px solid rgba(0, 191, 255, 0.3) !important;
+    }
+    
+    .fan-back-btn {
+        padding: 10px 16px !important;
+        font-size: 0.9em !important;
+        min-height: 44px !important;
+        width: 100% !important;
+        justify-content: center !important;
+        border-color: rgba(0, 191, 255, 0.7) !important;
+        color: #87ceeb !important;
+        background: linear-gradient(135deg, rgba(0, 100, 200, 0.3) 0%, rgba(0, 50, 150, 0.2) 100%) !important;
+        border-radius: 10px !important;
+    }
+    
+    .fan-back-btn:active {
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.5) 0%, rgba(0, 100, 200, 0.4) 100%) !important;
+        transform: scale(0.98) !important;
+        box-shadow: 0 0 20px rgba(0, 191, 255, 0.6) !important;
+    }
+    
+    .fan-manual-title {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+    
+    .fan-manual-content {
+        gap: 20px !important;
+        padding: 5px 0 !important;
+    }
+    
+    .fan-power-control {
+        gap: 12px !important;
+    }
+    
+    .fan-power-label {
+        font-size: 0.85em !important;
+        color: #87ceeb !important;
+    }
+    
+    .fan-power-toggle {
+        padding: 25px 30px !important;
+        min-width: 180px !important;
+        border-width: 3px !important;
+        border-color: rgba(0, 191, 255, 0.7) !important;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 30, 60, 0.3) 100%) !important;
+        color: #87ceeb !important;
+        border-radius: 12px !important;
+    }
+    
+    .fan-power-toggle:active {
+        transform: scale(0.98) !important;
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.3) 0%, rgba(0, 100, 200, 0.2) 100%) !important;
+    }
+    
+    .fan-power-toggle.fan-power-on {
+        border-color: rgba(0, 191, 255, 0.9) !important;
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.3) 0%, rgba(0, 100, 200, 0.2) 100%) !important;
+        color: #00bfff !important;
+        box-shadow: 0 0 30px rgba(0, 191, 255, 0.7) !important;
+    }
+    
+    .fan-power-icon {
+        font-size: 2.2em !important;
+        filter: drop-shadow(0 0 8px rgba(0, 191, 255, 0.6)) !important;
+    }
+    
+    .fan-power-text {
+        font-size: 1em !important;
+        color: #87ceeb !important;
+        text-shadow: 0 0 5px rgba(0, 191, 255, 0.6) !important;
+    }
+    
+    .fan-power-toggle.fan-power-on .fan-power-text {
+        color: #00bfff !important;
+        text-shadow: 0 0 8px rgba(0, 191, 255, 0.8) !important;
+    }
+    
+    .fan-slider-container {
+        gap: 12px !important;
+    }
+    
+    .fan-slider-label {
+        font-size: 0.9em !important;
+        color: #87ceeb !important;
+    }
+    
+    .fan-slider-value {
+        font-size: 1.2em !important;
+        color: #00bfff !important;
+        text-shadow: 0 0 8px rgba(0, 191, 255, 0.6) !important;
+    }
+    
+    .fan-slider-wrapper {
+        padding: 20px 0 !important;
+    }
+    
+    .fan-slider {
+        height: 10px !important;
+    }
+    
+    .fan-slider::-webkit-slider-thumb {
+        width: 32px !important;
+        height: 32px !important;
+        border-width: 4px !important;
+        background: #00bfff !important;
+        box-shadow: 0 0 20px rgba(0, 191, 255, 0.8), 0 0 40px rgba(0, 191, 255, 0.4) !important;
+    }
+    
+    .fan-slider::-webkit-slider-thumb:active {
+        transform: scale(1.15) !important;
+        box-shadow: 0 0 25px rgba(0, 191, 255, 1), 0 0 50px rgba(0, 191, 255, 0.6) !important;
+    }
+    
+    .fan-slider::-moz-range-thumb {
+        width: 32px !important;
+        height: 32px !important;
+        border-width: 4px !important;
+        background: #00bfff !important;
+        box-shadow: 0 0 20px rgba(0, 191, 255, 0.8), 0 0 40px rgba(0, 191, 255, 0.4) !important;
+    }
+    
+    .fan-slider::-moz-range-thumb:active {
+        transform: scale(1.15) !important;
+        box-shadow: 0 0 25px rgba(0, 191, 255, 1), 0 0 50px rgba(0, 191, 255, 0.6) !important;
+    }
+    
+    .fan-slider-track {
+        height: 10px !important;
+        background: rgba(0, 191, 255, 0.2) !important;
+        border-radius: 5px !important;
+    }
+    
+    .fan-slider-fill {
+        background: linear-gradient(90deg, #00bfff 0%, #87ceeb 100%) !important;
+        box-shadow: 0 0 15px rgba(0, 191, 255, 0.6) !important;
+        border-radius: 5px !important;
+    }
+    
+    /* Optimizar animaciones para móvil - reducir animaciones complejas */
+    .fan-power-toggle.fan-power-on {
+        animation: pulseGlowMobile 2s ease-in-out infinite !important;
+    }
+    
+    @keyframes pulseGlowMobile {
+        0%, 100% {
+            box-shadow: 0 0 30px rgba(0, 191, 255, 0.7) !important;
+        }
+        50% {
+            box-shadow: 0 0 40px rgba(0, 191, 255, 0.9), 0 0 60px rgba(0, 191, 255, 0.5) !important;
+        }
+    }
+    
+    .fan-power-toggle.fan-power-on .fan-power-icon {
+        animation: rotateIconMobile 3s linear infinite !important;
+    }
+    
+    @keyframes rotateIconMobile {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+    
+    /* Desactivar animación shimmer en móvil para mejor rendimiento */
+    .fan-slider-fill::after {
+        animation: none !important;
+    }
+    
+    /* Mejorar transiciones para toque */
+    .fan-back-btn,
+    .fan-power-toggle,
+    .fan-slider {
+        -webkit-tap-highlight-color: rgba(0, 191, 255, 0.3) !important;
+    }
+    
+    /* Asegurar que las transiciones sean suaves en móvil */
+    .fan-normal-view,
+    .fan-manual-view {
+        transition: opacity 0.25s ease, transform 0.25s ease !important;
     }
     
     /* Botones de acción fijos en la parte inferior */
@@ -1590,14 +1809,169 @@ body.slider-body {
     color: #ffcc44 !important;
 }
 
-/* Ocultar modo manual en móvil - solo PC */
+/* Estilos móviles para el modo manual */
 @media (max-width: 768px) {
-    .fan-btn-manual {
-        display: none !important;
+    /* Ajustar grid de botones para móvil - 2 columnas, el Manual ocupa todo el ancho */
+    .fan-buttons {
+        grid-template-columns: repeat(2, 1fr) !important;
     }
     
-    .fan-buttons {
-        grid-template-columns: repeat(4, 1fr) !important;
+    .fan-btn-manual {
+        grid-column: 1 / -1 !important; /* Ocupa ambas columnas */
+    }
+    
+    /* Estilos del botón Manual en móvil */
+    .fan-btn-manual {
+        border-color: rgba(255, 187, 51, 0.7) !important;
+        color: #ffcc66 !important;
+        background: linear-gradient(135deg, rgba(200, 150, 50, 0.3) 0%, rgba(150, 100, 30, 0.2) 100%) !important;
+    }
+    
+    .fan-btn-manual:active {
+        background: linear-gradient(135deg, rgba(255, 187, 51, 0.5) 0%, rgba(200, 150, 50, 0.4) 100%) !important;
+        border-color: rgba(255, 204, 68, 0.9) !important;
+        box-shadow: 0 0 25px rgba(255, 187, 51, 0.6) !important;
+        color: #ffdd77 !important;
+        transform: scale(0.95) !important;
+    }
+    
+    .fan-btn-manual.active {
+        background: linear-gradient(135deg, rgba(255, 187, 51, 0.4) 0%, rgba(200, 150, 50, 0.3) 100%) !important;
+        border-color: rgba(255, 204, 68, 0.9) !important;
+        box-shadow: 0 0 30px rgba(255, 187, 51, 0.7) !important;
+        color: #ffdd77 !important;
+    }
+    
+    /* Header del modo manual en móvil */
+    .fan-manual-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+        margin-bottom: 15px !important;
+        padding-bottom: 10px !important;
+    }
+    
+    .fan-back-btn {
+        padding: 10px 16px !important;
+        font-size: 0.9em !important;
+        min-height: 44px !important;
+        width: 100% !important;
+        justify-content: center !important;
+        border-color: rgba(0, 191, 255, 0.7) !important;
+        color: #87ceeb !important;
+        background: linear-gradient(135deg, rgba(0, 100, 200, 0.3) 0%, rgba(0, 50, 150, 0.2) 100%) !important;
+    }
+    
+    .fan-back-btn:active {
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.5) 0%, rgba(0, 100, 200, 0.4) 100%) !important;
+        transform: scale(0.98) !important;
+    }
+    
+    .fan-manual-title {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+    
+    /* Contenido del modo manual en móvil */
+    .fan-manual-content {
+        gap: 20px !important;
+        padding: 5px 0 !important;
+    }
+    
+    /* Control de encendido/apagado en móvil */
+    .fan-power-control {
+        gap: 12px !important;
+    }
+    
+    .fan-power-label {
+        font-size: 0.85em !important;
+    }
+    
+    .fan-power-toggle {
+        padding: 25px 30px !important;
+        min-width: 180px !important;
+        border-width: 3px !important;
+        border-color: rgba(0, 191, 255, 0.7) !important;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 30, 60, 0.3) 100%) !important;
+        color: #87ceeb !important;
+    }
+    
+    .fan-power-toggle:active {
+        transform: scale(0.98) !important;
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.3) 0%, rgba(0, 100, 200, 0.2) 100%) !important;
+    }
+    
+    .fan-power-toggle.fan-power-on {
+        border-color: rgba(0, 191, 255, 0.9) !important;
+        background: linear-gradient(135deg, rgba(0, 191, 255, 0.3) 0%, rgba(0, 100, 200, 0.2) 100%) !important;
+        color: #00bfff !important;
+        box-shadow: 0 0 30px rgba(0, 191, 255, 0.7) !important;
+    }
+    
+    .fan-power-icon {
+        font-size: 2.2em !important;
+        filter: drop-shadow(0 0 8px rgba(0, 191, 255, 0.6)) !important;
+    }
+    
+    .fan-power-text {
+        font-size: 1em !important;
+    }
+    
+    /* Slider en móvil */
+    .fan-slider-container {
+        gap: 12px !important;
+    }
+    
+    .fan-slider-label {
+        font-size: 0.9em !important;
+    }
+    
+    .fan-slider-value {
+        font-size: 1.2em !important;
+        color: #00bfff !important;
+        text-shadow: 0 0 8px rgba(0, 191, 255, 0.6) !important;
+    }
+    
+    .fan-slider-wrapper {
+        padding: 20px 0 !important;
+    }
+    
+    .fan-slider {
+        height: 10px !important;
+    }
+    
+    .fan-slider::-webkit-slider-thumb {
+        width: 32px !important;
+        height: 32px !important;
+        border-width: 4px !important;
+        box-shadow: 0 0 20px rgba(0, 191, 255, 0.8), 0 0 40px rgba(0, 191, 255, 0.4) !important;
+    }
+    
+    .fan-slider::-webkit-slider-thumb:active {
+        transform: scale(1.15) !important;
+        box-shadow: 0 0 25px rgba(0, 191, 255, 1), 0 0 50px rgba(0, 191, 255, 0.6) !important;
+    }
+    
+    .fan-slider::-moz-range-thumb {
+        width: 32px !important;
+        height: 32px !important;
+        border-width: 4px !important;
+        box-shadow: 0 0 20px rgba(0, 191, 255, 0.8), 0 0 40px rgba(0, 191, 255, 0.4) !important;
+    }
+    
+    .fan-slider::-moz-range-thumb:active {
+        transform: scale(1.15) !important;
+        box-shadow: 0 0 25px rgba(0, 191, 255, 1), 0 0 50px rgba(0, 191, 255, 0.6) !important;
+    }
+    
+    .fan-slider-track {
+        height: 10px !important;
+        background: rgba(0, 191, 255, 0.2) !important;
+    }
+    
+    .fan-slider-fill {
+        background: linear-gradient(90deg, #00bfff 0%, #87ceeb 100%) !important;
+        box-shadow: 0 0 15px rgba(0, 191, 255, 0.6) !important;
     }
 }
 

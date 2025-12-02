@@ -376,12 +376,21 @@ function setFanMode(mode) {
     //     .catch(err => console.error(err));
 }
 
+// Función para detectar si es móvil
+function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+           (window.innerWidth <= 768);
+}
+
 // Función para entrar al modo manual
 function enterFanManualMode() {
     const normalView = document.getElementById('fanNormalView');
     const manualView = document.getElementById('fanManualView');
     
     if (normalView && manualView) {
+        const isMobile = isMobileDevice();
+        const transitionTime = isMobile ? 250 : 300; // Más rápido en móvil
+        
         normalView.style.display = 'none';
         manualView.style.display = 'block';
         
@@ -389,7 +398,7 @@ function enterFanManualMode() {
         manualView.style.opacity = '0';
         manualView.style.transform = 'translateY(10px)';
         setTimeout(() => {
-            manualView.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            manualView.style.transition = `opacity ${transitionTime}ms ease, transform ${transitionTime}ms ease`;
             manualView.style.opacity = '1';
             manualView.style.transform = 'translateY(0)';
         }, 10);
@@ -404,8 +413,11 @@ function exitFanManualMode() {
     const manualView = document.getElementById('fanManualView');
     
     if (normalView && manualView) {
+        const isMobile = isMobileDevice();
+        const transitionTime = isMobile ? 250 : 300; // Más rápido en móvil
+        
         // Animación de salida
-        manualView.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        manualView.style.transition = `opacity ${transitionTime}ms ease, transform ${transitionTime}ms ease`;
         manualView.style.opacity = '0';
         manualView.style.transform = 'translateY(10px)';
         
@@ -416,7 +428,7 @@ function exitFanManualMode() {
             // Resetear animación para la próxima vez
             manualView.style.opacity = '1';
             manualView.style.transform = 'translateY(0)';
-        }, 300);
+        }, transitionTime);
         
         console.log('[FAN] Modo manual desactivado');
     }

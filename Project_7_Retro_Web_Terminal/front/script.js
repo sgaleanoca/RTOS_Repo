@@ -344,6 +344,11 @@ let fanScheduleTime = '00:00';
 let fanScheduleRecords = []; // Array para almacenar los registros
 let selectedScheduleRecord = null; // Registro seleccionado en el popup
 
+// Variables globales para el modo temperatura
+let fanTemperatureMode = false; // Si el modo temperatura está activo
+let fanCurrentSpeed = 0; // Velocidad actual del ventilador
+let fanTemperatureInterval = null; // Intervalo de monitoreo de temperatura
+
 // Función para establecer el modo del ventilador
 function setFanMode(mode) {
     // No hacer nada si estamos en modo manual o horario
@@ -370,19 +375,29 @@ function setFanMode(mode) {
         const modeNames = {
             'off': 'Apagado',
             'schedule': 'Horario',
-            'performance': 'Rendimiento'
+            'temperature': 'Temperatura'
         };
         statusText.textContent = modeNames[mode] || 'Desconocido';
     }
     
-    // Aquí puedes agregar lógica para enviar el comando al ESP32
-    console.log(`[FAN] Modo del ventilador cambiado a: ${mode}`);
+    // Manejar el modo temperatura
+    if (mode === 'temperature') {
+        fanTemperatureMode = true;
+        startTemperatureMode();
+    } else {
+        fanTemperatureMode = false;
+        stopTemperatureMode();
+    }
     
-    // Ejemplo: enviar comando al servidor (puedes implementar esto más adelante)
-    // fetch(`/fan?mode=${mode}`)
-    //     .then(resp => resp.text())
-    //     .then(data => console.log(data))
-    //     .catch(err => console.error(err));
+    // Si el modo es 'off', apagar el ventilador
+    if (mode === 'off') {
+        fanCurrentSpeed = 0;
+        stopTemperatureMode();
+        // Aquí puedes agregar lógica para enviar comando de apagado al ESP32
+        console.log('[FAN] Ventilador apagado');
+    }
+    
+    console.log(`[FAN] Modo del ventilador cambiado a: ${mode}`);
 }
 
 // Función para detectar si es móvil
@@ -1000,6 +1015,124 @@ function hideLogsPopup() {
     setTimeout(() => {
         popup.style.display = 'none';
     }, 300);
+}
+
+// ========== FUNCIONES DEL MODO TEMPERATURA ==========
+
+// Función para iniciar el modo temperatura
+function startTemperatureMode() {
+    // Si ya hay un intervalo activo, no crear otro
+    if (fanTemperatureInterval !== null) {
+        return;
+    }
+    
+    console.log('[FAN TEMPERATURE] Modo temperatura activado');
+    
+    // Monitorear temperatura cada segundo
+    fanTemperatureInterval = setInterval(() => {
+        if (!fanTemperatureMode) {
+            stopTemperatureMode();
+            return;
+        }
+        
+        // Obtener temperatura actual
+        fetch("/temperature")
+            .then(resp => {
+                if (!resp.ok) {
+                    if (resp.status === 401) {
+                        return Promise.reject(new Error("Unauthorized"));
+                    }
+                    throw new Error(`HTTP ${resp.status}`);
+                }
+                return resp.text().then(text => {
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        console.error("[FAN TEMP] Error parseando JSON:", text);
+                        throw e;
+                    }
+                });
+            })
+            .then(data => {
+                if (data && typeof data.temperature === 'number' && isFinite(data.temperature)) {
+                    const temp = data.temperature;
+                    controlFanByTemperature(temp);
+                }
+            })
+            .catch(err => {
+                if (err.message !== "Unauthorized") {
+                    console.error("[FAN TEMP] Error obteniendo temperatura:", err);
+                }
+            });
+    }, 1000);
+}
+
+// Función para detener el modo temperatura
+function stopTemperatureMode() {
+    if (fanTemperatureInterval !== null) {
+        clearInterval(fanTemperatureInterval);
+        fanTemperatureInterval = null;
+        console.log('[FAN TEMPERATURE] Modo temperatura desactivado');
+    }
+}
+
+// Función para controlar el ventilador basado en la temperatura
+function controlFanByTemperature(temperature) {
+    let newSpeed = 0;
+    
+    if (temperature > 45.0) {
+        // Si supera 45°C, encender al 100%
+        newSpeed = 100;
+    } else if (temperature > 30.0) {
+        // Si supera 30°C, encender al 40%
+        newSpeed = 40;
+    } else {
+        // Si está por debajo de 30°C, apagar
+        newSpeed = 0;
+    }
+    
+    // Si el ventilador ya estaba encendido y la temperatura aumenta,
+    // aumentar la velocidad. Si la temperatura baja, ajustar según la nueva temperatura.
+    if (fanCurrentSpeed > 0 && newSpeed > fanCurrentSpeed) {
+        // Aumentar velocidad cuando la temperatura sube
+        fanCurrentSpeed = newSpeed;
+        console.log(`[FAN TEMP] Temperatura: ${temperature.toFixed(1)}°C - Aumentando velocidad a ${newSpeed}%`);
+    } else if (newSpeed !== fanCurrentSpeed) {
+        // Cambiar velocidad (puede ser aumento o disminución)
+        const previousSpeed = fanCurrentSpeed;
+        fanCurrentSpeed = newSpeed;
+        
+        if (newSpeed > previousSpeed) {
+            console.log(`[FAN TEMP] Temperatura: ${temperature.toFixed(1)}°C - Aumentando velocidad de ${previousSpeed}% a ${newSpeed}%`);
+        } else if (newSpeed < previousSpeed && newSpeed > 0) {
+            console.log(`[FAN TEMP] Temperatura: ${temperature.toFixed(1)}°C - Reduciendo velocidad de ${previousSpeed}% a ${newSpeed}%`);
+        } else if (newSpeed > 0) {
+            console.log(`[FAN TEMP] Temperatura: ${temperature.toFixed(1)}°C - Encendiendo ventilador a ${newSpeed}%`);
+        } else {
+            console.log(`[FAN TEMP] Temperatura: ${temperature.toFixed(1)}°C - Apagando ventilador`);
+        }
+    }
+    
+    // Actualizar estado visual si es necesario
+    updateFanTemperatureStatus(temperature, fanCurrentSpeed);
+    
+    // Aquí puedes agregar lógica para enviar el comando al ESP32
+    // fetch(`/fan/temperature?speed=${fanCurrentSpeed}`)
+    //     .then(resp => resp.text())
+    //     .then(data => console.log(data))
+    //     .catch(err => console.error(err));
+}
+
+// Función para actualizar el estado visual del modo temperatura
+function updateFanTemperatureStatus(temperature, speed) {
+    const statusText = document.getElementById('fanStatusText');
+    if (statusText && fanTemperatureMode) {
+        if (speed > 0) {
+            statusText.textContent = `Temperatura: ${temperature.toFixed(1)}°C - ${speed}%`;
+        } else {
+            statusText.textContent = `Temperatura: ${temperature.toFixed(1)}°C - Apagado`;
+        }
+    }
 }
 
 // Inicializar la visualización de registros al cargar

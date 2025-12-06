@@ -39,7 +39,9 @@
  * ============================================================================
  */
 
-// ===== MÓDULO PRINCIPAL: Encapsula todo el código sin variables globales =====
+// ===== MÓDULO PRINCIPAL: Patrón IIFE para encapsulación =====
+// Todo el código está encapsulado dentro de este módulo para evitar variables globales.
+// El estado se mantiene privado dentro del módulo y solo se exponen funciones públicas.
 (function() {
     'use strict';
 
@@ -49,6 +51,7 @@
     console.log("Estado del DOM:", document.readyState);
 
     // ===== SECCIÓN: ESTADO PRIVADO DEL MÓDULO =====
+    // Todas las variables de estado están encapsuladas aquí (no son globales)
     // Estado de temperatura
     let isUpdatingTemperature = false;
     
@@ -1336,8 +1339,10 @@
 
 })();
 
-// ===== FUNCIONES GLOBALES COMPATIBILIDAD: Para mantener compatibilidad con HTML existente =====
-// Estas funciones se mantienen globales porque se llaman desde atributos onclick en HTML
+// ===== FUNCIONES DE COMPATIBILIDAD: Wrappers globales para HTML =====
+// Estas funciones son wrappers globales que delegan a window.AppModule.
+// Se mantienen globales únicamente para compatibilidad con atributos onclick en HTML.
+// El estado real se mantiene encapsulado dentro del módulo.
 function goToDashboard() {
     window.AppModule.goToDashboard();
 }

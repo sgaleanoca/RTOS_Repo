@@ -76,7 +76,10 @@ typedef struct {
     bool authenticated;
 } session_t;
 
-// ===== ESTRUCTURA DE CONTEXTO: Encapsula todas las variables que antes eran globales =====
+// ===== ESTRUCTURA DE CONTEXTO: Encapsula el estado del servidor =====
+// Esta estructura contiene todo el estado del servidor web que antes estaba en variables globales.
+// El contexto se pasa a través de user_ctx en los handlers HTTP y como parámetro a las tareas.
+// Esto elimina la necesidad de variables globales y mejora la modularidad del código.
 typedef struct {
     httpd_handle_t server;
     QueueHandle_t gpio_command_queue;
@@ -685,15 +688,17 @@ static esp_err_t catch_all_handler(httpd_req_t *req) {
  * Función principal que inicia el servidor web
  * 
  * Proceso de inicialización:
- * 1. Crea mutex y colas para comandos y sesiones
- * 2. Crea tareas para procesamiento de comandos y gestión de sesiones
- * 3. Monta el sistema de archivos SPIFFS
- * 4. Verifica que todos los archivos necesarios estén presentes
- * 5. Configura e inicia el servidor HTTP
- * 6. Registra todas las rutas y handlers
+ * 1. Crea estructura de contexto para encapsular el estado (sin variables globales)
+ * 2. Crea mutex y colas para comandos y sesiones
+ * 3. Crea tareas para procesamiento de comandos y gestión de sesiones (pasa contexto)
+ * 4. Monta el sistema de archivos SPIFFS
+ * 5. Verifica que todos los archivos necesarios estén presentes
+ * 6. Configura e inicia el servidor HTTP
+ * 7. Registra todas las rutas y handlers (pasa contexto a través de user_ctx)
  */
 void start_webserver(void) {
-    // Crear estructura de contexto (reemplaza variables globales)
+    // Crear estructura de contexto estática para almacenar el estado del servidor
+    // Esta estructura encapsula todo el estado que antes estaba en variables globales
     static webserver_context_t ctx = {0};
     
     // 0. Inicializar sesiones

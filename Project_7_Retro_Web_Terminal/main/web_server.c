@@ -52,9 +52,8 @@
 #include "lwip/inet.h"
 #include "lwip/sockets.h"
 
-// ===== DEFINICIONES Y VARIABLES GLOBALES =====
+// ===== DEFINICIONES Y ESTRUCTURAS =====
 static const char *TAG = "WEB_SERVER";
-static httpd_handle_t server = NULL;
 
 // ===== SECCIÓN: SISTEMA DE COLAS PARA COMANDOS =====
 // Estructura para comandos GPIO
@@ -63,17 +62,6 @@ typedef struct {
     char command[100];
     char response[512];
 } gpio_command_t;
-
-// Colas para comunicación entre tareas
-static QueueHandle_t gpio_command_queue = NULL;
-static QueueHandle_t gpio_response_queue = NULL;
-
-// Semáforo para proteger acceso a sesiones
-static SemaphoreHandle_t session_mutex = NULL;
-
-// Contador para IDs únicos de comandos
-static uint32_t command_id_counter = 0;
-static SemaphoreHandle_t command_id_mutex = NULL;
 
 // ===== SECCIÓN: GESTIÓN DE SESIONES =====
 // Sistema de autenticación simple basado en IP
@@ -88,7 +76,16 @@ typedef struct {
     bool authenticated;
 } session_t;
 
-static session_t sessions[MAX_SESSIONS];
+// ===== ESTRUCTURA DE CONTEXTO: Encapsula todas las variables que antes eran globales =====
+typedef struct {
+    httpd_handle_t server;
+    QueueHandle_t gpio_command_queue;
+    QueueHandle_t gpio_response_queue;
+    SemaphoreHandle_t session_mutex;
+    uint32_t command_id_counter;
+    SemaphoreHandle_t command_id_mutex;
+    session_t sessions[MAX_SESSIONS];
+} webserver_context_t;
 
 // Obtener tiempo actual en milisegundos
 static int64_t get_time_ms(void) {
@@ -109,12 +106,13 @@ static int64_t get_time_ms(void) {
  * - clear : Limpiar pantalla (manejado en frontend)
  */
 static void gpio_command_task(void *pvParameters) {
+    webserver_context_t *ctx = (webserver_context_t *)pvParameters;
     gpio_command_t cmd;
     ESP_LOGI(TAG, "Tarea de procesamiento de comandos GPIO iniciada");
     
     while (1) {
         // Esperar comando de la cola (bloqueante)
-        if (xQueueReceive(gpio_command_queue, &cmd, portMAX_DELAY) == pdTRUE) {
+        if (xQueueReceive(ctx->gpio_command_queue, &cmd, portMAX_DELAY) == pdTRUE) {
             // Procesar comando (mantener el command_id para la respuesta)
             if (strcmp(cmd.command, "led y on") == 0) {
                 gpio_set_yellow(true);
@@ -163,7 +161,7 @@ static void gpio_command_task(void *pvParameters) {
             }
             
             // Enviar respuesta a la cola de respuestas (mantener el command_id)
-            if (xQueueSend(gpio_response_queue, &cmd, pdMS_TO_TICKS(100)) != pdTRUE) {
+            if (xQueueSend(ctx->gpio_response_queue, &cmd, pdMS_TO_TICKS(100)) != pdTRUE) {
                 ESP_LOGW(TAG, "Error al enviar respuesta a la cola");
             }
         }
@@ -176,6 +174,7 @@ static void gpio_command_task(void *pvParameters) {
  * Apaga los LEDs cuando una sesión expira por timeout
  */
 static void session_management_task(void *pvParameters) {
+    webserver_context_t *ctx = (webserver_context_t *)pvParameters;
     ESP_LOGI(TAG, "Tarea de gestión de sesiones iniciada");
     
     while (1) {
@@ -184,17 +183,17 @@ static void session_management_task(void *pvParameters) {
         int64_t now = get_time_ms();
         
         // Proteger acceso a sesiones con mutex
-        if (session_mutex != NULL && xSemaphoreTake(session_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+        if (ctx->session_mutex != NULL && xSemaphoreTake(ctx->session_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
             for (int i = 0; i < MAX_SESSIONS; i++) {
-                if (sessions[i].authenticated && 
-                    (now - sessions[i].last_activity > SESSION_TIMEOUT_MS)) {
-                    sessions[i].authenticated = false;
+                if (ctx->sessions[i].authenticated && 
+                    (now - ctx->sessions[i].last_activity > SESSION_TIMEOUT_MS)) {
+                    ctx->sessions[i].authenticated = false;
                     gpio_set_yellow(false);
                     gpio_set_blue(false);
-                    ESP_LOGI(TAG, "Sesión expirada para IP %s. LEDs apagados.", sessions[i].ip);
+                    ESP_LOGI(TAG, "Sesión expirada para IP %s. LEDs apagados.", ctx->sessions[i].ip);
                 }
             }
-            xSemaphoreGive(session_mutex);
+            xSemaphoreGive(ctx->session_mutex);
         }
     }
 }
@@ -215,21 +214,21 @@ static void get_client_ip(httpd_req_t *req, char *ip_str, size_t len) {
 }
 
 // Buscar o crear sesión para una IP
-static session_t* find_or_create_session(const char *ip) {
+static session_t* find_or_create_session(webserver_context_t *ctx, const char *ip) {
     int64_t now = get_time_ms();
     session_t *session = NULL;
     
     // Proteger acceso con mutex
-    if (session_mutex != NULL && xSemaphoreTake(session_mutex, portMAX_DELAY) == pdTRUE) {
+    if (ctx->session_mutex != NULL && xSemaphoreTake(ctx->session_mutex, portMAX_DELAY) == pdTRUE) {
         // Buscar sesión existente
         for (int i = 0; i < MAX_SESSIONS; i++) {
-            if (strcmp(sessions[i].ip, ip) == 0) {
+            if (strcmp(ctx->sessions[i].ip, ip) == 0) {
                 // Verificar timeout
-                if (now - sessions[i].last_activity > SESSION_TIMEOUT_MS) {
-                    sessions[i].authenticated = false;
+                if (now - ctx->sessions[i].last_activity > SESSION_TIMEOUT_MS) {
+                    ctx->sessions[i].authenticated = false;
                     ESP_LOGI(TAG, "Sesión expirada para IP %s", ip);
                 }
-                session = &sessions[i];
+                session = &ctx->sessions[i];
                 break;
             }
         }
@@ -237,35 +236,35 @@ static session_t* find_or_create_session(const char *ip) {
         // Si no se encontró, buscar slot libre
         if (session == NULL) {
             for (int i = 0; i < MAX_SESSIONS; i++) {
-                if (!sessions[i].authenticated || (now - sessions[i].last_activity > SESSION_TIMEOUT_MS)) {
-                    strncpy(sessions[i].ip, ip, sizeof(sessions[i].ip) - 1);
-                    sessions[i].ip[sizeof(sessions[i].ip) - 1] = '\0';
-                    sessions[i].last_activity = now;
-                    sessions[i].authenticated = false;
-                    session = &sessions[i];
+                if (!ctx->sessions[i].authenticated || (now - ctx->sessions[i].last_activity > SESSION_TIMEOUT_MS)) {
+                    strncpy(ctx->sessions[i].ip, ip, sizeof(ctx->sessions[i].ip) - 1);
+                    ctx->sessions[i].ip[sizeof(ctx->sessions[i].ip) - 1] = '\0';
+                    ctx->sessions[i].last_activity = now;
+                    ctx->sessions[i].authenticated = false;
+                    session = &ctx->sessions[i];
                     break;
                 }
             }
         }
         
-        xSemaphoreGive(session_mutex);
+        xSemaphoreGive(ctx->session_mutex);
     }
     
     return session; // NULL si no hay slots disponibles
 }
 
-bool is_authenticated(httpd_req_t *req) {
+static bool is_authenticated(webserver_context_t *ctx, httpd_req_t *req) {
     char ip[16] = {0};
     get_client_ip(req, ip, sizeof(ip));
     
-    session_t *session = find_or_create_session(ip);
+    session_t *session = find_or_create_session(ctx, ip);
     if (!session) {
         return false;
     }
     
     // Proteger acceso con mutex
     bool authenticated = false;
-    if (session_mutex != NULL && xSemaphoreTake(session_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+    if (ctx->session_mutex != NULL && xSemaphoreTake(ctx->session_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
         if (!session->authenticated) {
             authenticated = false;
         } else {
@@ -282,7 +281,7 @@ bool is_authenticated(httpd_req_t *req) {
                 authenticated = true;
             }
         }
-        xSemaphoreGive(session_mutex);
+        xSemaphoreGive(ctx->session_mutex);
     }
     
     return authenticated;
@@ -332,10 +331,11 @@ esp_err_t send_file_from_spiffs(httpd_req_t *req, const char *filepath, const ch
  * Si el usuario está autenticado, redirige al dashboard
  * Si no, muestra la página de login
  */
-esp_err_t root_get_handler(httpd_req_t *req) {
+static esp_err_t root_get_handler(httpd_req_t *req) {
+    webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
     ESP_LOGI(TAG, "GET / - URI: %s", req->uri);
     esp_err_t ret;
-    if (is_authenticated(req)) {
+    if (is_authenticated(ctx, req)) {
         // Redirigir al dashboard si está autenticado
         ESP_LOGI(TAG, "Usuario autenticado, redirigiendo a /dashboard");
         httpd_resp_set_hdr(req, "Location", "/dashboard");
@@ -358,21 +358,22 @@ esp_err_t root_get_handler(httpd_req_t *req) {
 }
 
 // GET /style.css
-esp_err_t style_get_handler(httpd_req_t *req) {
+static esp_err_t style_get_handler(httpd_req_t *req) {
     ESP_LOGI(TAG, "GET /style.css");
     return send_file_from_spiffs(req, "/spiffs/style.css", "text/css");
 }
 
 // GET /script.js
-esp_err_t script_get_handler(httpd_req_t *req) {
+static esp_err_t script_get_handler(httpd_req_t *req) {
     ESP_LOGI(TAG, "GET /script.js");
     return send_file_from_spiffs(req, "/spiffs/script.js", "application/javascript");
 }
 
 // GET /dashboard
-esp_err_t dashboard_get_handler(httpd_req_t *req) {
+static esp_err_t dashboard_get_handler(httpd_req_t *req) {
+    webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
     ESP_LOGI(TAG, "GET /dashboard");
-    if (!is_authenticated(req)) {
+    if (!is_authenticated(ctx, req)) {
         httpd_resp_set_hdr(req, "Location", "/");
         httpd_resp_set_status(req, "302 Found");
         httpd_resp_send(req, NULL, 0);
@@ -382,9 +383,10 @@ esp_err_t dashboard_get_handler(httpd_req_t *req) {
 }
 
 // GET /terminal
-esp_err_t terminal_get_handler(httpd_req_t *req) {
+static esp_err_t terminal_get_handler(httpd_req_t *req) {
+    webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
     ESP_LOGI(TAG, "GET /terminal");
-    if (!is_authenticated(req)) {
+    if (!is_authenticated(ctx, req)) {
         httpd_resp_set_hdr(req, "Location", "/");
         httpd_resp_set_status(req, "302 Found");
         httpd_resp_send(req, NULL, 0);
@@ -394,9 +396,10 @@ esp_err_t terminal_get_handler(httpd_req_t *req) {
 }
 
 // GET /slider
-esp_err_t slider_get_handler(httpd_req_t *req) {
+static esp_err_t slider_get_handler(httpd_req_t *req) {
+    webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
     ESP_LOGI(TAG, "GET /slider");
-    if (!is_authenticated(req)) {
+    if (!is_authenticated(ctx, req)) {
         httpd_resp_set_hdr(req, "Location", "/");
         httpd_resp_set_status(req, "302 Found");
         httpd_resp_send(req, NULL, 0);
@@ -406,7 +409,7 @@ esp_err_t slider_get_handler(httpd_req_t *req) {
 }
 
 // GET /favicon.ico (evitar 404)
-esp_err_t favicon_get_handler(httpd_req_t *req) {
+static esp_err_t favicon_get_handler(httpd_req_t *req) {
     httpd_resp_set_status(req, "204 No Content");
     httpd_resp_send(req, NULL, 0);
     return ESP_OK;
@@ -417,8 +420,9 @@ esp_err_t favicon_get_handler(httpd_req_t *req) {
  * Devuelve la temperatura actual en formato JSON
  * Respuesta: {"temperature": 25.5} o {"error": "No data available"}
  */
-esp_err_t temperature_get_handler(httpd_req_t *req) {
-    if (!is_authenticated(req)) {
+static esp_err_t temperature_get_handler(httpd_req_t *req) {
+    webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
+    if (!is_authenticated(ctx, req)) {
         httpd_resp_set_status(req, "401 Unauthorized");
         httpd_resp_send(req, "Unauthorized", HTTPD_RESP_USE_STRLEN);
         return ESP_OK;
@@ -488,11 +492,12 @@ static void url_decode(char *str) {
  * Procesa comandos desde la terminal web
  * Envía el comando a la cola y espera la respuesta
  */
-esp_err_t cmd_get_handler(httpd_req_t *req) {
+static esp_err_t cmd_get_handler(httpd_req_t *req) {
+    webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
     char ip[16] = {0};
     get_client_ip(req, ip, sizeof(ip));
     
-    if (!is_authenticated(req)) {
+    if (!is_authenticated(ctx, req)) {
         httpd_resp_set_status(req, "401 Unauthorized");
         httpd_resp_send(req, "[ERROR] No estás autenticado o la sesión ha expirado.", HTTPD_RESP_USE_STRLEN);
         return ESP_OK;
@@ -522,9 +527,9 @@ esp_err_t cmd_get_handler(httpd_req_t *req) {
                 
                 // Obtener ID único para el comando
                 uint32_t cmd_id = 0;
-                if (command_id_mutex != NULL && xSemaphoreTake(command_id_mutex, portMAX_DELAY) == pdTRUE) {
-                    cmd_id = ++command_id_counter;
-                    xSemaphoreGive(command_id_mutex);
+                if (ctx->command_id_mutex != NULL && xSemaphoreTake(ctx->command_id_mutex, portMAX_DELAY) == pdTRUE) {
+                    cmd_id = ++ctx->command_id_counter;
+                    xSemaphoreGive(ctx->command_id_mutex);
                 }
                 
                 // Enviar comando a la cola para procesamiento por la tarea
@@ -533,16 +538,16 @@ esp_err_t cmd_get_handler(httpd_req_t *req) {
                 strncpy(command.command, cmd, sizeof(command.command) - 1);
                 command.command[sizeof(command.command) - 1] = '\0';
                 
-                if (gpio_command_queue != NULL && 
-                    xQueueSend(gpio_command_queue, &command, pdMS_TO_TICKS(1000)) == pdTRUE) {
+                if (ctx->gpio_command_queue != NULL && 
+                    xQueueSend(ctx->gpio_command_queue, &command, pdMS_TO_TICKS(1000)) == pdTRUE) {
                     // Esperar respuesta de la tarea (con timeout)
                     gpio_command_t response;
                     bool response_received = false;
                     
                     // Intentar recibir respuesta hasta 3 veces (para manejar respuestas de otros comandos)
                     for (int attempts = 0; attempts < 10 && !response_received; attempts++) {
-                        if (gpio_response_queue != NULL && 
-                            xQueueReceive(gpio_response_queue, &response, pdMS_TO_TICKS(500)) == pdTRUE) {
+                        if (ctx->gpio_response_queue != NULL && 
+                            xQueueReceive(ctx->gpio_response_queue, &response, pdMS_TO_TICKS(500)) == pdTRUE) {
                             // Verificar que la respuesta corresponde a nuestro comando
                             if (response.command_id == cmd_id) {
                                 httpd_resp_send(req, response.response, HTTPD_RESP_USE_STRLEN);
@@ -550,7 +555,7 @@ esp_err_t cmd_get_handler(httpd_req_t *req) {
                                 return ESP_OK;
                             } else {
                                 // Respuesta de otro comando, devolverla a la cola
-                                xQueueSendToFront(gpio_response_queue, &response, 0);
+                                xQueueSendToFront(ctx->gpio_response_queue, &response, 0);
                             }
                         }
                     }
@@ -575,7 +580,8 @@ esp_err_t cmd_get_handler(httpd_req_t *req) {
  * Valida credenciales y crea una sesión autenticada
  * Parámetros: user=xxx&pass=yyy (form-urlencoded)
  */
-esp_err_t login_post_handler(httpd_req_t *req) {
+static esp_err_t login_post_handler(httpd_req_t *req) {
+    webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
     char content[200];
     size_t recv_size = sizeof(content) - 1;
     
@@ -621,13 +627,13 @@ esp_err_t login_post_handler(httpd_req_t *req) {
         char ip[16] = {0};
         get_client_ip(req, ip, sizeof(ip));
         
-        session_t *session = find_or_create_session(ip);
+        session_t *session = find_or_create_session(ctx, ip);
         if (session) {
             // Proteger acceso con mutex
-            if (session_mutex != NULL && xSemaphoreTake(session_mutex, portMAX_DELAY) == pdTRUE) {
+            if (ctx->session_mutex != NULL && xSemaphoreTake(ctx->session_mutex, portMAX_DELAY) == pdTRUE) {
                 session->authenticated = true;
                 session->last_activity = get_time_ms();
-                xSemaphoreGive(session_mutex);
+                xSemaphoreGive(ctx->session_mutex);
             }
             ESP_LOGI(TAG, "Login exitoso desde IP: %s", ip);
             httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
@@ -642,16 +648,17 @@ esp_err_t login_post_handler(httpd_req_t *req) {
 }
 
 // GET /logout
-esp_err_t logout_get_handler(httpd_req_t *req) {
+static esp_err_t logout_get_handler(httpd_req_t *req) {
+    webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
     char ip[16] = {0};
     get_client_ip(req, ip, sizeof(ip));
     
-    session_t *session = find_or_create_session(ip);
+    session_t *session = find_or_create_session(ctx, ip);
     if (session) {
         // Proteger acceso con mutex
-        if (session_mutex != NULL && xSemaphoreTake(session_mutex, portMAX_DELAY) == pdTRUE) {
+        if (ctx->session_mutex != NULL && xSemaphoreTake(ctx->session_mutex, portMAX_DELAY) == pdTRUE) {
             session->authenticated = false;
-            xSemaphoreGive(session_mutex);
+            xSemaphoreGive(ctx->session_mutex);
         }
     }
     
@@ -667,7 +674,7 @@ esp_err_t logout_get_handler(httpd_req_t *req) {
 }
 
 // Handler catch-all para debugging (debe registrarse al final)
-esp_err_t catch_all_handler(httpd_req_t *req) {
+static esp_err_t catch_all_handler(httpd_req_t *req) {
     ESP_LOGW(TAG, "URI no manejada: %s (método: %d)", req->uri, req->method);
     httpd_resp_send_404(req);
     return ESP_FAIL;
@@ -686,38 +693,41 @@ esp_err_t catch_all_handler(httpd_req_t *req) {
  * 6. Registra todas las rutas y handlers
  */
 void start_webserver(void) {
+    // Crear estructura de contexto (reemplaza variables globales)
+    static webserver_context_t ctx = {0};
+    
     // 0. Inicializar sesiones
-    memset(sessions, 0, sizeof(sessions));
+    memset(ctx.sessions, 0, sizeof(ctx.sessions));
     
     // 0.1. Crear mutex para sesiones
-    session_mutex = xSemaphoreCreateMutex();
-    if (session_mutex == NULL) {
+    ctx.session_mutex = xSemaphoreCreateMutex();
+    if (ctx.session_mutex == NULL) {
         ESP_LOGE(TAG, "Error al crear mutex para sesiones");
         return;
     }
     
     // 0.2. Crear mutex para IDs de comandos
-    command_id_mutex = xSemaphoreCreateMutex();
-    if (command_id_mutex == NULL) {
+    ctx.command_id_mutex = xSemaphoreCreateMutex();
+    if (ctx.command_id_mutex == NULL) {
         ESP_LOGE(TAG, "Error al crear mutex para IDs de comandos");
         return;
     }
     
     // 0.3. Crear colas para comandos GPIO
-    gpio_command_queue = xQueueCreate(10, sizeof(gpio_command_t));
-    gpio_response_queue = xQueueCreate(10, sizeof(gpio_command_t));
-    if (gpio_command_queue == NULL || gpio_response_queue == NULL) {
+    ctx.gpio_command_queue = xQueueCreate(10, sizeof(gpio_command_t));
+    ctx.gpio_response_queue = xQueueCreate(10, sizeof(gpio_command_t));
+    if (ctx.gpio_command_queue == NULL || ctx.gpio_response_queue == NULL) {
         ESP_LOGE(TAG, "Error al crear colas para comandos GPIO");
         return;
     }
     ESP_LOGI(TAG, "Colas de comandos GPIO creadas");
     
-    // 0.4. Crear tarea de procesamiento de comandos GPIO
-    xTaskCreate(gpio_command_task, "gpio_cmd_task", 4096, NULL, 5, NULL);
+    // 0.4. Crear tarea de procesamiento de comandos GPIO (pasar contexto)
+    xTaskCreate(gpio_command_task, "gpio_cmd_task", 4096, &ctx, 5, NULL);
     ESP_LOGI(TAG, "Tarea de comandos GPIO creada");
     
-    // 0.5. Crear tarea de gestión de sesiones
-    xTaskCreate(session_management_task, "session_mgmt", 2048, NULL, 3, NULL);
+    // 0.5. Crear tarea de gestión de sesiones (pasar contexto)
+    xTaskCreate(session_management_task, "session_mgmt", 2048, &ctx, 3, NULL);
     ESP_LOGI(TAG, "Tarea de gestión de sesiones creada");
     
     // 1. Iniciar SPIFFS
@@ -804,7 +814,7 @@ void start_webserver(void) {
     config.max_open_sockets = 7;
     config.lru_purge_enable = true; // Habilitar purga de conexiones inactivas
 
-    esp_err_t httpd_ret = httpd_start(&server, &config);
+    esp_err_t httpd_ret = httpd_start(&ctx.server, &config);
     if (httpd_ret != ESP_OK) {
         ESP_LOGE(TAG, "Error al iniciar el servidor web: %s", esp_err_to_name(httpd_ret));
         return;
@@ -812,14 +822,14 @@ void start_webserver(void) {
     
     ESP_LOGI(TAG, "Servidor HTTP iniciado, registrando rutas...");
     
-    // Registrar rutas
+    // Registrar rutas (pasar contexto a través de user_ctx)
     httpd_uri_t root_uri = { 
         .uri = "/", 
         .method = HTTP_GET, 
         .handler = root_get_handler,
-        .user_ctx = NULL
+        .user_ctx = &ctx
     };
-    if (httpd_register_uri_handler(server, &root_uri) != ESP_OK) {
+    if (httpd_register_uri_handler(ctx.server, &root_uri) != ESP_OK) {
         ESP_LOGE(TAG, "Error al registrar ruta /");
     } else {
         ESP_LOGI(TAG, "Ruta / registrada");
@@ -829,9 +839,9 @@ void start_webserver(void) {
         .uri = "/style.css", 
         .method = HTTP_GET, 
         .handler = style_get_handler,
-        .user_ctx = NULL
+        .user_ctx = &ctx
     };
-    if (httpd_register_uri_handler(server, &css_uri) != ESP_OK) {
+    if (httpd_register_uri_handler(ctx.server, &css_uri) != ESP_OK) {
         ESP_LOGE(TAG, "Error al registrar ruta /style.css");
     } else {
         ESP_LOGI(TAG, "Ruta /style.css registrada");
@@ -841,9 +851,9 @@ void start_webserver(void) {
         .uri = "/script.js", 
         .method = HTTP_GET, 
         .handler = script_get_handler,
-        .user_ctx = NULL
+        .user_ctx = &ctx
     };
-    if (httpd_register_uri_handler(server, &js_uri) != ESP_OK) {
+    if (httpd_register_uri_handler(ctx.server, &js_uri) != ESP_OK) {
         ESP_LOGE(TAG, "Error al registrar ruta /script.js");
     } else {
         ESP_LOGI(TAG, "Ruta /script.js registrada");
@@ -853,9 +863,9 @@ void start_webserver(void) {
         .uri = "/cmd", 
         .method = HTTP_GET, 
         .handler = cmd_get_handler,
-        .user_ctx = NULL
+        .user_ctx = &ctx
     };
-    if (httpd_register_uri_handler(server, &cmd_uri) != ESP_OK) {
+    if (httpd_register_uri_handler(ctx.server, &cmd_uri) != ESP_OK) {
         ESP_LOGE(TAG, "Error al registrar ruta /cmd");
     } else {
         ESP_LOGI(TAG, "Ruta /cmd registrada");
@@ -865,9 +875,9 @@ void start_webserver(void) {
         .uri = "/login", 
         .method = HTTP_POST, 
         .handler = login_post_handler,
-        .user_ctx = NULL
+        .user_ctx = &ctx
     };
-    if (httpd_register_uri_handler(server, &login_uri) != ESP_OK) {
+    if (httpd_register_uri_handler(ctx.server, &login_uri) != ESP_OK) {
         ESP_LOGE(TAG, "Error al registrar ruta /login");
     } else {
         ESP_LOGI(TAG, "Ruta /login registrada");
@@ -877,9 +887,9 @@ void start_webserver(void) {
         .uri = "/logout", 
         .method = HTTP_GET, 
         .handler = logout_get_handler,
-        .user_ctx = NULL
+        .user_ctx = &ctx
     };
-    if (httpd_register_uri_handler(server, &logout_uri) != ESP_OK) {
+    if (httpd_register_uri_handler(ctx.server, &logout_uri) != ESP_OK) {
         ESP_LOGE(TAG, "Error al registrar ruta /logout");
     } else {
         ESP_LOGI(TAG, "Ruta /logout registrada");
@@ -889,9 +899,9 @@ void start_webserver(void) {
         .uri = "/temperature", 
         .method = HTTP_GET, 
         .handler = temperature_get_handler,
-        .user_ctx = NULL
+        .user_ctx = &ctx
     };
-    if (httpd_register_uri_handler(server, &temperature_uri) != ESP_OK) {
+    if (httpd_register_uri_handler(ctx.server, &temperature_uri) != ESP_OK) {
         ESP_LOGE(TAG, "Error al registrar ruta /temperature");
     } else {
         ESP_LOGI(TAG, "Ruta /temperature registrada");
@@ -901,9 +911,9 @@ void start_webserver(void) {
         .uri = "/dashboard", 
         .method = HTTP_GET, 
         .handler = dashboard_get_handler,
-        .user_ctx = NULL
+        .user_ctx = &ctx
     };
-    if (httpd_register_uri_handler(server, &dashboard_uri) != ESP_OK) {
+    if (httpd_register_uri_handler(ctx.server, &dashboard_uri) != ESP_OK) {
         ESP_LOGE(TAG, "Error al registrar ruta /dashboard");
     } else {
         ESP_LOGI(TAG, "Ruta /dashboard registrada");
@@ -913,9 +923,9 @@ void start_webserver(void) {
         .uri = "/terminal", 
         .method = HTTP_GET, 
         .handler = terminal_get_handler,
-        .user_ctx = NULL
+        .user_ctx = &ctx
     };
-    if (httpd_register_uri_handler(server, &terminal_uri) != ESP_OK) {
+    if (httpd_register_uri_handler(ctx.server, &terminal_uri) != ESP_OK) {
         ESP_LOGE(TAG, "Error al registrar ruta /terminal");
     } else {
         ESP_LOGI(TAG, "Ruta /terminal registrada");
@@ -925,9 +935,9 @@ void start_webserver(void) {
         .uri = "/slider", 
         .method = HTTP_GET, 
         .handler = slider_get_handler,
-        .user_ctx = NULL
+        .user_ctx = &ctx
     };
-    if (httpd_register_uri_handler(server, &slider_uri) != ESP_OK) {
+    if (httpd_register_uri_handler(ctx.server, &slider_uri) != ESP_OK) {
         ESP_LOGE(TAG, "Error al registrar ruta /slider");
     } else {
         ESP_LOGI(TAG, "Ruta /slider registrada");
@@ -938,9 +948,9 @@ void start_webserver(void) {
         .uri = "/favicon.ico",
         .method = HTTP_GET,
         .handler = favicon_get_handler,
-        .user_ctx = NULL
+        .user_ctx = &ctx
     };
-    if (httpd_register_uri_handler(server, &favicon_uri) != ESP_OK) {
+    if (httpd_register_uri_handler(ctx.server, &favicon_uri) != ESP_OK) {
         ESP_LOGW(TAG, "No se pudo registrar /favicon.ico (no crítico)");
     } else {
         ESP_LOGI(TAG, "Ruta /favicon.ico registrada");

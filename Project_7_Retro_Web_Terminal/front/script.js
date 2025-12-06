@@ -1388,6 +1388,10 @@ function goToDashboard() {
     window.AppModule.goToDashboard();
 }
 
+function doLogout() {
+    window.AppModule.doLogout();
+}
+
 function suspendSession() {
     window.AppModule.suspendSession();
 }

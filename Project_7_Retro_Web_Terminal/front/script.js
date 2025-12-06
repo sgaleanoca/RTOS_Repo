@@ -45,13 +45,29 @@
 (function() {
     'use strict';
 
+    // ===== SECCIÓN: CONSTANTES =====
+    const SESSION_TIMEOUT_MS = 3 * 60 * 1000;        // 3 minutos de inactividad
+    const UPDATE_INTERVAL_MS = 1000;                 // Intervalo de actualización (1 segundo)
+    const ORIENTATION_LOCK_DELAY_MS = 100;          // Delay para bloqueo de orientación
+    const MOBILE_BREAKPOINT = 768;                   // Ancho máximo para considerar móvil
+    const TEMP_UPDATE_INTERVAL_MS = 1000;            // Intervalo de actualización de temperatura
+    
+    // Comandos disponibles en la terminal
+    const TERMINAL_COMMANDS = [
+        "led y on", "led y off", "led b on", "led b off",
+        "led all on", "led all off", "status", "help", "clear"
+    ];
+    
+    // Días de la semana para el modo horario del ventilador
+    const WEEK_DAYS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+
     // ===== SECCIÓN: INICIALIZACIÓN Y DEBUG =====
-    // Mensaje de inicio - DEBE aparecer en consola
     console.log("=== SCRIPT.JS CARGADO ===");
     console.log("Estado del DOM:", document.readyState);
 
     // ===== SECCIÓN: ESTADO PRIVADO DEL MÓDULO =====
     // Todas las variables de estado están encapsuladas aquí (no son globales)
+    
     // Estado de temperatura
     let isUpdatingTemperature = false;
     
@@ -60,10 +76,7 @@
         lastActivity: Date.now(),
         history: [],
         historyIndex: -1,
-        commands: [
-            "led y on", "led y off", "led b on", "led b off",
-            "led all on", "led all off", "status", "help", "clear"
-        ]
+        commands: TERMINAL_COMMANDS
     };
     
     // Estado del ventilador
@@ -73,7 +86,7 @@
         manualSpeed: 0,
         // Modo horario
         scheduleSpeed: 0,
-        scheduleDay: 'lunes',
+        scheduleDay: WEEK_DAYS[0],
         scheduleTime: '00:00',
         scheduleRecords: [],
         selectedScheduleRecord: null,
@@ -106,10 +119,14 @@
         }
     }
 
-    // Detectar si es móvil
+    /**
+     * Detecta si el dispositivo es móvil
+     * @return {boolean} true si es móvil, false en caso contrario
+     */
     function isMobile() {
-        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-               (window.innerWidth <= 768);
+        const mobileUserAgents = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+        return mobileUserAgents.test(navigator.userAgent) || 
+               (window.innerWidth <= MOBILE_BREAKPOINT);
     }
 
     // Aplicar bloqueo de orientación si es móvil
@@ -123,14 +140,14 @@
         
         // Reintentar si cambia la orientación
         window.addEventListener('orientationchange', function() {
-            setTimeout(lockOrientation, 100);
+            setTimeout(lockOrientation, ORIENTATION_LOCK_DELAY_MS);
         });
         
         // También escuchar cambios de resize
         let resizeTimer;
         window.addEventListener('resize', function() {
             clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(lockOrientation, 100);
+            resizeTimer = setTimeout(lockOrientation, ORIENTATION_LOCK_DELAY_MS);
         });
     }
 
@@ -190,7 +207,7 @@
             clockElement.innerText = timeString;
         }
     }
-    setInterval(updateClock, 1000);
+    setInterval(updateClock, UPDATE_INTERVAL_MS);
     updateClock(); // Primera llamada inmediata
     console.log("[CLOCK] Reloj inicializado");
 
@@ -254,9 +271,9 @@
                 isUpdatingTemperature = false;
             });
     }
-    setInterval(updateTemperature, 1000);
+    setInterval(updateTemperature, TEMP_UPDATE_INTERVAL_MS);
     updateTemperature(); // Primera llamada inmediata
-    console.log("[TEMP] Temperatura inicializada - actualización cada 1 segundo");
+    console.log("[TEMP] Temperatura inicializada - actualización cada", TEMP_UPDATE_INTERVAL_MS, "ms");
 
     // ===== SECCIÓN: LÓGICA DE LA TERMINAL =====
     /**
@@ -270,7 +287,6 @@
     const input = document.getElementById("inputLine");
 
     if (term && input) {
-        const SESSION_LIMIT = 3 * 60 * 1000; // 3 minutos
 
         function showWelcome() {
             term.innerHTML = "";
@@ -353,7 +369,7 @@
 
         // Auto logout por inactividad
         setInterval(() => {
-            if (Date.now() - terminalState.lastActivity > SESSION_LIMIT) {
+            if (Date.now() - terminalState.lastActivity > SESSION_TIMEOUT_MS) {
                 appendLine("[INFO] Sesión expirada. Cerrando...");
                 setTimeout(() => { window.AppModule.doLogout(); }, 800);
             }
@@ -1291,23 +1307,29 @@
     // Inicializar funcionalidad del slider cuando la página carga
     if (document.getElementById('sliderClock')) {
         // Actualizar reloj cada segundo
-        setInterval(updateSliderClock, 1000);
+        setInterval(updateSliderClock, UPDATE_INTERVAL_MS);
         updateSliderClock();
         
         // Actualizar temperatura cada segundo
-        setInterval(updateSliderTemperature, 1000);
+        setInterval(updateSliderTemperature, TEMP_UPDATE_INTERVAL_MS);
         updateSliderTemperature();
         
         console.log("[SLIDER] Funcionalidad del slider inicializada");
     }
 
-    // Función de logout
+    /**
+     * Cierra la sesión del usuario y redirige al login
+     * Hace una petición al servidor para cerrar la sesión
+     */
     function doLogout() {
-        fetch("/logout").then(() => { 
-            window.location.href = "/"; 
-        }).catch(() => {
-            window.location.href = "/";
-        });
+        fetch("/logout")
+            .then(() => { 
+                window.location.href = "/"; 
+            })
+            .catch(() => {
+                // Redirigir incluso si hay error en la petición
+                window.location.href = "/";
+            });
     }
 
     // ===== EXPOSICIÓN PÚBLICA: Solo las funciones necesarias para HTML =====

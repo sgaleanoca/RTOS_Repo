@@ -55,20 +55,33 @@ Nota: La sesión expira después de 3 minutos de inactividad
         
         <!-- Formulario de login -->
         <form id="loginForm">
-            <!-- Campo de usuario (pre-rellenado con "root") -->
-            <input class="input-field" name="user" placeholder="usuario" value="root" required autocomplete="username" />
+                <!-- Campo de usuario (pre-rellenado con "root") -->
+            <input class="input-field" 
+                   name="user" 
+                   placeholder="usuario" 
+                   value="root" 
+                   required 
+                   autocomplete="username" />
             <br/>
+            
             <!-- Campo de contraseña -->
-            <input class="input-field" name="pass" type="password" placeholder="contraseña" required autocomplete="current-password" />
+            <input class="input-field" 
+                   name="pass" 
+                   type="password" 
+                   placeholder="contraseña" 
+                   required 
+                   autocomplete="current-password" />
             <br/>
+            
             <!-- Botón de envío -->
             <button class="btn" type="submit">Entrar</button>
         </form>
         
-        <!-- Área para mostrar mensajes de error -->
-        <div id="error" class="error"></div>
-        <!-- Información sobre timeout de sesión -->
-        <div class="small">Inactividad 3 min = logout</div>
+            <!-- Área para mostrar mensajes de error -->
+            <div id="error" class="error"></div>
+            
+            <!-- Información sobre timeout de sesión -->
+            <div class="small">Inactividad 3 min = logout</div>
     </div>
 
     <!-- ===== SECCIÓN: SCRIPTS ===== -->

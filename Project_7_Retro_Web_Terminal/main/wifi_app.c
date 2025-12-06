@@ -16,26 +16,40 @@
  */
 
 // ===== INCLUDES =====
-#include <string.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_mac.h"
-#include "esp_wifi.h"
+// Header local
+#include "wifi_app.h"
+
+// ESP-IDF
 #include "esp_event.h"
 #include "esp_log.h"
+#include "esp_mac.h"
+#include "esp_wifi.h"
 #include "nvs_flash.h"
+
+// FreeRTOS
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
+// LWIP (red)
 #include "lwip/err.h"
 #include "lwip/sys.h"
 
-#include "wifi_app.h"
+// Estándar C
+#include <string.h>
 
-// ===== DEFINICIONES Y VARIABLES GLOBALES =====
+// ===== DEFINICIONES Y CONSTANTES =====
 static const char *TAG = "WIFI_APP";
 
 // ===== SECCIÓN: MANEJO DE EVENTOS WIFI =====
 /**
  * Manejador de eventos WiFi para logging de conexiones/desconexiones
+ * Registra cuando los clientes se conectan o desconectan del Access Point
  * Útil para debugging y monitoreo de clientes conectados
+ * 
+ * @param arg: Argumento del handler (no usado)
+ * @param event_base: Base del evento (WIFI_EVENT)
+ * @param event_id: ID del evento específico
+ * @param event_data: Datos del evento
  */
 static void wifi_event_handler(void* arg, esp_event_base_t event_base,
                                int32_t event_id, void* event_data)
@@ -55,6 +69,15 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
 /**
  * Inicializa el ESP32 como Access Point (SoftAP)
  * Configura la red WiFi y permite que los clientes se conecten
+ * 
+ * Proceso de inicialización:
+ * 1. Inicializa la pila TCP/IP
+ * 2. Crea el bucle de eventos
+ * 3. Crea la interfaz de red WiFi en modo AP
+ * 4. Inicializa el driver WiFi
+ * 5. Registra el manejador de eventos
+ * 6. Configura credenciales y seguridad
+ * 7. Aplica configuración y inicia el AP
  */
 void wifi_init_softap(void)
 {
@@ -106,6 +129,6 @@ void wifi_init_softap(void)
     // Paso 8: Iniciar el driver WiFi y activar el Access Point
     ESP_ERROR_CHECK(esp_wifi_start());
 
-    ESP_LOGI(TAG, "SoftAP iniciado. SSID: %s Clave: %s canal: %d",
-             ESP_WIFI_SSID, ESP_WIFI_PASS, ESP_WIFI_CHANNEL);
+    ESP_LOGI(TAG, "SoftAP iniciado. SSID: %s, Clave: %s, Canal: %d, Max conexiones: %d",
+             ESP_WIFI_SSID, ESP_WIFI_PASS, ESP_WIFI_CHANNEL, MAX_STA_CONN);
 }

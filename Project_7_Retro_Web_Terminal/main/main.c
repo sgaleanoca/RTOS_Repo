@@ -17,25 +17,36 @@
  */
 
 // ===== INCLUDES =====
+// ESP-IDF
 #include <nvs_flash.h>
-#include "wifi_app.h"
-#include "web_server.h"
+
+// Headers locales (ordenados alfabéticamente)
 #include "gpio_driver.h"
 #include "ntc_sensor.h"
+#include "web_server.h"
+#include "wifi_app.h"
 
 // ===== FUNCIÓN PRINCIPAL =====
 /**
  * Función principal de la aplicación ESP32
  * Se ejecuta automáticamente al iniciar el dispositivo
+ * 
+ * Orden de inicialización:
+ * 1. NVS (almacenamiento no volátil para configuración WiFi)
+ * 2. Hardware (GPIO para LEDs y sensor NTC de temperatura)
+ * 3. WiFi (configuración como Access Point)
+ * 4. Servidor Web (HTTP con SPIFFS y rutas)
  */
 void app_main(void) {
+    esp_err_t ret;
+    
     // ===== SECCIÓN 1: INICIALIZACIÓN DE NVS =====
     // NVS (Non-Volatile Storage) es necesario para almacenar configuración WiFi
     // Si hay problemas con la partición NVS, se borra y se reinicializa
-    esp_err_t ret = nvs_flash_init();
+    ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-      ESP_ERROR_CHECK(nvs_flash_erase());
-      ret = nvs_flash_init();
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK(ret);
 
@@ -49,7 +60,7 @@ void app_main(void) {
     // Iniciar tarea de FreeRTOS para leer temperatura periódicamente
     ntc_start_reading_task();
 
-    // ===== SECCIÓN 3: INICIALIZACIÓN DE WIFI =====
+    // ===== SECCIÓN 3: INICIALIZACIÓN DE RED =====
     // Configurar ESP32 como Access Point (SoftAP)
     // Crea una red WiFi propia: SSID "ESP32_Server", contraseña "12345678"
     wifi_init_softap(); 

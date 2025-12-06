@@ -19,26 +19,48 @@
  */
 
 // ===== INCLUDES =====
+// Header local
 #include "ntc_sensor.h"
+
+// ESP-IDF
 #include "esp_log.h"
 #include "esp_adc/adc_oneshot.h"
 #include "esp_adc/adc_cali.h"
 #include "esp_adc/adc_cali_scheme.h"
 #include "hal/adc_types.h"
+
+// FreeRTOS
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
+
+// Estándar C
 #include <math.h>
 
-// ===== DEFINICIONES Y VARIABLES GLOBALES =====
+// ===== DEFINICIONES Y CONSTANTES =====
 static const char *TAG = "NTC_TEMP_CONTROL";
 
+// Valores de error y validación
+#define TEMP_ERROR_VALUE -999.0
+#define ADC_MAX_VALUE 4096
+#define ADC_MIN_VALUE 0
+#define RESISTANCE_MAX_OHMS 1000000.0
+
+// Configuración de temporización
+#define SENSOR_READ_INTERVAL_MS 1000      // Intervalo de lectura del sensor (1 segundo)
+#define ADC_STABILIZATION_DELAY_MS 100    // Tiempo de espera para estabilización del ADC
+
+// Configuración de tarea
+#define NTC_TASK_STACK_SIZE 4096          // Tamaño del stack de la tarea
+#define NTC_TASK_PRIORITY 5               // Prioridad de la tarea
+
+// ===== VARIABLES GLOBALES =====
 // Handles del ADC y calibración
 static adc_oneshot_unit_handle_t adc1_handle;
 static adc_cali_handle_t adc1_cali_handle = NULL;
 
 // Datos actuales del sensor (protegidos por mutex)
-static ntc_data_t current_ntc_data = {.temperature_c = -999.0, .resistance = 0.0, .raw_adc_value = 0};
+static ntc_data_t current_ntc_data = {.temperature_c = TEMP_ERROR_VALUE, .resistance = 0.0, .raw_adc_value = 0};
 static bool data_ready = false;
 static SemaphoreHandle_t data_mutex = NULL; // Mutex para proteger acceso concurrente
 
@@ -133,30 +155,37 @@ ntc_data_t ntc_read_temperature(void) {
     
     if (adc_oneshot_read(adc1_handle, NTC_PIN, &raw_adc_value) != ESP_OK) {
         ESP_LOGE(TAG, "Error al leer ADC1");
-        ntc_data.temperature_c = -999.0;
+        ntc_data.temperature_c = TEMP_ERROR_VALUE;
         return ntc_data;
     }
     
     ntc_data.raw_adc_value = raw_adc_value;
     
-    if (raw_adc_value <= 0 || raw_adc_value >= 4096) {
+    // Validar rango del ADC
+    if (raw_adc_value <= ADC_MIN_VALUE || raw_adc_value >= ADC_MAX_VALUE) {
         ESP_LOGW(TAG, "Valor ADC fuera de rango: %d", raw_adc_value);
-        ntc_data.temperature_c = -999.0;
+        ntc_data.temperature_c = TEMP_ERROR_VALUE;
         return ntc_data;
     }
     
-    float resistance = SERIES_RESISTOR * ((4095.0 / raw_adc_value) - 1.0);
+    // Calcular resistencia del NTC usando fórmula del divisor de voltaje
+    // R_ntc = R_series * (VCC / V_adc - 1) = R_series * (ADC_MAX / ADC_value - 1)
+    float resistance = SERIES_RESISTOR * ((4095.0f / raw_adc_value) - 1.0f);
     ntc_data.resistance = resistance;
 
-    if (resistance <= 0 || resistance >= 1000000) {
+    // Validar rango de resistencia
+    if (resistance <= 0 || resistance >= RESISTANCE_MAX_OHMS) {
         ESP_LOGW(TAG, "Resistencia fuera de rango: %.0fΩ", resistance);
-        ntc_data.temperature_c = -999.0;
+        ntc_data.temperature_c = TEMP_ERROR_VALUE;
         return ntc_data;
     }
     
-    // Cálculo de temperatura usando ecuación de Steinhart-Hart
-    float steinhart = log(resistance / NOMINAL_RESISTANCE) / B_COEFFICIENT + 1.0 / (NOMINAL_TEMPERATURE + 273.15);
-    ntc_data.temperature_c = 1.0 / steinhart - 273.15;
+    // Cálculo de temperatura usando ecuación de Steinhart-Hart simplificada
+    // 1/T = 1/T0 + (1/B) * ln(R/R0)
+    // Donde T0 = 25°C = 298.15K, R0 = resistencia nominal, B = coeficiente Beta
+    float steinhart = logf(resistance / NOMINAL_RESISTANCE) / B_COEFFICIENT + 
+                      1.0f / (NOMINAL_TEMPERATURE + 273.15f);
+    ntc_data.temperature_c = (1.0f / steinhart) - 273.15f;
     
     return ntc_data;
 }
@@ -177,7 +206,7 @@ static void ntc_reading_task(void *arg)
     ESP_LOGI(TAG, "Tarea de lectura del sensor NTC iniciada");
     
     // Esperar un poco para que el ADC se estabilice
-    vTaskDelay(pdMS_TO_TICKS(100));
+    vTaskDelay(pdMS_TO_TICKS(ADC_STABILIZATION_DELAY_MS));
     
     while (1) {
         ntc_data = ntc_read_temperature();
@@ -189,10 +218,12 @@ static void ntc_reading_task(void *arg)
             current_ntc_data = ntc_data;
             
             // Validar datos para marcar como "ready"
-            // Ser más permisivo: aceptar cualquier temperatura calculada que no sea -999.0
-            if (ntc_data.raw_adc_value > 0 && ntc_data.raw_adc_value < 4096 && 
-                ntc_data.temperature_c != -999.0 && 
-                isfinite(ntc_data.temperature_c) && !isnan(ntc_data.temperature_c)) {
+            // Aceptar cualquier temperatura calculada que sea válida
+            if (ntc_data.raw_adc_value > ADC_MIN_VALUE && 
+                ntc_data.raw_adc_value < ADC_MAX_VALUE && 
+                ntc_data.temperature_c != TEMP_ERROR_VALUE && 
+                isfinite(ntc_data.temperature_c) && 
+                !isnan(ntc_data.temperature_c)) {
                 data_ready = true;
             } else {
                 data_ready = false;
@@ -201,7 +232,7 @@ static void ntc_reading_task(void *arg)
             xSemaphoreGive(data_mutex);
         }
         
-        vTaskDelay(pdMS_TO_TICKS(1000)); // Leer cada segundo
+        vTaskDelay(pdMS_TO_TICKS(SENSOR_READ_INTERVAL_MS));
     }
 }
 
@@ -213,10 +244,11 @@ static void ntc_reading_task(void *arg)
  * @return Estructura ntc_data_t con los últimos datos leídos
  */
 ntc_data_t ntc_get_current_temperature(void) {
-    ntc_data_t temp_data = {.temperature_c = -999.0, .resistance = 0.0, .raw_adc_value = 0};
+    ntc_data_t temp_data = {.temperature_c = TEMP_ERROR_VALUE, .resistance = 0.0, .raw_adc_value = 0};
     
     // Proteger acceso concurrente con mutex
-    if (data_mutex != NULL && xSemaphoreTake(data_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+    const TickType_t mutex_timeout = pdMS_TO_TICKS(100);
+    if (data_mutex != NULL && xSemaphoreTake(data_mutex, mutex_timeout) == pdTRUE) {
         temp_data = current_ntc_data;
         xSemaphoreGive(data_mutex);
     }
@@ -226,10 +258,19 @@ ntc_data_t ntc_get_current_temperature(void) {
 
 /**
  * Crea e inicia la tarea de FreeRTOS para lectura periódica de temperatura
- * La tarea se ejecuta con prioridad 5 y stack de 4096 bytes
+ * La tarea lee la temperatura cada segundo y actualiza los datos globales
  */
 void ntc_start_reading_task(void) {
-    xTaskCreate(ntc_reading_task, "ntc_reader", 4096, NULL, 5, NULL);
-    ESP_LOGI(TAG, "Tarea de lectura periódica del NTC iniciada");
+    BaseType_t ret = xTaskCreate(ntc_reading_task, 
+                                  "ntc_reader", 
+                                  NTC_TASK_STACK_SIZE, 
+                                  NULL, 
+                                  NTC_TASK_PRIORITY, 
+                                  NULL);
+    if (ret != pdPASS) {
+        ESP_LOGE(TAG, "Error al crear tarea de lectura del NTC");
+    } else {
+        ESP_LOGI(TAG, "Tarea de lectura periódica del NTC iniciada");
+    }
 }
 

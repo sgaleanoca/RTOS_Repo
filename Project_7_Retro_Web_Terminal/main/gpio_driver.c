@@ -20,21 +20,64 @@
  */
 
 // ===== INCLUDES =====
+// Header local
 #include "gpio_driver.h"
+
+// ESP-IDF
 #include "driver/gpio.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/semphr.h"
 #include "esp_log.h"
 
-// ===== DEFINICIONES Y VARIABLES GLOBALES =====
+// FreeRTOS
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+
+// ===== DEFINICIONES Y CONSTANTES =====
 static const char *TAG = "GPIO_DRIVER";
 
-// Pines GPIO asignados a los LEDs
-#define LED_YELLOW 2  // GPIO 2 - LED Amarillo
-#define LED_BLUE   5  // GPIO 5 - LED Azul
+// Configuración de pines GPIO
+#define LED_YELLOW_GPIO 2  // GPIO 2 - LED Amarillo
+#define LED_BLUE_GPIO   5  // GPIO 5 - LED Azul
 
+// ===== VARIABLES GLOBALES =====
 // Semáforo mutex para proteger acceso concurrente a GPIO desde múltiples tareas
 static SemaphoreHandle_t gpio_mutex = NULL;
+
+// ===== SECCIÓN: FUNCIONES AUXILIARES THREAD-SAFE =====
+/**
+ * Establece el nivel de un pin GPIO de forma thread-safe
+ * Protege el acceso con mutex para evitar condiciones de carrera
+ * 
+ * @param pin: Número del pin GPIO
+ * @param level: Nivel a establecer (0 = bajo, 1 = alto)
+ */
+static void gpio_set_level_safe(gpio_num_t pin, int level) {
+    if (gpio_mutex != NULL && xSemaphoreTake(gpio_mutex, portMAX_DELAY) == pdTRUE) {
+        gpio_set_level(pin, level);
+        xSemaphoreGive(gpio_mutex);
+    } else {
+        // Fallback si el mutex no está disponible (no debería pasar en operación normal)
+        gpio_set_level(pin, level);
+    }
+}
+
+/**
+ * Lee el nivel de un pin GPIO de forma thread-safe
+ * Protege el acceso con mutex para evitar condiciones de carrera
+ * 
+ * @param pin: Número del pin GPIO
+ * @return Nivel del pin (0 = bajo, 1 = alto)
+ */
+static int gpio_get_level_safe(gpio_num_t pin) {
+    int level = 0;
+    if (gpio_mutex != NULL && xSemaphoreTake(gpio_mutex, portMAX_DELAY) == pdTRUE) {
+        level = gpio_get_level(pin);
+        xSemaphoreGive(gpio_mutex);
+    } else {
+        // Fallback si el mutex no está disponible (no debería pasar en operación normal)
+        level = gpio_get_level(pin);
+    }
+    return level;
+}
 
 // ===== SECCIÓN: INICIALIZACIÓN =====
 /**
@@ -50,12 +93,15 @@ void gpio_init_leds(void) {
     }
     
     // Resetear configuración previa de los pines
-    gpio_reset_pin(LED_YELLOW);
-    gpio_reset_pin(LED_BLUE);
+    gpio_reset_pin(LED_YELLOW_GPIO);
+    gpio_reset_pin(LED_BLUE_GPIO);
     
     // Configurar pines como entrada/salida (para poder leer y escribir)
-    gpio_set_direction(LED_YELLOW, GPIO_MODE_INPUT_OUTPUT);
-    gpio_set_direction(LED_BLUE, GPIO_MODE_INPUT_OUTPUT);
+    gpio_set_direction(LED_YELLOW_GPIO, GPIO_MODE_INPUT_OUTPUT);
+    gpio_set_direction(LED_BLUE_GPIO, GPIO_MODE_INPUT_OUTPUT);
+    
+    ESP_LOGI(TAG, "LEDs configurados: Amarillo (GPIO%d), Azul (GPIO%d)", 
+             LED_YELLOW_GPIO, LED_BLUE_GPIO);
     
     ESP_LOGI(TAG, "GPIO inicializado con protección de mutex");
 }
@@ -63,63 +109,41 @@ void gpio_init_leds(void) {
 // ===== SECCIÓN: CONTROL DE LED AMARILLO =====
 /**
  * Establece el estado del LED amarillo (encendido/apagado)
+ * Función thread-safe que protege el acceso al GPIO con mutex
+ * 
  * @param state: true para encender, false para apagar
  */
 void gpio_set_yellow(bool state) {
-    // Proteger acceso con mutex para evitar condiciones de carrera
-    if (gpio_mutex != NULL && xSemaphoreTake(gpio_mutex, portMAX_DELAY) == pdTRUE) {
-        gpio_set_level(LED_YELLOW, state);
-        xSemaphoreGive(gpio_mutex);
-    } else {
-        // Fallback si el mutex no está disponible (no debería pasar)
-        gpio_set_level(LED_YELLOW, state);
-    }
+    gpio_set_level_safe(LED_YELLOW_GPIO, state ? 1 : 0);
 }
 
 /**
  * Lee el estado actual del LED amarillo
+ * Función thread-safe que protege el acceso al GPIO con mutex
+ * 
  * @return true si está encendido, false si está apagado
  */
 bool gpio_get_yellow(void) {
-    bool state = false;
-    if (gpio_mutex != NULL && xSemaphoreTake(gpio_mutex, portMAX_DELAY) == pdTRUE) {
-        state = gpio_get_level(LED_YELLOW);
-        xSemaphoreGive(gpio_mutex);
-    } else {
-        // Fallback si el mutex no está disponible
-        state = gpio_get_level(LED_YELLOW);
-    }
-    return state;
+    return (gpio_get_level_safe(LED_YELLOW_GPIO) != 0);
 }
 
 // ===== SECCIÓN: CONTROL DE LED AZUL =====
 /**
  * Establece el estado del LED azul (encendido/apagado)
+ * Función thread-safe que protege el acceso al GPIO con mutex
+ * 
  * @param state: true para encender, false para apagar
  */
 void gpio_set_blue(bool state) {
-    // Proteger acceso con mutex para evitar condiciones de carrera
-    if (gpio_mutex != NULL && xSemaphoreTake(gpio_mutex, portMAX_DELAY) == pdTRUE) {
-        gpio_set_level(LED_BLUE, state);
-        xSemaphoreGive(gpio_mutex);
-    } else {
-        // Fallback si el mutex no está disponible (no debería pasar)
-        gpio_set_level(LED_BLUE, state);
-    }
+    gpio_set_level_safe(LED_BLUE_GPIO, state ? 1 : 0);
 }
 
 /**
  * Lee el estado actual del LED azul
+ * Función thread-safe que protege el acceso al GPIO con mutex
+ * 
  * @return true si está encendido, false si está apagado
  */
 bool gpio_get_blue(void) {
-    bool state = false;
-    if (gpio_mutex != NULL && xSemaphoreTake(gpio_mutex, portMAX_DELAY) == pdTRUE) {
-        state = gpio_get_level(LED_BLUE);
-        xSemaphoreGive(gpio_mutex);
-    } else {
-        // Fallback si el mutex no está disponible
-        state = gpio_get_level(LED_BLUE);
-    }
-    return state;
+    return (gpio_get_level_safe(LED_BLUE_GPIO) != 0);
 }

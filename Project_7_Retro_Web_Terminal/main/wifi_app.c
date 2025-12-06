@@ -1,3 +1,21 @@
+/**
+ * ============================================================================
+ * ARCHIVO: wifi_app.c
+ * ============================================================================
+ * 
+ * RESUMEN:
+ * Implementación del módulo de WiFi en modo SoftAP (Access Point). Este módulo:
+ * - Inicializa la pila de red TCP/IP
+ * - Configura el ESP32 como punto de acceso WiFi
+ * - Crea una red WiFi con las credenciales definidas
+ * - Maneja eventos de conexión/desconexión de clientes
+ * 
+ * Los usuarios pueden conectarse a la red "ESP32_Server" y acceder al
+ * servidor web para controlar el sistema.
+ * ============================================================================
+ */
+
+// ===== INCLUDES =====
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -11,9 +29,14 @@
 
 #include "wifi_app.h"
 
+// ===== DEFINICIONES Y VARIABLES GLOBALES =====
 static const char *TAG = "WIFI_APP";
 
-// Manejador de eventos WiFi (Opcional, pero útil para debug)
+// ===== SECCIÓN: MANEJO DE EVENTOS WIFI =====
+/**
+ * Manejador de eventos WiFi para logging de conexiones/desconexiones
+ * Útil para debugging y monitoreo de clientes conectados
+ */
 static void wifi_event_handler(void* arg, esp_event_base_t event_base,
                                int32_t event_id, void* event_data)
 {
@@ -28,29 +51,34 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
     }
 }
 
+// ===== SECCIÓN: INICIALIZACIÓN DE SOFTAP =====
+/**
+ * Inicializa el ESP32 como Access Point (SoftAP)
+ * Configura la red WiFi y permite que los clientes se conecten
+ */
 void wifi_init_softap(void)
 {
-    // 1. Inicializar la pila TCP/IP subyacente
+    // Paso 1: Inicializar la pila TCP/IP subyacente (necesaria para WiFi)
     ESP_ERROR_CHECK(esp_netif_init());
     
-    // 2. Crear el bucle de eventos por defecto
+    // Paso 2: Crear el bucle de eventos por defecto para manejar eventos WiFi
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     
-    // 3. Crear la interfaz WiFi por defecto en modo AP
+    // Paso 3: Crear la interfaz de red WiFi en modo Access Point
     esp_netif_create_default_wifi_ap();
 
-    // 4. Configuración inicial del driver WiFi
+    // Paso 4: Configuración inicial del driver WiFi con valores por defecto
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
-    // 5. Registrar el manejador de eventos para saber quien se conecta
+    // Paso 5: Registrar el manejador de eventos para logging de conexiones
     ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
                                                         ESP_EVENT_ANY_ID,
                                                         &wifi_event_handler,
                                                         NULL,
                                                         NULL));
 
-    // 6. Configurar credenciales y modo de seguridad
+    // Paso 6: Configurar credenciales y modo de seguridad de la red
     wifi_config_t wifi_config = {
         .ap = {
             .ssid = ESP_WIFI_SSID,
@@ -58,7 +86,7 @@ void wifi_init_softap(void)
             .channel = ESP_WIFI_CHANNEL,
             .password = ESP_WIFI_PASS,
             .max_connection = MAX_STA_CONN,
-            .authmode = WIFI_AUTH_WPA_WPA2_PSK, // WPA2 Personal
+            .authmode = WIFI_AUTH_WPA_WPA2_PSK, // WPA2 Personal (seguridad)
             .pmf_cfg = {
                 .required = false, // PMF no puede ser requerido con WPA_WPA2_PSK
                 .capable = true,   // Pero sí puede ser capaz
@@ -66,16 +94,16 @@ void wifi_init_softap(void)
         },
     };
 
-    // Si no hay contraseña, dejamos el modo abierto
+    // Si no hay contraseña, usar modo abierto (sin seguridad)
     if (strlen(ESP_WIFI_PASS) == 0) {
         wifi_config.ap.authmode = WIFI_AUTH_OPEN;
     }
 
-    // 7. Aplicar configuración
+    // Paso 7: Aplicar configuración al driver WiFi
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
     
-    // 8. Iniciar WiFi
+    // Paso 8: Iniciar el driver WiFi y activar el Access Point
     ESP_ERROR_CHECK(esp_wifi_start());
 
     ESP_LOGI(TAG, "SoftAP iniciado. SSID: %s Clave: %s canal: %d",

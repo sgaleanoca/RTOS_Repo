@@ -1,4 +1,24 @@
-// ===== INCLUDES Y CONFIGURACIÓN =====
+/**
+ * ============================================================================
+ * ARCHIVO: ntc_sensor.c
+ * ============================================================================
+ * 
+ * RESUMEN:
+ * Implementación del módulo de sensor de temperatura NTC. Este módulo:
+ * - Inicializa el ADC1 del ESP32 para leer el voltaje del divisor de voltaje
+ * - Calcula la resistencia del NTC basándose en el valor ADC
+ * - Convierte la resistencia a temperatura usando la ecuación de Steinhart-Hart
+ * - Ejecuta una tarea periódica que lee la temperatura cada segundo
+ * - Proporciona acceso thread-safe a los datos de temperatura
+ * 
+ * Circuito:
+ * VCC ---[10k Resistor]---[NTC 10k]---GND
+ *                |
+ *              GPIO32 (ADC1_CH4)
+ * ============================================================================
+ */
+
+// ===== INCLUDES =====
 #include "ntc_sensor.h"
 #include "esp_log.h"
 #include "esp_adc/adc_oneshot.h"
@@ -10,17 +30,27 @@
 #include "freertos/semphr.h"
 #include <math.h>
 
+// ===== DEFINICIONES Y VARIABLES GLOBALES =====
 static const char *TAG = "NTC_TEMP_CONTROL";
 
-// ===== VARIABLES GLOBALES =====
+// Handles del ADC y calibración
 static adc_oneshot_unit_handle_t adc1_handle;
 static adc_cali_handle_t adc1_cali_handle = NULL;
+
+// Datos actuales del sensor (protegidos por mutex)
 static ntc_data_t current_ntc_data = {.temperature_c = -999.0, .resistance = 0.0, .raw_adc_value = 0};
 static bool data_ready = false;
 static SemaphoreHandle_t data_mutex = NULL; // Mutex para proteger acceso concurrente
 
-// ===== FUNCIONES DE CALIBRACIÓN DEL ADC =====
-// Crea el manejador de calibración del ADC si el esquema está soportado
+// ===== SECCIÓN: CALIBRACIÓN DEL ADC =====
+/**
+ * Inicializa la calibración del ADC para obtener lecturas más precisas
+ * Intenta usar curve fitting primero, luego line fitting como fallback
+ * @param unit: Unidad ADC (ADC_UNIT_1 o ADC_UNIT_2)
+ * @param atten: Atenuación del ADC
+ * @param out_handle: Puntero donde se guardará el handle de calibración
+ * @return true si la calibración fue exitosa, false en caso contrario
+ */
 static bool adc_calibration_init(adc_unit_t unit, adc_atten_t atten, adc_cali_handle_t *out_handle)
 {
     adc_cali_handle_t handle = NULL;
@@ -54,9 +84,15 @@ static bool adc_calibration_init(adc_unit_t unit, adc_atten_t atten, adc_cali_ha
     return calibrated;
 }
 
-// ===== FUNCIONES DE INICIALIZACIÓN =====
-// Inicializa el ADC y el canal del NTC (GPIO32) con atenuación y calibración
-// Usamos ADC1 porque ADC2 no funciona cuando WiFi está activo
+// ===== SECCIÓN: INICIALIZACIÓN =====
+/**
+ * Inicializa el ADC1 y configura el canal para leer el sensor NTC
+ * - Crea el mutex para proteger acceso a datos
+ * - Configura ADC1 con atenuación de 12dB (rango 0-3.3V)
+ * - Inicializa la calibración del ADC si está disponible
+ * 
+ * Nota: Usamos ADC1 porque ADC2 no funciona cuando WiFi está activo
+ */
 void ntc_sensor_init(void) {
     ESP_LOGI(TAG, "Inicializando ADC1 para sensor NTC en GPIO32...");
     
@@ -78,8 +114,19 @@ void ntc_sensor_init(void) {
 }
 
 
-// ===== FUNCIONES DE LECTURA Y CÁLCULO =====
-// Lee el ADC, calcula la resistencia del NTC y estima la temperatura en °C
+// ===== SECCIÓN: LECTURA Y CÁLCULO DE TEMPERATURA =====
+/**
+ * Lee el valor del ADC, calcula la resistencia del NTC y convierte a temperatura
+ * 
+ * Proceso:
+ * 1. Lee el valor crudo del ADC (0-4095)
+ * 2. Calcula la resistencia del NTC usando la fórmula del divisor de voltaje:
+ *    R_ntc = R_series * (4095 / ADC_value - 1)
+ * 3. Convierte resistencia a temperatura usando ecuación de Steinhart-Hart:
+ *    1/T = 1/T0 + (1/B) * ln(R/R0)
+ * 
+ * @return Estructura ntc_data_t con temperatura, resistencia y valor ADC
+ */
 ntc_data_t ntc_read_temperature(void) {
     ntc_data_t ntc_data = {0};
     int raw_adc_value;
@@ -114,8 +161,16 @@ ntc_data_t ntc_read_temperature(void) {
     return ntc_data;
 }
 
-// ===== TAREA DE LECTURA PERIÓDICA =====
-// Tarea: Lee temperatura del NTC, valida rangos y almacena datos
+// ===== SECCIÓN: TAREA DE LECTURA PERIÓDICA =====
+/**
+ * Tarea de FreeRTOS que lee la temperatura periódicamente cada segundo
+ * - Lee la temperatura del sensor
+ * - Valida que los datos estén en rangos razonables
+ * - Almacena los datos de forma thread-safe usando mutex
+ * - Marca los datos como "ready" cuando son válidos
+ * 
+ * @param arg: Argumentos de la tarea (no usado)
+ */
 static void ntc_reading_task(void *arg)
 {
     ntc_data_t ntc_data;
@@ -150,8 +205,13 @@ static void ntc_reading_task(void *arg)
     }
 }
 
-// ===== FUNCIÓN GETTER =====
-// Obtiene la temperatura actual almacenada
+// ===== SECCIÓN: FUNCIONES GETTER =====
+/**
+ * Obtiene la temperatura actual almacenada por la tarea de lectura
+ * Esta función es thread-safe y puede llamarse desde cualquier tarea
+ * 
+ * @return Estructura ntc_data_t con los últimos datos leídos
+ */
 ntc_data_t ntc_get_current_temperature(void) {
     ntc_data_t temp_data = {.temperature_c = -999.0, .resistance = 0.0, .raw_adc_value = 0};
     
@@ -164,7 +224,10 @@ ntc_data_t ntc_get_current_temperature(void) {
     return temp_data;
 }
 
-// Inicia la tarea de lectura periódica
+/**
+ * Crea e inicia la tarea de FreeRTOS para lectura periódica de temperatura
+ * La tarea se ejecuta con prioridad 5 y stack de 4096 bytes
+ */
 void ntc_start_reading_task(void) {
     xTaskCreate(ntc_reading_task, "ntc_reader", 4096, NULL, 5, NULL);
     ESP_LOGI(TAG, "Tarea de lectura periódica del NTC iniciada");

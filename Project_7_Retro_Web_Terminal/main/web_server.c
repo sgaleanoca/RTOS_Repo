@@ -1,3 +1,37 @@
+/**
+ * ============================================================================
+ * ARCHIVO: web_server.c
+ * ============================================================================
+ * 
+ * RESUMEN:
+ * Implementación del servidor web HTTP del ESP32. Este módulo proporciona:
+ * 
+ * 1. Sistema de archivos SPIFFS:
+ *    - Monta partición SPIFFS para servir archivos estáticos (HTML, CSS, JS)
+ *    - Verifica que todos los archivos necesarios estén presentes
+ * 
+ * 2. Servidor HTTP con múltiples rutas:
+ *    - Páginas web: login, dashboard, terminal, slider
+ *    - API REST: /cmd (comandos), /temperature (datos JSON)
+ *    - Autenticación: /login, /logout
+ * 
+ * 3. Sistema de autenticación y sesiones:
+ *    - Login con usuario/contraseña (root/matrix123)
+ *    - Gestión de sesiones basada en IP
+ *    - Timeout automático después de 3 minutos de inactividad
+ * 
+ * 4. Procesamiento de comandos:
+ *    - Sistema de colas para comandos GPIO (thread-safe)
+ *    - Tarea dedicada para procesar comandos
+ *    - Soporte para comandos: led y on/off, led b on/off, status, help, clear
+ * 
+ * 5. Gestión de temperatura:
+ *    - Endpoint JSON para obtener temperatura actual
+ *    - Datos actualizados desde la tarea de lectura del sensor
+ * ============================================================================
+ */
+
+// ===== INCLUDES =====
 #include "web_server.h"
 #include "gpio_driver.h"
 #include "ntc_sensor.h"
@@ -18,10 +52,11 @@
 #include "lwip/inet.h"
 #include "lwip/sockets.h"
 
+// ===== DEFINICIONES Y VARIABLES GLOBALES =====
 static const char *TAG = "WEB_SERVER";
 static httpd_handle_t server = NULL;
 
-// --- SISTEMA DE COLAS PARA COMANDOS ---
+// ===== SECCIÓN: SISTEMA DE COLAS PARA COMANDOS =====
 // Estructura para comandos GPIO
 typedef struct {
     uint32_t command_id;  // ID único para emparejar comando-respuesta
@@ -40,11 +75,12 @@ static SemaphoreHandle_t session_mutex = NULL;
 static uint32_t command_id_counter = 0;
 static SemaphoreHandle_t command_id_mutex = NULL;
 
-// --- GESTIÓN DE SESIONES SIMPLE (IP based) ---
-#define MAX_SESSIONS 5
-#define SESSION_TIMEOUT_MS (3 * 60 * 1000)
-#define VALID_USER "root"
-#define VALID_PASS "matrix123"
+// ===== SECCIÓN: GESTIÓN DE SESIONES =====
+// Sistema de autenticación simple basado en IP
+#define MAX_SESSIONS 5                    // Máximo número de sesiones simultáneas
+#define SESSION_TIMEOUT_MS (3 * 60 * 1000) // Timeout: 3 minutos de inactividad
+#define VALID_USER "root"                 // Usuario válido para login
+#define VALID_PASS "matrix123"            // Contraseña válida para login
 
 typedef struct {
     char ip[16];
@@ -59,7 +95,19 @@ static int64_t get_time_ms(void) {
     return (int64_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
 }
 
-// --- TAREA DE PROCESAMIENTO DE COMANDOS GPIO ---
+// ===== SECCIÓN: TAREA DE PROCESAMIENTO DE COMANDOS =====
+/**
+ * Tarea de FreeRTOS que procesa comandos GPIO recibidos desde la web
+ * Lee comandos de la cola, los ejecuta y envía respuestas
+ * 
+ * Comandos soportados:
+ * - led y on/off : Control LED amarillo
+ * - led b on/off : Control LED azul
+ * - led all on/off : Control ambos LEDs
+ * - status : Estado de los LEDs
+ * - help : Lista de comandos disponibles
+ * - clear : Limpiar pantalla (manejado en frontend)
+ */
 static void gpio_command_task(void *pvParameters) {
     gpio_command_t cmd;
     ESP_LOGI(TAG, "Tarea de procesamiento de comandos GPIO iniciada");
@@ -122,7 +170,11 @@ static void gpio_command_task(void *pvParameters) {
     }
 }
 
-// --- TAREA DE GESTIÓN DE SESIONES (TIMEOUT) ---
+// ===== SECCIÓN: TAREA DE GESTIÓN DE SESIONES =====
+/**
+ * Tarea que verifica periódicamente las sesiones y expira las inactivas
+ * Apaga los LEDs cuando una sesión expira por timeout
+ */
 static void session_management_task(void *pvParameters) {
     ESP_LOGI(TAG, "Tarea de gestión de sesiones iniciada");
     
@@ -236,7 +288,16 @@ bool is_authenticated(httpd_req_t *req) {
     return authenticated;
 }
 
-// --- UTILIDAD PARA SERVIR ARCHIVOS DESDE SPIFFS ---
+// ===== SECCIÓN: UTILIDADES =====
+/**
+ * Función auxiliar para servir archivos estáticos desde SPIFFS
+ * Lee el archivo en chunks y lo envía al cliente HTTP
+ * 
+ * @param req: Request HTTP
+ * @param filepath: Ruta del archivo en SPIFFS (ej: "/spiffs/index.html")
+ * @param type: Content-Type HTTP (ej: "text/html", "text/css")
+ * @return ESP_OK si éxito, ESP_FAIL si error
+ */
 esp_err_t send_file_from_spiffs(httpd_req_t *req, const char *filepath, const char *type) {
     ESP_LOGI(TAG, "Intentando abrir archivo: %s", filepath);
     FILE *fd = fopen(filepath, "r");
@@ -264,9 +325,13 @@ esp_err_t send_file_from_spiffs(httpd_req_t *req, const char *filepath, const ch
     return ESP_OK;
 }
 
-// --- HANDLERS ---
+// ===== SECCIÓN: HANDLERS HTTP =====
 
-// GET / (Raíz)
+/**
+ * Handler para GET / (raíz)
+ * Si el usuario está autenticado, redirige al dashboard
+ * Si no, muestra la página de login
+ */
 esp_err_t root_get_handler(httpd_req_t *req) {
     ESP_LOGI(TAG, "GET / - URI: %s", req->uri);
     esp_err_t ret;
@@ -347,7 +412,11 @@ esp_err_t favicon_get_handler(httpd_req_t *req) {
     return ESP_OK;
 }
 
-// GET /temperature
+/**
+ * Handler para GET /temperature
+ * Devuelve la temperatura actual en formato JSON
+ * Respuesta: {"temperature": 25.5} o {"error": "No data available"}
+ */
 esp_err_t temperature_get_handler(httpd_req_t *req) {
     if (!is_authenticated(req)) {
         httpd_resp_set_status(req, "401 Unauthorized");
@@ -414,7 +483,11 @@ static void url_decode(char *str) {
     *dst = '\0';
 }
 
-// GET /cmd?c=comando
+/**
+ * Handler para GET /cmd?c=comando
+ * Procesa comandos desde la terminal web
+ * Envía el comando a la cola y espera la respuesta
+ */
 esp_err_t cmd_get_handler(httpd_req_t *req) {
     char ip[16] = {0};
     get_client_ip(req, ip, sizeof(ip));
@@ -497,7 +570,11 @@ esp_err_t cmd_get_handler(httpd_req_t *req) {
     return ESP_OK;
 }
 
-// POST /login
+/**
+ * Handler para POST /login
+ * Valida credenciales y crea una sesión autenticada
+ * Parámetros: user=xxx&pass=yyy (form-urlencoded)
+ */
 esp_err_t login_post_handler(httpd_req_t *req) {
     char content[200];
     size_t recv_size = sizeof(content) - 1;
@@ -596,7 +673,18 @@ esp_err_t catch_all_handler(httpd_req_t *req) {
     return ESP_FAIL;
 }
 
-// --- INICIO ---
+// ===== SECCIÓN: INICIALIZACIÓN DEL SERVIDOR =====
+/**
+ * Función principal que inicia el servidor web
+ * 
+ * Proceso de inicialización:
+ * 1. Crea mutex y colas para comandos y sesiones
+ * 2. Crea tareas para procesamiento de comandos y gestión de sesiones
+ * 3. Monta el sistema de archivos SPIFFS
+ * 4. Verifica que todos los archivos necesarios estén presentes
+ * 5. Configura e inicia el servidor HTTP
+ * 6. Registra todas las rutas y handlers
+ */
 void start_webserver(void) {
     // 0. Inicializar sesiones
     memset(sessions, 0, sizeof(sessions));

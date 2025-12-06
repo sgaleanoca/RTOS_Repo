@@ -1,8 +1,54 @@
+/**
+ * ============================================================================
+ * ARCHIVO: script.js
+ * ============================================================================
+ * 
+ * RESUMEN:
+ * Script principal del frontend que gestiona toda la funcionalidad del cliente.
+ * Este archivo contiene:
+ * 
+ * 1. Gestión de orientación móvil:
+ *    - Fuerza orientación vertical en dispositivos móviles
+ *    - Detecta cambios de orientación y los corrige
+ * 
+ * 2. Sistema de autenticación:
+ *    - Manejo del formulario de login
+ *    - Envío de credenciales al servidor
+ *    - Redirección según resultado
+ * 
+ * 3. Terminal web retro:
+ *    - Interfaz de terminal con prompt
+ *    - Historial de comandos (flechas arriba/abajo)
+ *    - Autocompletado con TAB
+ *    - Envío de comandos al servidor
+ *    - Auto-logout por inactividad (3 minutos)
+ * 
+ * 4. Actualización en tiempo real:
+ *    - Reloj actualizado cada segundo
+ *    - Temperatura actualizada cada segundo desde /temperature
+ * 
+ * 5. Panel de control (slider.html):
+ *    - Control de ventilador con 4 modos (apagado, horario, temperatura, manual)
+ *    - Gestión de horarios programados
+ *    - Control de velocidad con slider
+ *    - Monitoreo de temperatura para control automático
+ * 
+ * 6. Navegación:
+ *    - Funciones para ir al dashboard
+ *    - Funciones de logout/suspender sesión
+ * ============================================================================
+ */
+
+// ===== SECCIÓN: INICIALIZACIÓN Y DEBUG =====
 // Mensaje de inicio - DEBE aparecer en consola
 console.log("=== SCRIPT.JS CARGADO ===");
 console.log("Estado del DOM:", document.readyState);
 
-// --- FORZAR ORIENTACIÓN VERTICAL EN MÓVIL ---
+// ===== SECCIÓN: GESTIÓN DE ORIENTACIÓN MÓVIL =====
+/**
+ * Fuerza la orientación vertical en dispositivos móviles
+ * Intenta usar diferentes APIs según el navegador
+ */
 function lockOrientation() {
     // Intentar bloquear la orientación a vertical
     if (screen.orientation && screen.orientation.lock) {
@@ -46,7 +92,12 @@ if (isMobile()) {
     });
 }
 
-// --- LÓGICA DE LOGIN ---
+// ===== SECCIÓN: LÓGICA DE LOGIN =====
+/**
+ * Maneja el formulario de login
+ * Envía credenciales al servidor mediante POST /login
+ * Redirige al dashboard si el login es exitoso
+ */
 const loginForm = document.getElementById("loginForm");
 
 if (loginForm) {
@@ -84,7 +135,11 @@ if (loginForm) {
     });
 }
 
-// --- RELOJ EN TIEMPO REAL ---
+// ===== SECCIÓN: RELOJ EN TIEMPO REAL =====
+/**
+ * Actualiza el reloj cada segundo
+ * Formato: HH:MM:SS (24 horas)
+ */
 function updateClock() {
     const clockElement = document.getElementById('clock');
     if (clockElement) {
@@ -97,7 +152,11 @@ setInterval(updateClock, 1000);
 updateClock(); // Primera llamada inmediata
 console.log("[CLOCK] Reloj inicializado");
 
-// --- TEMPERATURA EN TIEMPO REAL ---
+// ===== SECCIÓN: TEMPERATURA EN TIEMPO REAL =====
+/**
+ * Actualiza la temperatura cada segundo desde el servidor
+ * Hace petición GET a /temperature y muestra el valor JSON
+ */
 let isUpdatingTemperature = false; // Evitar peticiones superpuestas
 
 function updateTemperature() {
@@ -159,7 +218,14 @@ setInterval(updateTemperature, 1000);
 updateTemperature(); // Primera llamada inmediata
 console.log("[TEMP] Temperatura inicializada - actualización cada 1 segundo");
 
-// --- LÓGICA DE LA TERMINAL ---
+// ===== SECCIÓN: LÓGICA DE LA TERMINAL =====
+/**
+ * Gestiona la interfaz de terminal web retro
+ * - Historial de comandos con navegación
+ * - Autocompletado con TAB
+ * - Envío de comandos al servidor
+ * - Auto-logout por inactividad
+ */
 const term = document.getElementById("term");
 const input = document.getElementById("inputLine");
 
@@ -275,9 +341,12 @@ function suspendSession() {
     doLogout();
 }
 
-// --- FUNCIONALIDAD PARA LA PÁGINA SLIDER ---
+// ===== SECCIÓN: FUNCIONALIDAD PARA LA PÁGINA SLIDER =====
 
-// Actualizar temperatura en el slider
+/**
+ * Actualiza la temperatura en la página slider
+ * Similar a updateTemperature() pero para el elemento específico del slider
+ */
 function updateSliderTemperature() {
     const tempElement = document.getElementById('sliderTemperature');
     if (!tempElement) {
@@ -333,23 +402,30 @@ function updateSliderClock() {
     }
 }
 
-// Variables globales para el modo manual del ventilador
-let fanManualPowerState = false;
-let fanManualSpeed = 0;
+// ===== SECCIÓN: VARIABLES GLOBALES DEL VENTILADOR =====
+// Variables para el modo manual del ventilador
+let fanManualPowerState = false;  // Estado encendido/apagado
+let fanManualSpeed = 0;           // Velocidad (0-100%)
 
-// Variables globales para el modo horario
-let fanScheduleSpeed = 0;
-let fanScheduleDay = 'lunes';
-let fanScheduleTime = '00:00';
-let fanScheduleRecords = []; // Array para almacenar los registros
+// Variables para el modo horario
+let fanScheduleSpeed = 0;         // Velocidad programada
+let fanScheduleDay = 'lunes';     // Día de la semana
+let fanScheduleTime = '00:00';    // Hora programada
+let fanScheduleRecords = [];      // Array para almacenar los registros
 let selectedScheduleRecord = null; // Registro seleccionado en el popup
 
-// Variables globales para el modo temperatura
-let fanTemperatureMode = false; // Si el modo temperatura está activo
-let fanCurrentSpeed = 0; // Velocidad actual del ventilador
+// Variables para el modo temperatura
+let fanTemperatureMode = false;   // Si el modo temperatura está activo
+let fanCurrentSpeed = 0;          // Velocidad actual del ventilador
 let fanTemperatureInterval = null; // Intervalo de monitoreo de temperatura
 
-// Función para establecer el modo del ventilador
+// ===== SECCIÓN: CONTROL DE VENTILADOR =====
+/**
+ * Establece el modo de operación del ventilador
+ * Modos disponibles: 'off', 'schedule', 'temperature', 'manual'
+ * 
+ * @param {string} mode - Modo a activar
+ */
 function setFanMode(mode) {
     // No hacer nada si estamos en modo manual o horario
     const manualView = document.getElementById('fanManualView');
@@ -518,9 +594,11 @@ function updateFanSlider(value) {
     }
 }
 
-// ========== FUNCIONES DEL MODO HORARIO ==========
-
-// Función para entrar al modo horario
+// ===== SECCIÓN: FUNCIONES DEL MODO HORARIO =====
+/**
+ * Entra al modo horario del ventilador
+ * Muestra la interfaz para programar horarios
+ */
 function enterFanScheduleMode() {
     const normalView = document.getElementById('fanNormalView');
     const scheduleView = document.getElementById('fanScheduleView');
@@ -1019,9 +1097,14 @@ function hideLogsPopup() {
     }, 300);
 }
 
-// ========== FUNCIONES DEL MODO TEMPERATURA ==========
-
-// Función para iniciar el modo temperatura
+// ===== SECCIÓN: FUNCIONES DEL MODO TEMPERATURA =====
+/**
+ * Inicia el modo temperatura del ventilador
+ * Monitorea la temperatura y ajusta la velocidad automáticamente:
+ * - > 45°C: 100% velocidad
+ * - > 30°C: 40% velocidad
+ * - < 30°C: Apagado
+ */
 function startTemperatureMode() {
     // Si ya hay un intervalo activo, no crear otro
     if (fanTemperatureInterval !== null) {

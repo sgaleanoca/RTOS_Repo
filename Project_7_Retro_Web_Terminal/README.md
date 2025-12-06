@@ -968,14 +968,5 @@ storage,  data, spiffs,  ,        1M    ← Archivos web aquí
 - **Lectura**: Tarea RTOS lee temperatura periódicamente
 - **API**: Endpoint `/temp` devuelve temperatura en formato JSON
 
-## Licencia
-
-Este proyecto es parte de un curso de RTOS.
-
-## Autor
-
-Proyecto desarrollado como parte del curso RTOS Raiz.
-
 ---
 
-**Disfrute de su terminal retro.**

@@ -1,4 +1,33 @@
-/* --- ESTILOS GENERALES --- */
+/**
+ * ============================================================================
+ * ARCHIVO: style.css
+ * ============================================================================
+ * 
+ * RESUMEN:
+ * Hoja de estilos principal del proyecto. Define el diseño visual de todas
+ * las páginas con un tema retro estilo terminal.
+ * 
+ * Características principales:
+ * - Tema retro: Fondo negro, texto verde (#33ff33)
+ * - Diseño responsive: Adaptado para móviles y desktop
+ * - Estilos para múltiples páginas:
+ *   * Login: Formulario de autenticación
+ *   * Terminal: Interfaz de terminal retro
+ *   * Dashboard: Menú principal con iconos
+ *   * Slider: Panel de control avanzado
+ * 
+ * Secciones del CSS:
+ * 1. Estilos generales y base
+ * 2. Estilos del login
+ * 3. Estilos de la terminal
+ * 4. Estilos del dashboard
+ * 5. Estilos del slider (panel de control)
+ * 6. Estilos del ventilador (modos manual, horario, temperatura)
+ * 7. Media queries para móviles
+ * ============================================================================
+ */
+
+/* ===== SECCIÓN: ESTILOS GENERALES ===== */
 body { 
     background: black; 
     color: #33ff33; 
@@ -11,7 +40,7 @@ body {
     overflow: hidden; 
 }
 
-/* --- ESTILOS ESPECÍFICOS DEL LOGIN --- */
+/* ===== SECCIÓN: ESTILOS DEL LOGIN ===== */
 .box { 
     border: 2px solid #33ff33; 
     padding: 20px 30px; 
@@ -79,9 +108,9 @@ body {
     color: #aaa; 
 }
 
-/* --- ESTILOS DE LA TERMINAL --- */
+/* ===== SECCIÓN: ESTILOS DE LA TERMINAL ===== */
 
-/* BARRA SUPERIOR (Estilo Ubuntu) */
+/* Barra superior con estilo Ubuntu */
 .top-bar {
     background-color: #1a1a1a; /* Gris oscuro casi negro */
     border-bottom: 1px solid #33ff33;
@@ -1437,7 +1466,7 @@ body {
     opacity: 0.5;
 }
 
-/* --- ESTILOS DEL DASHBOARD --- */
+/* ===== SECCIÓN: ESTILOS DEL DASHBOARD ===== */
 body.dashboard-body {
     overflow: auto;
 }
@@ -1649,7 +1678,7 @@ body.dashboard-body {
     }
 }
 
-/* --- ESTILOS DE LA PÁGINA SLIDER --- */
+/* ===== SECCIÓN: ESTILOS DE LA PÁGINA SLIDER ===== */
 body.slider-body {
     overflow-y: auto;
     overflow-x: hidden;

@@ -32,12 +32,27 @@
  */
 
 // ===== INCLUDES =====
+// Headers locales
 #include "web_server.h"
 #include "gpio_driver.h"
 #include "ntc_sensor.h"
+
+// ESP-IDF
 #include <esp_http_server.h>
 #include <esp_spiffs.h>
 #include <esp_log.h>
+
+// FreeRTOS
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/queue.h"
+#include "freertos/semphr.h"
+
+// LWIP (red)
+#include "lwip/inet.h"
+#include "lwip/sockets.h"
+
+// Estándar C
 #include <sys/stat.h>
 #include <string.h>
 #include <stdlib.h>
@@ -45,17 +60,22 @@
 #include <stdint.h>
 #include <errno.h>
 #include <math.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/queue.h"
-#include "freertos/semphr.h"
-#include "lwip/inet.h"
-#include "lwip/sockets.h"
 
-// ===== DEFINICIONES Y ESTRUCTURAS =====
+// ===== DEFINICIONES Y CONSTANTES =====
 static const char *TAG = "WEB_SERVER";
 
-// ===== SECCIÓN: SISTEMA DE COLAS PARA COMANDOS =====
+// Configuración de sesiones
+#define MAX_SESSIONS 5                    // Máximo número de sesiones simultáneas
+#define SESSION_TIMEOUT_MS (3 * 60 * 1000) // Timeout: 3 minutos de inactividad
+#define VALID_USER "root"                 // Usuario válido para login
+#define VALID_PASS "matrix123"            // Contraseña válida para login
+
+// Configuración de colas
+#define GPIO_QUEUE_SIZE 10                // Tamaño de las colas de comandos
+#define CMD_RESPONSE_TIMEOUT_MS 500       // Timeout para recibir respuesta de comando
+#define CMD_RESPONSE_MAX_ATTEMPTS 10      // Intentos máximos para recibir respuesta
+
+// ===== ESTRUCTURAS DE DATOS =====
 // Estructura para comandos GPIO
 typedef struct {
     uint32_t command_id;  // ID único para emparejar comando-respuesta
@@ -63,23 +83,15 @@ typedef struct {
     char response[512];
 } gpio_command_t;
 
-// ===== SECCIÓN: GESTIÓN DE SESIONES =====
-// Sistema de autenticación simple basado en IP
-#define MAX_SESSIONS 5                    // Máximo número de sesiones simultáneas
-#define SESSION_TIMEOUT_MS (3 * 60 * 1000) // Timeout: 3 minutos de inactividad
-#define VALID_USER "root"                 // Usuario válido para login
-#define VALID_PASS "matrix123"            // Contraseña válida para login
-
+// Estructura de sesión de usuario
 typedef struct {
     char ip[16];
     int64_t last_activity;
     bool authenticated;
 } session_t;
 
-// ===== ESTRUCTURA DE CONTEXTO: Encapsula el estado del servidor =====
-// Esta estructura contiene todo el estado del servidor web que antes estaba en variables globales.
-// El contexto se pasa a través de user_ctx en los handlers HTTP y como parámetro a las tareas.
-// Esto elimina la necesidad de variables globales y mejora la modularidad del código.
+// Estructura de contexto del servidor web
+// Encapsula todo el estado del servidor para evitar variables globales
 typedef struct {
     httpd_handle_t server;
     QueueHandle_t gpio_command_queue;
@@ -90,7 +102,11 @@ typedef struct {
     session_t sessions[MAX_SESSIONS];
 } webserver_context_t;
 
-// Obtener tiempo actual en milisegundos
+// ===== SECCIÓN: UTILIDADES GENERALES =====
+/**
+ * Obtiene el tiempo actual en milisegundos desde el inicio del sistema
+ * @return Tiempo en milisegundos
+ */
 static int64_t get_time_ms(void) {
     return (int64_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
 }
@@ -201,22 +217,30 @@ static void session_management_task(void *pvParameters) {
     }
 }
 
-// Obtener IP del cliente desde la request
+/**
+ * Obtiene la dirección IP del cliente desde la request HTTP
+ * @param req: Request HTTP
+ * @param ip_str: Buffer donde se almacenará la IP
+ * @param len: Tamaño del buffer
+ */
 static void get_client_ip(httpd_req_t *req, char *ip_str, size_t len) {
-    // Obtener la dirección remota usando la API de ESP-IDF
     struct sockaddr_in *addr = (struct sockaddr_in *)req->sess_ctx;
     if (addr && addr->sin_family == AF_INET) {
         inet_ntoa_r(addr->sin_addr, ip_str, len);
         return;
     }
     
-    // Fallback: usar una IP genérica si no se puede obtener
-    // En un entorno SoftAP, todas las conexiones vienen de la misma red
-    // Por simplicidad, usamos una IP única basada en el puntero de la request
+    // Fallback: IP genérica basada en el puntero de la request
+    // (útil en entornos SoftAP donde todas las conexiones vienen de la misma red)
     snprintf(ip_str, len, "192.168.4.%d", (int)((uintptr_t)req % 255) + 1);
 }
 
-// Buscar o crear sesión para una IP
+/**
+ * Busca una sesión existente o crea una nueva para una IP
+ * @param ctx: Contexto del servidor web
+ * @param ip: Dirección IP del cliente
+ * @return Puntero a la sesión o NULL si no hay slots disponibles
+ */
 static session_t* find_or_create_session(webserver_context_t *ctx, const char *ip) {
     int64_t now = get_time_ms();
     session_t *session = NULL;
@@ -256,6 +280,12 @@ static session_t* find_or_create_session(webserver_context_t *ctx, const char *i
     return session; // NULL si no hay slots disponibles
 }
 
+/**
+ * Verifica si el cliente está autenticado y actualiza la última actividad
+ * @param ctx: Contexto del servidor web
+ * @param req: Request HTTP
+ * @return true si está autenticado, false en caso contrario
+ */
 static bool is_authenticated(webserver_context_t *ctx, httpd_req_t *req) {
     char ip[16] = {0};
     get_client_ip(req, ip, sizeof(ip));
@@ -290,10 +320,10 @@ static bool is_authenticated(webserver_context_t *ctx, httpd_req_t *req) {
     return authenticated;
 }
 
-// ===== SECCIÓN: UTILIDADES =====
+// ===== SECCIÓN: UTILIDADES DE ARCHIVOS =====
 /**
- * Función auxiliar para servir archivos estáticos desde SPIFFS
- * Lee el archivo en chunks y lo envía al cliente HTTP
+ * Sirve un archivo estático desde SPIFFS al cliente HTTP
+ * Lee el archivo en chunks y lo envía de forma eficiente
  * 
  * @param req: Request HTTP
  * @param filepath: Ruta del archivo en SPIFFS (ej: "/spiffs/index.html")
@@ -329,6 +359,8 @@ esp_err_t send_file_from_spiffs(httpd_req_t *req, const char *filepath, const ch
 
 // ===== SECCIÓN: HANDLERS HTTP =====
 
+// --- Handlers de Páginas Web ---
+
 /**
  * Handler para GET / (raíz)
  * Si el usuario está autenticado, redirige al dashboard
@@ -360,19 +392,10 @@ static esp_err_t root_get_handler(httpd_req_t *req) {
     return ret;
 }
 
-// GET /style.css
-static esp_err_t style_get_handler(httpd_req_t *req) {
-    ESP_LOGI(TAG, "GET /style.css");
-    return send_file_from_spiffs(req, "/spiffs/style.css", "text/css");
-}
-
-// GET /script.js
-static esp_err_t script_get_handler(httpd_req_t *req) {
-    ESP_LOGI(TAG, "GET /script.js");
-    return send_file_from_spiffs(req, "/spiffs/script.js", "application/javascript");
-}
-
-// GET /dashboard
+/**
+ * Handler para GET /dashboard
+ * Requiere autenticación, redirige a login si no está autenticado
+ */
 static esp_err_t dashboard_get_handler(httpd_req_t *req) {
     webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
     ESP_LOGI(TAG, "GET /dashboard");
@@ -385,7 +408,10 @@ static esp_err_t dashboard_get_handler(httpd_req_t *req) {
     return send_file_from_spiffs(req, "/spiffs/dashboard.html", "text/html");
 }
 
-// GET /terminal
+/**
+ * Handler para GET /terminal
+ * Requiere autenticación, redirige a login si no está autenticado
+ */
 static esp_err_t terminal_get_handler(httpd_req_t *req) {
     webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
     ESP_LOGI(TAG, "GET /terminal");
@@ -398,7 +424,10 @@ static esp_err_t terminal_get_handler(httpd_req_t *req) {
     return send_file_from_spiffs(req, "/spiffs/index.html", "text/html");
 }
 
-// GET /slider
+/**
+ * Handler para GET /slider
+ * Requiere autenticación, redirige a login si no está autenticado
+ */
 static esp_err_t slider_get_handler(httpd_req_t *req) {
     webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
     ESP_LOGI(TAG, "GET /slider");
@@ -411,17 +440,45 @@ static esp_err_t slider_get_handler(httpd_req_t *req) {
     return send_file_from_spiffs(req, "/spiffs/slider.html", "text/html");
 }
 
-// GET /favicon.ico (evitar 404)
+// --- Handlers de Archivos Estáticos ---
+
+/**
+ * Handler para GET /style.css
+ * Sirve el archivo CSS desde SPIFFS
+ */
+static esp_err_t style_get_handler(httpd_req_t *req) {
+    ESP_LOGI(TAG, "GET /style.css");
+    return send_file_from_spiffs(req, "/spiffs/style.css", "text/css");
+}
+
+/**
+ * Handler para GET /script.js
+ * Sirve el archivo JavaScript desde SPIFFS
+ */
+static esp_err_t script_get_handler(httpd_req_t *req) {
+    ESP_LOGI(TAG, "GET /script.js");
+    return send_file_from_spiffs(req, "/spiffs/script.js", "application/javascript");
+}
+
+/**
+ * Handler para GET /favicon.ico
+ * Responde con 204 No Content para evitar errores 404
+ */
 static esp_err_t favicon_get_handler(httpd_req_t *req) {
     httpd_resp_set_status(req, "204 No Content");
     httpd_resp_send(req, NULL, 0);
     return ESP_OK;
 }
 
+// --- Handlers de Autenticación ---
+
+// --- Handlers de API ---
+
 /**
  * Handler para GET /temperature
  * Devuelve la temperatura actual en formato JSON
  * Respuesta: {"temperature": 25.5} o {"error": "No data available"}
+ * Requiere autenticación
  */
 static esp_err_t temperature_get_handler(httpd_req_t *req) {
     webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
@@ -467,7 +524,10 @@ static esp_err_t temperature_get_handler(httpd_req_t *req) {
     return ESP_OK;
 }
 
-// Decodificar URL (simple, solo espacios)
+/**
+ * Decodifica una cadena URL-encoded (convierte %20 y + a espacios)
+ * @param str: Cadena a decodificar (se modifica in-place)
+ */
 static void url_decode(char *str) {
     char *src = str;
     char *dst = str;
@@ -491,9 +551,58 @@ static void url_decode(char *str) {
 }
 
 /**
+ * Convierte una cadena a minúsculas (modifica in-place)
+ * @param str: Cadena a convertir
+ */
+static void str_to_lower(char *str) {
+    for (int i = 0; str[i]; i++) {
+        if (str[i] >= 'A' && str[i] <= 'Z') {
+            str[i] = str[i] - 'A' + 'a';
+        }
+    }
+}
+
+/**
+ * Extrae un parámetro de una cadena form-urlencoded
+ * @param content: Cadena con los parámetros (ej: "user=root&pass=matrix123")
+ * @param param_name: Nombre del parámetro a extraer (ej: "user")
+ * @param output: Buffer donde se almacenará el valor
+ * @param output_size: Tamaño del buffer
+ * @return true si se encontró el parámetro, false en caso contrario
+ */
+static bool extract_form_param(const char *content, const char *param_name, char *output, size_t output_size) {
+    char search_str[64];
+    snprintf(search_str, sizeof(search_str), "%s=", param_name);
+    char *param_start = strstr(content, search_str);
+    
+    if (!param_start) {
+        return false;
+    }
+    
+    param_start += strlen(search_str);
+    char *param_end = strchr(param_start, '&');
+    
+    if (param_end) {
+        size_t param_len = param_end - param_start;
+        if (param_len >= output_size) {
+            param_len = output_size - 1;
+        }
+        strncpy(output, param_start, param_len);
+        output[param_len] = '\0';
+    } else {
+        strncpy(output, param_start, output_size - 1);
+        output[output_size - 1] = '\0';
+    }
+    
+    url_decode(output);
+    return true;
+}
+
+/**
  * Handler para GET /cmd?c=comando
  * Procesa comandos desde la terminal web
  * Envía el comando a la cola y espera la respuesta
+ * Requiere autenticación
  */
 static esp_err_t cmd_get_handler(httpd_req_t *req) {
     webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
@@ -514,13 +623,7 @@ static esp_err_t cmd_get_handler(httpd_req_t *req) {
             char cmd[100];
             if (httpd_query_key_value(buf, "c", cmd, sizeof(cmd)) == ESP_OK) {
                 url_decode(cmd);
-                
-                // Convertir a minúsculas
-                for (int i = 0; cmd[i]; i++) {
-                    if (cmd[i] >= 'A' && cmd[i] <= 'Z') {
-                        cmd[i] = cmd[i] - 'A' + 'a';
-                    }
-                }
+                str_to_lower(cmd);
                 
                 // Si es "clear", no necesita procesamiento en el backend
                 if (strcmp(cmd, "clear") == 0) {
@@ -547,10 +650,10 @@ static esp_err_t cmd_get_handler(httpd_req_t *req) {
                     gpio_command_t response;
                     bool response_received = false;
                     
-                    // Intentar recibir respuesta hasta 3 veces (para manejar respuestas de otros comandos)
-                    for (int attempts = 0; attempts < 10 && !response_received; attempts++) {
+                    // Intentar recibir respuesta (múltiples intentos para manejar respuestas de otros comandos)
+                    for (int attempts = 0; attempts < CMD_RESPONSE_MAX_ATTEMPTS && !response_received; attempts++) {
                         if (ctx->gpio_response_queue != NULL && 
-                            xQueueReceive(ctx->gpio_response_queue, &response, pdMS_TO_TICKS(500)) == pdTRUE) {
+                            xQueueReceive(ctx->gpio_response_queue, &response, pdMS_TO_TICKS(CMD_RESPONSE_TIMEOUT_MS)) == pdTRUE) {
                             // Verificar que la respuesta corresponde a nuestro comando
                             if (response.command_id == cmd_id) {
                                 httpd_resp_send(req, response.response, HTTPD_RESP_USE_STRLEN);
@@ -597,33 +700,12 @@ static esp_err_t login_post_handler(httpd_req_t *req) {
     }
     content[ret] = '\0';
     
-    // Parsear user=xxx&pass=yyy
+    // Parsear parámetros del formulario (user=xxx&pass=yyy)
     char user[50] = {0};
     char pass[50] = {0};
     
-    char *user_start = strstr(content, "user=");
-    char *pass_start = strstr(content, "pass=");
-    
-    if (user_start) {
-        user_start += 5; // Saltar "user="
-        char *user_end = strchr(user_start, '&');
-        if (user_end) {
-            size_t user_len = user_end - user_start;
-            if (user_len < sizeof(user)) {
-                strncpy(user, user_start, user_len);
-                user[user_len] = '\0';
-            }
-        } else {
-            strncpy(user, user_start, sizeof(user) - 1);
-        }
-        url_decode(user);
-    }
-    
-    if (pass_start) {
-        pass_start += 5; // Saltar "pass="
-        strncpy(pass, pass_start, sizeof(pass) - 1);
-        url_decode(pass);
-    }
+    extract_form_param(content, "user", user, sizeof(user));
+    extract_form_param(content, "pass", pass, sizeof(pass));
     
     // Validar credenciales
     if (strcmp(user, VALID_USER) == 0 && strcmp(pass, VALID_PASS) == 0) {
@@ -650,7 +732,10 @@ static esp_err_t login_post_handler(httpd_req_t *req) {
     return ESP_OK;
 }
 
-// GET /logout
+/**
+ * Handler para GET /logout
+ * Cierra la sesión del usuario y apaga los LEDs
+ */
 static esp_err_t logout_get_handler(httpd_req_t *req) {
     webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
     char ip[16] = {0};
@@ -681,6 +766,165 @@ static esp_err_t catch_all_handler(httpd_req_t *req) {
     ESP_LOGW(TAG, "URI no manejada: %s (método: %d)", req->uri, req->method);
     httpd_resp_send_404(req);
     return ESP_FAIL;
+}
+
+// ===== SECCIÓN: INICIALIZACIÓN DE SPIFFS =====
+/**
+ * Verifica que todos los archivos necesarios estén presentes en SPIFFS
+ * @return Número de archivos encontrados
+ */
+static int verify_spiffs_files(void) {
+    ESP_LOGI(TAG, "Verificando archivos en SPIFFS...");
+    const char *files_to_check[] = {
+        "/spiffs/index.html",
+        "/spiffs/login.html",
+        "/spiffs/dashboard.html",
+        "/spiffs/slider.html",
+        "/spiffs/style.css",
+        "/spiffs/script.js"
+    };
+    const int num_files = sizeof(files_to_check) / sizeof(files_to_check[0]);
+    int files_found = 0;
+    
+    for (int i = 0; i < num_files; i++) {
+        FILE *f = fopen(files_to_check[i], "r");
+        if (f) {
+            // Obtener tamaño del archivo
+            fseek(f, 0, SEEK_END);
+            long size = ftell(f);
+            fclose(f);
+            ESP_LOGI(TAG, "✓ Archivo encontrado: %s (%ld bytes)", files_to_check[i], size);
+            files_found++;
+        } else {
+            ESP_LOGE(TAG, "✗ Archivo NO encontrado: %s (errno: %d - %s)", 
+                     files_to_check[i], errno, strerror(errno));
+        }
+    }
+    
+    if (files_found == 0) {
+        ESP_LOGE(TAG, "==========================================");
+        ESP_LOGE(TAG, "ERROR CRÍTICO: Ningún archivo encontrado en SPIFFS");
+        ESP_LOGE(TAG, "Los archivos deben ser flasheados a la partición SPIFFS");
+        ESP_LOGE(TAG, "Ejecuta: ./flash_all.sh [PORT] o idf.py flash");
+        ESP_LOGE(TAG, "==========================================");
+    } else if (files_found < num_files) {
+        ESP_LOGW(TAG, "Advertencia: Solo %d de %d archivos encontrados", files_found, num_files);
+    } else {
+        ESP_LOGI(TAG, "✓ Todos los archivos encontrados correctamente (%d/%d)", files_found, num_files);
+    }
+    
+    return files_found;
+}
+
+/**
+ * Inicializa y monta el sistema de archivos SPIFFS
+ * @return ESP_OK si éxito, ESP_FAIL si error
+ */
+static esp_err_t init_spiffs(void) {
+    esp_vfs_spiffs_conf_t conf = {
+        .base_path = "/spiffs",
+        .partition_label = "storage",
+        .max_files = 5,
+        .format_if_mount_failed = false  // NO formatear automáticamente
+    };
+    
+    ESP_LOGI(TAG, "Inicializando SPIFFS desde partición 'storage'...");
+    esp_err_t ret = esp_vfs_spiffs_register(&conf);
+    
+    // Si falla el montaje, intentar formatear solo si es necesario
+    if (ret == ESP_FAIL) {
+        ESP_LOGW(TAG, "SPIFFS no se pudo montar, intentando formatear...");
+        conf.format_if_mount_failed = true;
+        ret = esp_vfs_spiffs_register(&conf);
+        if (ret == ESP_OK) {
+            ESP_LOGW(TAG, "SPIFFS formateado - los archivos deben ser flasheados nuevamente");
+        }
+    }
+    
+    if (ret != ESP_OK) {
+        if (ret == ESP_ERR_NOT_FOUND) {
+            ESP_LOGE(TAG, "Partición SPIFFS 'storage' no encontrada");
+            ESP_LOGE(TAG, "Verifica que la tabla de particiones incluya una partición 'storage' tipo spiffs");
+        } else if (ret == ESP_ERR_INVALID_STATE) {
+            ESP_LOGE(TAG, "SPIFFS ya está montado o no se puede desmontar");
+        } else {
+            ESP_LOGE(TAG, "Error al inicializar SPIFFS: %s (%d)", esp_err_to_name(ret), ret);
+        }
+        return ESP_FAIL;
+    }
+    
+    ESP_LOGI(TAG, "SPIFFS montado correctamente en /spiffs");
+    
+    // Obtener información de SPIFFS
+    size_t total = 0, used = 0;
+    ret = esp_spiffs_info("storage", &total, &used);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Error al obtener información de SPIFFS (%s)", esp_err_to_name(ret));
+    } else {
+        ESP_LOGI(TAG, "SPIFFS: %d KB total, %d KB usado (%.1f%%)", 
+                 total / 1024, used / 1024, (used * 100.0f) / total);
+    }
+    
+    return ESP_OK;
+}
+
+// ===== SECCIÓN: REGISTRO DE RUTAS HTTP =====
+/**
+ * Registra todas las rutas HTTP del servidor web
+ * @param ctx: Contexto del servidor web
+ * @return ESP_OK si todas las rutas se registraron correctamente, ESP_FAIL en caso contrario
+ */
+static esp_err_t register_http_routes(webserver_context_t *ctx) {
+    esp_err_t ret = ESP_OK;
+    
+    // Estructura auxiliar para simplificar el registro
+    typedef struct {
+        const char *uri;
+        httpd_method_t method;
+        esp_err_t (*handler)(httpd_req_t *);
+        const char *name;
+    } route_config_t;
+    
+    // Configuración de todas las rutas
+    route_config_t routes[] = {
+        // Páginas principales
+        {"/", HTTP_GET, root_get_handler, "root"},
+        {"/dashboard", HTTP_GET, dashboard_get_handler, "dashboard"},
+        {"/terminal", HTTP_GET, terminal_get_handler, "terminal"},
+        {"/slider", HTTP_GET, slider_get_handler, "slider"},
+        
+        // Archivos estáticos
+        {"/style.css", HTTP_GET, style_get_handler, "style.css"},
+        {"/script.js", HTTP_GET, script_get_handler, "script.js"},
+        {"/favicon.ico", HTTP_GET, favicon_get_handler, "favicon.ico"},
+        
+        // Autenticación
+        {"/login", HTTP_POST, login_post_handler, "login"},
+        {"/logout", HTTP_GET, logout_get_handler, "logout"},
+        
+        // API
+        {"/cmd", HTTP_GET, cmd_get_handler, "cmd"},
+        {"/temperature", HTTP_GET, temperature_get_handler, "temperature"},
+    };
+    
+    // Registrar cada ruta
+    for (size_t i = 0; i < sizeof(routes) / sizeof(routes[0]); i++) {
+        httpd_uri_t uri_config = {
+            .uri = routes[i].uri,
+            .method = routes[i].method,
+            .handler = routes[i].handler,
+            .user_ctx = ctx
+        };
+        
+        if (httpd_register_uri_handler(ctx->server, &uri_config) != ESP_OK) {
+            ESP_LOGE(TAG, "Error al registrar ruta %s", routes[i].name);
+            ret = ESP_FAIL;
+        } else {
+            ESP_LOGI(TAG, "Ruta %s registrada", routes[i].name);
+        }
+    }
+    
+    return ret;
 }
 
 // ===== SECCIÓN: INICIALIZACIÓN DEL SERVIDOR =====
@@ -719,8 +963,8 @@ void start_webserver(void) {
     }
     
     // 0.3. Crear colas para comandos GPIO
-    ctx.gpio_command_queue = xQueueCreate(10, sizeof(gpio_command_t));
-    ctx.gpio_response_queue = xQueueCreate(10, sizeof(gpio_command_t));
+    ctx.gpio_command_queue = xQueueCreate(GPIO_QUEUE_SIZE, sizeof(gpio_command_t));
+    ctx.gpio_response_queue = xQueueCreate(GPIO_QUEUE_SIZE, sizeof(gpio_command_t));
     if (ctx.gpio_command_queue == NULL || ctx.gpio_response_queue == NULL) {
         ESP_LOGE(TAG, "Error al crear colas para comandos GPIO");
         return;
@@ -736,82 +980,12 @@ void start_webserver(void) {
     ESP_LOGI(TAG, "Tarea de gestión de sesiones creada");
     
     // 1. Iniciar SPIFFS
-    // Primero intentar montar sin formatear
-    esp_vfs_spiffs_conf_t conf = {
-      .base_path = "/spiffs",
-      .partition_label = "storage",
-      .max_files = 5,
-      .format_if_mount_failed = false  // NO formatear automáticamente
-    };
-    
-    ESP_LOGI(TAG, "Inicializando SPIFFS desde partición 'storage'...");
-    esp_err_t ret = esp_vfs_spiffs_register(&conf);
-    
-    // Si falla el montaje, intentar formatear solo si es necesario
-    if (ret == ESP_FAIL) {
-        ESP_LOGW(TAG, "SPIFFS no se pudo montar, intentando formatear...");
-        conf.format_if_mount_failed = true;
-        ret = esp_vfs_spiffs_register(&conf);
-        if (ret == ESP_OK) {
-            ESP_LOGW(TAG, "SPIFFS formateado - los archivos deben ser flasheados nuevamente");
-        }
-    }
-    
-    if (ret != ESP_OK) {
-        if (ret == ESP_ERR_NOT_FOUND) {
-            ESP_LOGE(TAG, "Partición SPIFFS 'storage' no encontrada");
-            ESP_LOGE(TAG, "Verifica que la tabla de particiones incluya una partición 'storage' tipo spiffs");
-        } else if (ret == ESP_ERR_INVALID_STATE) {
-            ESP_LOGE(TAG, "SPIFFS ya está montado o no se puede desmontar");
-        } else {
-            ESP_LOGE(TAG, "Error al inicializar SPIFFS: %s (%d)", esp_err_to_name(ret), ret);
-        }
+    if (init_spiffs() != ESP_OK) {
         return;
     }
-    ESP_LOGI(TAG, "SPIFFS montado correctamente en /spiffs");
     
-    // Obtener información de SPIFFS
-    size_t total = 0, used = 0;
-    ret = esp_spiffs_info("storage", &total, &used);
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Error al obtener información de SPIFFS (%s)", esp_err_to_name(ret));
-    } else {
-        ESP_LOGI(TAG, "SPIFFS: %d KB total, %d KB usado (%.1f%%)", 
-                 total / 1024, used / 1024, (used * 100.0f) / total);
-    }
-    
-    // Verificar que los archivos existan en SPIFFS
-    ESP_LOGI(TAG, "Verificando archivos en SPIFFS...");
-    const char *files_to_check[] = {"/spiffs/index.html", "/spiffs/login.html", 
-                                    "/spiffs/dashboard.html", "/spiffs/slider.html", 
-                                    "/spiffs/style.css", "/spiffs/script.js"};
-    int files_found = 0;
-    for (int i = 0; i < 6; i++) {
-        FILE *f = fopen(files_to_check[i], "r");
-        if (f) {
-            // Obtener tamaño del archivo
-            fseek(f, 0, SEEK_END);
-            long size = ftell(f);
-            fclose(f);
-            ESP_LOGI(TAG, "✓ Archivo encontrado: %s (%ld bytes)", files_to_check[i], size);
-            files_found++;
-        } else {
-            ESP_LOGE(TAG, "✗ Archivo NO encontrado: %s (errno: %d - %s)", 
-                     files_to_check[i], errno, strerror(errno));
-        }
-    }
-    
-    if (files_found == 0) {
-        ESP_LOGE(TAG, "==========================================");
-        ESP_LOGE(TAG, "ERROR CRÍTICO: Ningún archivo encontrado en SPIFFS");
-        ESP_LOGE(TAG, "Los archivos deben ser flasheados a la partición SPIFFS");
-        ESP_LOGE(TAG, "Ejecuta: ./flash_all.sh [PORT] o idf.py flash");
-        ESP_LOGE(TAG, "==========================================");
-    } else if (files_found < 6) {
-        ESP_LOGW(TAG, "Advertencia: Solo %d de 6 archivos encontrados", files_found);
-    } else {
-        ESP_LOGI(TAG, "✓ Todos los archivos encontrados correctamente (%d/6)", files_found);
-    }
+    // Verificar que todos los archivos necesarios estén presentes
+    verify_spiffs_files();
 
     // 2. Configurar Server
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
@@ -827,150 +1001,10 @@ void start_webserver(void) {
     
     ESP_LOGI(TAG, "Servidor HTTP iniciado, registrando rutas...");
     
-    // Registrar rutas (pasar contexto a través de user_ctx)
-    httpd_uri_t root_uri = { 
-        .uri = "/", 
-        .method = HTTP_GET, 
-        .handler = root_get_handler,
-        .user_ctx = &ctx
-    };
-    if (httpd_register_uri_handler(ctx.server, &root_uri) != ESP_OK) {
-        ESP_LOGE(TAG, "Error al registrar ruta /");
-    } else {
-        ESP_LOGI(TAG, "Ruta / registrada");
-    }
-
-    httpd_uri_t css_uri = { 
-        .uri = "/style.css", 
-        .method = HTTP_GET, 
-        .handler = style_get_handler,
-        .user_ctx = &ctx
-    };
-    if (httpd_register_uri_handler(ctx.server, &css_uri) != ESP_OK) {
-        ESP_LOGE(TAG, "Error al registrar ruta /style.css");
-    } else {
-        ESP_LOGI(TAG, "Ruta /style.css registrada");
+    // Registrar todas las rutas HTTP
+    if (register_http_routes(&ctx) != ESP_OK) {
+        ESP_LOGW(TAG, "Algunas rutas no se pudieron registrar");
     }
     
-    httpd_uri_t js_uri = { 
-        .uri = "/script.js", 
-        .method = HTTP_GET, 
-        .handler = script_get_handler,
-        .user_ctx = &ctx
-    };
-    if (httpd_register_uri_handler(ctx.server, &js_uri) != ESP_OK) {
-        ESP_LOGE(TAG, "Error al registrar ruta /script.js");
-    } else {
-        ESP_LOGI(TAG, "Ruta /script.js registrada");
-    }
-
-    httpd_uri_t cmd_uri = { 
-        .uri = "/cmd", 
-        .method = HTTP_GET, 
-        .handler = cmd_get_handler,
-        .user_ctx = &ctx
-    };
-    if (httpd_register_uri_handler(ctx.server, &cmd_uri) != ESP_OK) {
-        ESP_LOGE(TAG, "Error al registrar ruta /cmd");
-    } else {
-        ESP_LOGI(TAG, "Ruta /cmd registrada");
-    }
-
-    httpd_uri_t login_uri = { 
-        .uri = "/login", 
-        .method = HTTP_POST, 
-        .handler = login_post_handler,
-        .user_ctx = &ctx
-    };
-    if (httpd_register_uri_handler(ctx.server, &login_uri) != ESP_OK) {
-        ESP_LOGE(TAG, "Error al registrar ruta /login");
-    } else {
-        ESP_LOGI(TAG, "Ruta /login registrada");
-    }
-    
-    httpd_uri_t logout_uri = { 
-        .uri = "/logout", 
-        .method = HTTP_GET, 
-        .handler = logout_get_handler,
-        .user_ctx = &ctx
-    };
-    if (httpd_register_uri_handler(ctx.server, &logout_uri) != ESP_OK) {
-        ESP_LOGE(TAG, "Error al registrar ruta /logout");
-    } else {
-        ESP_LOGI(TAG, "Ruta /logout registrada");
-    }
-
-    httpd_uri_t temperature_uri = { 
-        .uri = "/temperature", 
-        .method = HTTP_GET, 
-        .handler = temperature_get_handler,
-        .user_ctx = &ctx
-    };
-    if (httpd_register_uri_handler(ctx.server, &temperature_uri) != ESP_OK) {
-        ESP_LOGE(TAG, "Error al registrar ruta /temperature");
-    } else {
-        ESP_LOGI(TAG, "Ruta /temperature registrada");
-    }
-
-    httpd_uri_t dashboard_uri = { 
-        .uri = "/dashboard", 
-        .method = HTTP_GET, 
-        .handler = dashboard_get_handler,
-        .user_ctx = &ctx
-    };
-    if (httpd_register_uri_handler(ctx.server, &dashboard_uri) != ESP_OK) {
-        ESP_LOGE(TAG, "Error al registrar ruta /dashboard");
-    } else {
-        ESP_LOGI(TAG, "Ruta /dashboard registrada");
-    }
-
-    httpd_uri_t terminal_uri = { 
-        .uri = "/terminal", 
-        .method = HTTP_GET, 
-        .handler = terminal_get_handler,
-        .user_ctx = &ctx
-    };
-    if (httpd_register_uri_handler(ctx.server, &terminal_uri) != ESP_OK) {
-        ESP_LOGE(TAG, "Error al registrar ruta /terminal");
-    } else {
-        ESP_LOGI(TAG, "Ruta /terminal registrada");
-    }
-
-    httpd_uri_t slider_uri = { 
-        .uri = "/slider", 
-        .method = HTTP_GET, 
-        .handler = slider_get_handler,
-        .user_ctx = &ctx
-    };
-    if (httpd_register_uri_handler(ctx.server, &slider_uri) != ESP_OK) {
-        ESP_LOGE(TAG, "Error al registrar ruta /slider");
-    } else {
-        ESP_LOGI(TAG, "Ruta /slider registrada");
-    }
-
-    // Handler para favicon.ico (evitar 404)
-    httpd_uri_t favicon_uri = {
-        .uri = "/favicon.ico",
-        .method = HTTP_GET,
-        .handler = favicon_get_handler,
-        .user_ctx = &ctx
-    };
-    if (httpd_register_uri_handler(ctx.server, &favicon_uri) != ESP_OK) {
-        ESP_LOGW(TAG, "No se pudo registrar /favicon.ico (no crítico)");
-    } else {
-        ESP_LOGI(TAG, "Ruta /favicon.ico registrada");
-    }
-    
-    // Registrar handler catch-all con wildcard (debe ser el último)
-    // Nota: Para usar wildcard, necesitamos habilitar uri_match_fn
-    // Por ahora, no lo registramos para evitar conflictos
-    // httpd_uri_t catch_all_uri = {
-    //     .uri = "/*",
-    //     .method = HTTP_GET,
-    //     .handler = catch_all_handler,
-    //     .user_ctx = NULL
-    // };
-    
-    ESP_LOGI(TAG, "Servidor Web Iniciado correctamente en puerto %d", config.server_port);
-    ESP_LOGI(TAG, "Total de handlers registrados: 10 (/, /style.css, /script.js, /cmd, /login, /logout, /temperature, /dashboard, /terminal, /slider)");
+    ESP_LOGI(TAG, "Servidor Web iniciado correctamente en puerto %d", config.server_port);
 }

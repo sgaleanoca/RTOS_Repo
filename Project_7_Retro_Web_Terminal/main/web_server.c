@@ -28,6 +28,22 @@
  * 5. Gestión de temperatura:
  *    - Endpoint JSON para obtener temperatura actual
  *    - Datos actualizados desde la tarea de lectura del sensor
+ * 
+ * ============================================================================
+ * ÍNDICE DE SECCIONES:
+ * ============================================================================
+ * Sección 1: INCLUDES se encuentra en las líneas 34 a 62
+ * Sección 2: DEFINICIONES Y CONSTANTES se encuentra en las líneas 64 a 76
+ * Sección 3: ESTRUCTURAS DE DATOS se encuentra en las líneas 78 a 103
+ * Sección 4: UTILIDADES GENERALES se encuentra en las líneas 105 a 112
+ * Sección 5: TAREA DE PROCESAMIENTO DE COMANDOS se encuentra en las líneas 114 a 188
+ * Sección 6: TAREA DE GESTIÓN DE SESIONES se encuentra en las líneas 190 a 218
+ * Sección 7: FUNCIONES DE GESTIÓN DE SESIONES se encuentra en las líneas 220 a 318
+ * Sección 8: UTILIDADES DE ARCHIVOS se encuentra en las líneas 323 a 358
+ * Sección 9: HANDLERS HTTP se encuentra en las líneas 360 a 769
+ * Sección 10: INICIALIZACIÓN DE SPIFFS se encuentra en las líneas 771 a 869
+ * Sección 11: REGISTRO DE RUTAS HTTP se encuentra en las líneas 871 a 928
+ * Sección 12: INICIALIZACIÓN DEL SERVIDOR se encuentra en las líneas 930 a 1010
  * ============================================================================
  */
 

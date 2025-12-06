@@ -11,6 +11,14 @@
  * - Inicialización de pines GPIO
  * - Control de LEDs (encender/apagar)
  * - Lectura de estado de LEDs
+ * 
+ * ============================================================================
+ * ÍNDICE DE SECCIONES:
+ * ============================================================================
+ * Sección 1: PROTOTIPOS DE FUNCIONES se encuentra en las líneas 20 a 53
+ *   - Subsección 1.1: Inicialización se encuentra en las líneas 22 a 27
+ *   - Subsección 1.2: Control de LED Amarillo se encuentra en las líneas 29 a 40
+ *   - Subsección 1.3: Control de LED Azul se encuentra en las líneas 42 a 53
  * ============================================================================
  */
 

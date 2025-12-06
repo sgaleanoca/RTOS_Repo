@@ -13,6 +13,12 @@
  * - Contraseña: "12345678"
  * - Canal: 1
  * - Máximo de estaciones conectadas: 4
+ * 
+ * ============================================================================
+ * ÍNDICE DE SECCIONES:
+ * ============================================================================
+ * Sección 1: CONFIGURACIÓN DE WIFI SOFTAP se encuentra en las líneas 21 a 26
+ * Sección 2: PROTOTIPOS DE FUNCIONES se encuentra en las líneas 28 a 40
  * ============================================================================
  */
 

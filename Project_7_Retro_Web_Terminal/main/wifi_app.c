@@ -12,6 +12,14 @@
  * 
  * Los usuarios pueden conectarse a la red "ESP32_Server" y acceder al
  * servidor web para controlar el sistema.
+ * 
+ * ============================================================================
+ * ÍNDICE DE SECCIONES:
+ * ============================================================================
+ * Sección 1: INCLUDES se encuentra en las líneas 18 a 38
+ * Sección 2: DEFINICIONES Y CONSTANTES se encuentra en las líneas 40 a 41
+ * Sección 3: MANEJO DE EVENTOS WIFI se encuentra en las líneas 43 a 66
+ * Sección 4: INICIALIZACIÓN DE SOFTAP se encuentra en las líneas 68 a 134
  * ============================================================================
  */
 

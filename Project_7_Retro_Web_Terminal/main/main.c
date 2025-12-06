@@ -13,6 +13,16 @@
  * 
  * El sistema crea una red WiFi propia a la que los usuarios pueden conectarse
  * y acceder a una terminal web retro para controlar LEDs y monitorear temperatura.
+ * 
+ * ============================================================================
+ * ÍNDICE DE SECCIONES:
+ * ============================================================================
+ * Sección 1: INCLUDES se encuentra en las líneas 19 a 27
+ * Sección 2: FUNCIÓN PRINCIPAL (app_main) se encuentra en las líneas 29 a 72
+ *   - Subsección 2.1: INICIALIZACIÓN DE NVS se encuentra en las líneas 43 a 51
+ *   - Subsección 2.2: INICIALIZACIÓN DE HARDWARE se encuentra en las líneas 53 a 61
+ *   - Subsección 2.3: INICIALIZACIÓN DE RED se encuentra en las líneas 63 a 66
+ *   - Subsección 2.4: INICIO DEL SERVIDOR WEB se encuentra en las líneas 68 a 71
  * ============================================================================
  */
 

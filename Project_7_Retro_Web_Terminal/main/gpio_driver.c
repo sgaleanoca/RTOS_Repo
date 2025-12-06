@@ -16,6 +16,17 @@
  * - Protección thread-safe con mutex
  * - Funciones para leer y escribir estado de LEDs
  * - Inicialización segura de pines GPIO
+ * 
+ * ============================================================================
+ * ÍNDICE DE SECCIONES:
+ * ============================================================================
+ * Sección 1: INCLUDES se encuentra en las líneas 22 a 32
+ * Sección 2: DEFINICIONES Y CONSTANTES se encuentra en las líneas 34 a 39
+ * Sección 3: VARIABLES GLOBALES se encuentra en las líneas 41 a 43
+ * Sección 4: FUNCIONES AUXILIARES THREAD-SAFE se encuentra en las líneas 45 a 81
+ * Sección 5: INICIALIZACIÓN se encuentra en las líneas 82 a 108
+ * Sección 6: CONTROL DE LED AMARILLO se encuentra en las líneas 109 a 128
+ * Sección 7: CONTROL DE LED AZUL se encuentra en las líneas 130 a 149
  * ============================================================================
  */
 

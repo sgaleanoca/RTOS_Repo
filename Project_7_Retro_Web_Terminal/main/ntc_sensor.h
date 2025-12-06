@@ -17,6 +17,14 @@
  * - Lectura periódica en tarea separada de FreeRTOS
  * - Cálculo de temperatura usando ecuación de Steinhart-Hart
  * - Protección thread-safe con mutex para acceso a datos
+ * 
+ * ============================================================================
+ * ÍNDICE DE SECCIONES:
+ * ============================================================================
+ * Sección 1: CONFIGURACIÓN DE PINES Y ADC se encuentra en las líneas 28 a 32
+ * Sección 2: CONSTANTES DEL TERMISTOR NTC 10k se encuentra en las líneas 34 a 38
+ * Sección 3: ESTRUCTURAS DE DATOS se encuentra en las líneas 40 a 48
+ * Sección 4: PROTOTIPOS DE FUNCIONES se encuentra en las líneas 50 a 60
  * ============================================================================
  */
 

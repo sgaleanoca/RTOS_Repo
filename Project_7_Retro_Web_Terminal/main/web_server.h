@@ -21,6 +21,11 @@
  * - /slider : Panel de control con temperatura y ventilador
  * - /cmd : Endpoint para ejecutar comandos
  * - /temperature : API JSON para obtener temperatura actual
+ * 
+ * ============================================================================
+ * ÍNDICE DE SECCIONES:
+ * ============================================================================
+ * Sección 1: PROTOTIPOS DE FUNCIONES se encuentra en las líneas 33 a 40
  * ============================================================================
  */
 

@@ -15,6 +15,18 @@
  * VCC ---[10k Resistor]---[NTC 10k]---GND
  *                |
  *              GPIO32 (ADC1_CH4)
+ * 
+ * ============================================================================
+ * ÍNDICE DE SECCIONES:
+ * ============================================================================
+ * Sección 1: INCLUDES se encuentra en las líneas 21 a 38
+ * Sección 2: DEFINICIONES Y CONSTANTES se encuentra en las líneas 40 a 55
+ * Sección 3: VARIABLES GLOBALES se encuentra en las líneas 57 a 65
+ * Sección 4: CALIBRACIÓN DEL ADC se encuentra en las líneas 67 a 108
+ * Sección 5: INICIALIZACIÓN se encuentra en las líneas 109 a 137
+ * Sección 6: LECTURA Y CÁLCULO DE TEMPERATURA se encuentra en las líneas 139 a 191
+ * Sección 7: TAREA DE LECTURA PERIÓDICA se encuentra en las líneas 193 a 237
+ * Sección 8: FUNCIONES GETTER se encuentra en las líneas 239 a 277
  * ============================================================================
  */
 

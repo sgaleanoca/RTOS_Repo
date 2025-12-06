@@ -36,6 +36,25 @@
  * 6. Navegación:
  *    - Funciones para ir al dashboard
  *    - Funciones de logout/suspender sesión
+ * 
+ * ============================================================================
+ * ÍNDICE DE SECCIONES:
+ * ============================================================================
+ * Sección 1: MÓDULO PRINCIPAL (IIFE) se encuentra en las líneas 42 a 1362
+ *   - Subsección 1.1: CONSTANTES se encuentra en las líneas 48 a 62
+ *   - Subsección 1.2: INICIALIZACIÓN Y DEBUG se encuentra en las líneas 64 a 66
+ *   - Subsección 1.3: ESTADO PRIVADO DEL MÓDULO se encuentra en las líneas 68 a 100
+ *   - Subsección 1.4: GESTIÓN DE ORIENTACIÓN MÓVIL se encuentra en las líneas 102 a 152
+ *   - Subsección 1.5: LÓGICA DE LOGIN se encuentra en las líneas 154 a 195
+ *   - Subsección 1.6: RELOJ EN TIEMPO REAL se encuentra en las líneas 197 a 212
+ *   - Subsección 1.7: TEMPERATURA EN TIEMPO REAL se encuentra en las líneas 214 a 276
+ *   - Subsección 1.8: LÓGICA DE LA TERMINAL se encuentra en las líneas 278 a 379
+ *   - Subsección 1.9: FUNCIONALIDAD PARA LA PÁGINA SLIDER se encuentra en las líneas 381 a 441
+ *   - Subsección 1.10: CONTROL DE VENTILADOR se encuentra en las líneas 442 a 616
+ *   - Subsección 1.11: FUNCIONES DEL MODO HORARIO se encuentra en las líneas 617 a 1119
+ *   - Subsección 1.12: FUNCIONES DEL MODO TEMPERATURA se encuentra en las líneas 1120 a 1333
+ *   - Subsección 1.13: EXPOSICIÓN PÚBLICA se encuentra en las líneas 1335 a 1360
+ * Sección 2: FUNCIONES DE COMPATIBILIDAD (Wrappers globales) se encuentra en las líneas 1364 a 1423
  * ============================================================================
  */
 

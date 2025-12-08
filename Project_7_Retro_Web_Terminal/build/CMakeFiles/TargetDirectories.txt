@@ -592,6 +592,13 @@
 /home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/esp_adc/CMakeFiles/install.dir
 /home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/esp_adc/CMakeFiles/install/local.dir
 /home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/esp_adc/CMakeFiles/install/strip.dir
+/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/json/CMakeFiles/__idf_json.dir
+/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/json/CMakeFiles/edit_cache.dir
+/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/json/CMakeFiles/rebuild_cache.dir
+/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/json/CMakeFiles/list_install_components.dir
+/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/json/CMakeFiles/install.dir
+/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/json/CMakeFiles/install/local.dir
+/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/json/CMakeFiles/install/strip.dir
 /home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/main/CMakeFiles/__idf_main.dir
 /home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/main/CMakeFiles/edit_cache.dir
 /home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/main/CMakeFiles/rebuild_cache.dir

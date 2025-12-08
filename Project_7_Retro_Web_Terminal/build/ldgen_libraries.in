@@ -117,6 +117,8 @@ $<TARGET_FILE:idf::esp_coex>
 $<TARGET_FILE:idf::esp_wifi>
 $<TARGET_FILE:idf::esp_adc>
 $<TARGET_FILE:__idf_driver>
+$<TARGET_FILE:idf::json>
 $<TARGET_FILE:idf::main>
 $<TARGET_FILE:__idf_spiffs>
 $<TARGET_FILE:__idf_esp_adc>
+$<TARGET_FILE:__idf_json>

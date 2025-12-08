@@ -1,0 +1,2 @@
+source /home/zerendor/Documents/RTOS_Raiz/project-register/build/gdbinit/symbols
+source /home/zerendor/Documents/RTOS_Raiz/project-register/build/gdbinit/connect

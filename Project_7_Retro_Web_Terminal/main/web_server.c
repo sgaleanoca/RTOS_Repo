@@ -57,6 +57,7 @@
 #include <esp_http_server.h>
 #include <esp_spiffs.h>
 #include <esp_log.h>
+#include <cJSON.h>
 
 // FreeRTOS
 #include "freertos/FreeRTOS.h"
@@ -74,6 +75,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include <errno.h>
 #include <math.h>
 
@@ -373,6 +375,12 @@ esp_err_t send_file_from_spiffs(httpd_req_t *req, const char *filepath, const ch
     return ESP_OK;
 }
 
+// ===== SECCIÓN: DECLARACIONES FORWARD =====
+// Prototipos de funciones de gestión de registros (definidas más adelante)
+static void crear_archivo_si_no_existe(void);
+static bool agregar_registro(const char *dia, const char *hora, int velocidad);
+static char *leer_registros_json(void);
+
 // ===== SECCIÓN: HANDLERS HTTP =====
 
 // --- Handlers de Páginas Web ---
@@ -489,6 +497,88 @@ static esp_err_t favicon_get_handler(httpd_req_t *req) {
 // --- Handlers de Autenticación ---
 
 // --- Handlers de API ---
+
+/**
+ * Handler para GET /registros
+ * Devuelve todos los registros almacenados en formato JSON
+ * Requiere autenticación
+ */
+static esp_err_t registros_get_handler(httpd_req_t *req) {
+    webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
+    if (!is_authenticated(ctx, req)) {
+        httpd_resp_set_status(req, "401 Unauthorized");
+        httpd_resp_send(req, "Unauthorized", HTTPD_RESP_USE_STRLEN);
+        return ESP_OK;
+    }
+    
+    char *json = leer_registros_json();
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_sendstr(req, json);
+    free(json);
+    
+    return ESP_OK;
+}
+
+/**
+ * Handler para POST /registros
+ * Agrega un nuevo registro al archivo registros.json
+ * Body esperado: {"dia": "lunes", "hora": "14:30", "velocidad": 50}
+ * Requiere autenticación
+ */
+static esp_err_t registros_post_handler(httpd_req_t *req) {
+    webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
+    if (!is_authenticated(ctx, req)) {
+        httpd_resp_set_status(req, "401 Unauthorized");
+        httpd_resp_send(req, "Unauthorized", HTTPD_RESP_USE_STRLEN);
+        return ESP_OK;
+    }
+    
+    char buf[256];
+    int len = httpd_req_recv(req, buf, sizeof(buf) - 1);
+    if (len <= 0) {
+        httpd_resp_set_status(req, "400 Bad Request");
+        httpd_resp_send(req, "Error recibiendo datos", HTTPD_RESP_USE_STRLEN);
+        return ESP_FAIL;
+    }
+    buf[len] = '\0';
+    
+    cJSON *root = cJSON_Parse(buf);
+    if (!root) {
+        ESP_LOGE(TAG, "Error parseando JSON del POST /registros");
+        httpd_resp_set_status(req, "400 Bad Request");
+        httpd_resp_send(req, "JSON inválido", HTTPD_RESP_USE_STRLEN);
+        return ESP_FAIL;
+    }
+    
+    cJSON *dia_item = cJSON_GetObjectItem(root, "dia");
+    cJSON *hora_item = cJSON_GetObjectItem(root, "hora");
+    cJSON *velocidad_item = cJSON_GetObjectItem(root, "velocidad");
+    
+    if (!dia_item || !hora_item || !velocidad_item ||
+        !cJSON_IsString(dia_item) || !cJSON_IsString(hora_item) || !cJSON_IsNumber(velocidad_item)) {
+        ESP_LOGE(TAG, "Campos faltantes o inválidos en JSON");
+        cJSON_Delete(root);
+        httpd_resp_set_status(req, "400 Bad Request");
+        httpd_resp_send(req, "Campos requeridos: dia (string), hora (string), velocidad (number)", HTTPD_RESP_USE_STRLEN);
+        return ESP_FAIL;
+    }
+    
+    const char *dia = dia_item->valuestring;
+    const char *hora = hora_item->valuestring;
+    int velocidad = velocidad_item->valueint;
+    
+    bool ok = agregar_registro(dia, hora, velocidad);
+    cJSON_Delete(root);
+    
+    if (ok) {
+        httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
+        return ESP_OK;
+    } else {
+        httpd_resp_set_status(req, "500 Internal Server Error");
+        httpd_resp_send(req, "Error guardando registro", HTTPD_RESP_USE_STRLEN);
+        return ESP_FAIL;
+    }
+}
 
 /**
  * Handler para GET /temperature
@@ -884,6 +974,157 @@ static esp_err_t init_spiffs(void) {
     return ESP_OK;
 }
 
+// ===== SECCIÓN: GESTIÓN DE REGISTROS EN SPIFFS =====
+/**
+ * Crea el archivo registros.json si no existe
+ * Inicializa con un array JSON vacío []
+ */
+static void crear_archivo_si_no_existe(void) {
+    FILE *f = fopen("/spiffs/registros.json", "r");
+    if (f == NULL) {
+        ESP_LOGW(TAG, "registros.json no existe. Creando...");
+        f = fopen("/spiffs/registros.json", "w");
+        if (f == NULL) {
+            ESP_LOGE(TAG, "Error creando registros.json");
+            return;
+        }
+        fprintf(f, "[]");  // JSON vacío
+        fclose(f);
+        ESP_LOGI(TAG, "Archivo registros.json creado correctamente.");
+    } else {
+        fclose(f);
+    }
+}
+
+/**
+ * Agrega un registro al archivo registros.json
+ * @param dia: Día de la semana (ej: "lunes")
+ * @param hora: Hora en formato HH:MM (ej: "14:30")
+ * @param velocidad: Velocidad del ventilador (0-100)
+ * @return true si éxito, false si error
+ */
+static bool agregar_registro(const char *dia, const char *hora, int velocidad) {
+    FILE *f = fopen("/spiffs/registros.json", "r");
+    if (!f) {
+        ESP_LOGE(TAG, "No se puede abrir registros.json en modo lectura");
+        return false;
+    }
+
+    fseek(f, 0, SEEK_END);
+    long size = ftell(f);
+    rewind(f);
+
+    if (size < 0) {
+        fclose(f);
+        ESP_LOGE(TAG, "Error obteniendo tamaño del archivo");
+        return false;
+    }
+
+    char *buffer = malloc(size + 1);
+    if (!buffer) {
+        fclose(f);
+        ESP_LOGE(TAG, "Error al asignar memoria");
+        return false;
+    }
+
+    size_t read_size = fread(buffer, 1, size, f);
+    fclose(f);
+    buffer[read_size] = '\0';
+
+    cJSON *root = cJSON_Parse(buffer);
+    free(buffer);
+
+    if (!root) {
+        ESP_LOGE(TAG, "Error parseando JSON");
+        return false;
+    }
+
+    // Asegurar que root es un array
+    if (!cJSON_IsArray(root)) {
+        cJSON_Delete(root);
+        root = cJSON_CreateArray();
+    }
+
+    cJSON *nuevo = cJSON_CreateObject();
+    cJSON_AddStringToObject(nuevo, "dia", dia);
+    cJSON_AddStringToObject(nuevo, "hora", hora);
+    cJSON_AddNumberToObject(nuevo, "velocidad", velocidad);
+    
+    // Agregar timestamp para compatibilidad con frontend
+    // Usar un ID único basado en el tiempo actual
+    int64_t timestamp_ms = get_time_ms();
+    char timestamp[32];
+    snprintf(timestamp, sizeof(timestamp), "%" PRId64, timestamp_ms);
+    cJSON_AddStringToObject(nuevo, "id", timestamp);
+    
+    cJSON_AddItemToArray(root, nuevo);
+
+    char *json_str = cJSON_Print(root);
+    cJSON_Delete(root);
+
+    if (!json_str) {
+        ESP_LOGE(TAG, "Error generando JSON string");
+        return false;
+    }
+
+    f = fopen("/spiffs/registros.json", "w");
+    if (!f) {
+        ESP_LOGE(TAG, "Error abriendo archivo para escribir");
+        free(json_str);
+        return false;
+    }
+
+    fwrite(json_str, 1, strlen(json_str), f);
+    fclose(f);
+    free(json_str);
+
+    ESP_LOGI(TAG, "Registro guardado correctamente: %s %s velocidad=%d", dia, hora, velocidad);
+    return true;
+}
+
+/**
+ * Lee todos los registros del archivo registros.json
+ * @return String JSON con todos los registros (debe ser liberado con free())
+ *         Retorna "[]" si hay error o el archivo está vacío
+ */
+static char *leer_registros_json(void) {
+    FILE *f = fopen("/spiffs/registros.json", "r");
+    if (!f) {
+        ESP_LOGW(TAG, "No se puede abrir registros.json, retornando array vacío");
+        return strdup("[]");
+    }
+
+    fseek(f, 0, SEEK_END);
+    long size = ftell(f);
+    rewind(f);
+
+    if (size <= 0) {
+        fclose(f);
+        return strdup("[]");
+    }
+
+    char *buffer = malloc(size + 1);
+    if (!buffer) {
+        fclose(f);
+        return strdup("[]");
+    }
+
+    size_t read_size = fread(buffer, 1, size, f);
+    fclose(f);
+    buffer[read_size] = '\0';
+
+    // Validar que sea JSON válido
+    cJSON *test = cJSON_Parse(buffer);
+    if (!test) {
+        ESP_LOGW(TAG, "JSON inválido en registros.json, retornando array vacío");
+        free(buffer);
+        return strdup("[]");
+    }
+    cJSON_Delete(test);
+
+    return buffer;
+}
+
 // ===== SECCIÓN: REGISTRO DE RUTAS HTTP =====
 /**
  * Registra todas las rutas HTTP del servidor web
@@ -921,6 +1162,8 @@ static esp_err_t register_http_routes(webserver_context_t *ctx) {
         // API
         {"/cmd", HTTP_GET, cmd_get_handler, "cmd"},
         {"/temperature", HTTP_GET, temperature_get_handler, "temperature"},
+        {"/registros", HTTP_GET, registros_get_handler, "registros_get"},
+        {"/registros", HTTP_POST, registros_post_handler, "registros_post"},
     };
     
     // Registrar cada ruta
@@ -1002,10 +1245,13 @@ void start_webserver(void) {
     
     // Verificar que todos los archivos necesarios estén presentes
     verify_spiffs_files();
+    
+    // Crear archivo registros.json si no existe
+    crear_archivo_si_no_existe();
 
     // 2. Configurar Server
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.max_uri_handlers = 12;
+    config.max_uri_handlers = 14;
     config.max_open_sockets = 7;
     config.lru_purge_enable = true; // Habilitar purga de conexiones inactivas
 

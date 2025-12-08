@@ -786,21 +786,31 @@
         
         console.log('[FAN SCHEDULE] Registro creado:', record);
         
-        // Mostrar mensaje de confirmación
-        showScheduleConfirmationMessage();
+        // Enviar registro al servidor para almacenamiento persistente
+        fetch('/registros', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                dia: record.day,
+                hora: record.time,
+                velocidad: record.speed
+            })
+        })
+        .then(resp => {
+            if (!resp.ok) throw new Error('Error al guardar registro');
+            return resp.text();
+        })
+        .then(data => {
+            console.log('[FAN SCHEDULE] Registro guardado en servidor:', data);
+            showScheduleConfirmationMessage('✓ Registro guardado correctamente');
+        })
+        .catch(err => {
+            console.error('[FAN SCHEDULE] Error al guardar registro:', err);
+            showScheduleConfirmationMessage('✗ Error al guardar registro');
+        });
         
         // Reiniciar campos (como si se diera a borrar)
         clearFanSchedule();
-        
-        // Aquí puedes agregar lógica para enviar el registro al ESP32
-        // fetch('/fan/schedule', {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify(record)
-        // })
-        // .then(resp => resp.text())
-        // .then(data => console.log(data))
-        // .catch(err => console.error(err));
     }
 
     // Función para mostrar mensaje de confirmación
@@ -1296,9 +1306,42 @@
         }
     }
 
+    // Función para cargar registros desde el servidor
+    function cargarRegistrosDesdeServidor() {
+        fetch('/registros')
+            .then(resp => {
+                if (!resp.ok) throw new Error('Error al cargar registros');
+                return resp.json();
+            })
+            .then(lista => {
+                console.log('[FAN SCHEDULE] Registros cargados desde servidor:', lista);
+                // Convertir formato del servidor al formato local
+                fanState.scheduleRecords = lista.map(reg => ({
+                    id: reg.id || Date.now(),
+                    day: reg.dia,
+                    time: reg.hora,
+                    speed: reg.velocidad,
+                    date: new Date().toLocaleDateString('es-ES'),
+                    timestamp: new Date().toLocaleString('es-ES')
+                }));
+                // Actualizar visualización
+                updateLogsDisplay();
+                // Actualizar popup si está abierto
+                const popup = document.getElementById('logsPopup');
+                if (popup && popup.style.display !== 'none') {
+                    updateLogsPopupContent();
+                }
+            })
+            .catch(err => {
+                console.error('[FAN SCHEDULE] Error al cargar registros:', err);
+                // Mantener registros locales si hay error
+            });
+    }
+
     // Inicializar la visualización de registros al cargar
     if (document.getElementById('logsList')) {
-        updateLogsDisplay();
+        // Cargar registros desde el servidor primero
+        cargarRegistrosDesdeServidor();
     }
 
     // Optimización: Pausar monitoreo cuando la página no está visible (ahorro de batería en móvil)

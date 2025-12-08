@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "Project_7_Retro_Web_Terminal",
-    "project_version":    "bad5b92-dirty",
+    "project_version":    "e814448-dirty",
     "project_path":       "/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal",
     "idf_path":           "/home/zerendor/esp/esp-idf",
     "build_dir":          "/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build",
@@ -880,7 +880,7 @@
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/main/libmain.a",
-            "sources": [ "/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/main/registros.c", "/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/main/ntc_sensor.c", "/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/main/main.c", "/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/main/wifi_app.c", "/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/main/web_server.c", "/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/main/gpio_driver.c" ],
+            "sources": [ "/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/main/terminal_commands.c", "/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/main/registros.c", "/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/main/ntc_sensor.c", "/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/main/main.c", "/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/main/wifi_app.c", "/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/main/web_server.c", "/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/main/gpio_driver.c" ],
             "include_dirs": [ "." ]
         },
         "mbedtls": {

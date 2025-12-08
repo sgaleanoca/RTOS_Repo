@@ -58,6 +58,7 @@
 #include "gpio_driver.h"
 #include "ntc_sensor.h"
 #include "registros.h"
+#include "terminal_commands.h"
 
 // ESP-IDF
 #include <esp_http_server.h>
@@ -100,12 +101,7 @@ static const char *TAG = "WEB_SERVER";
 #define CMD_RESPONSE_MAX_ATTEMPTS 10      // Intentos máximos para recibir respuesta
 
 // ===== ESTRUCTURAS DE DATOS =====
-// Estructura para comandos GPIO
-typedef struct {
-    uint32_t command_id;  // ID único para emparejar comando-respuesta
-    char command[100];
-    char response[512];
-} gpio_command_t;
+// Nota: gpio_command_t está definido en terminal_commands.h
 
 // Estructura de sesión de usuario
 typedef struct {
@@ -137,78 +133,25 @@ static int64_t get_time_ms(void) {
 
 // ===== SECCIÓN: TAREA DE PROCESAMIENTO DE COMANDOS =====
 /**
- * Tarea de FreeRTOS que procesa comandos GPIO recibidos desde la web
- * Lee comandos de la cola, los ejecuta y envía respuestas
- * 
- * Comandos soportados:
- * - led y on/off : Control LED amarillo
- * - led b on/off : Control LED azul
- * - led all on/off : Control ambos LEDs
- * - status : Estado de los LEDs
- * - help : Lista de comandos disponibles
- * - clear : Limpiar pantalla (manejado en frontend)
+ * Wrapper para la tarea de procesamiento de comandos
+ * Esta función adapta el contexto del servidor web al contexto de terminal
+ * y llama a la función del módulo terminal_commands
  */
-static void gpio_command_task(void *pvParameters) {
+static void gpio_command_task_wrapper(void *pvParameters) {
     webserver_context_t *ctx = (webserver_context_t *)pvParameters;
-    gpio_command_t cmd;
-    ESP_LOGI(TAG, "Tarea de procesamiento de comandos GPIO iniciada");
     
-    while (1) {
-        // Esperar comando de la cola (bloqueante)
-        if (xQueueReceive(ctx->gpio_command_queue, &cmd, portMAX_DELAY) == pdTRUE) {
-            // Procesar comando (mantener el command_id para la respuesta)
-            if (strcmp(cmd.command, "led y on") == 0) {
-                gpio_set_yellow(true);
-                strcpy(cmd.response, "[OK] LED amarillo encendido.");
-            } else if (strcmp(cmd.command, "led y off") == 0) {
-                gpio_set_yellow(false);
-                strcpy(cmd.response, "[OK] LED amarillo apagado.");
-            } else if (strcmp(cmd.command, "led b on") == 0) {
-                gpio_set_blue(true);
-                strcpy(cmd.response, "[OK] LED azul encendido.");
-            } else if (strcmp(cmd.command, "led b off") == 0) {
-                gpio_set_blue(false);
-                strcpy(cmd.response, "[OK] LED azul apagado.");
-            } else if (strcmp(cmd.command, "led all on") == 0) {
-                gpio_set_yellow(true);
-                gpio_set_blue(true);
-                strcpy(cmd.response, "[OK] Ambos LEDs encendidos.");
-            } else if (strcmp(cmd.command, "led all off") == 0) {
-                gpio_set_yellow(false);
-                gpio_set_blue(false);
-                strcpy(cmd.response, "[OK] Ambos LEDs apagados.");
-            } else if (strcmp(cmd.command, "status") == 0) {
-                const char *estadoAmarillo = gpio_get_yellow() ? "ON" : "OFF";
-                const char *estadoAzul = gpio_get_blue() ? "ON" : "OFF";
-                snprintf(cmd.response, sizeof(cmd.response), 
-                         "Estado de los LEDs:\n  - Amarillo: %s\n  - Azul:     %s",
-                         estadoAmarillo, estadoAzul);
-            } else if (strcmp(cmd.command, "help") == 0) {
-                strcpy(cmd.response, 
-                       "Comandos disponibles:\n\n"
-                       "  --- Control Individual ---\n"
-                       "  led y on          - Enciende el LED amarillo.\n"
-                       "  led y off         - Apaga el LED amarillo.\n"
-                       "  led b on          - Enciende el LED azul.\n"
-                       "  led b off         - Apaga el LED azul.\n\n"
-                       "  --- Control General ---\n"
-                       "  led all on        - Enciende ambos LEDs.\n"
-                       "  led all off       - Apaga ambos LEDs.\n\n"
-                       "  --- Sistema ---\n"
-                       "  status            - Muestra el estado de los LEDs.\n"
-                       "  help              - Muestra esta lista.\n"
-                       "  clear             - Limpia la pantalla.");
-            } else {
-                snprintf(cmd.response, sizeof(cmd.response), 
-                         "[?] Comando no reconocido: '%s'. Escribe 'help' para ver la lista.", cmd.command);
-            }
-            
-            // Enviar respuesta a la cola de respuestas (mantener el command_id)
-            if (xQueueSend(ctx->gpio_response_queue, &cmd, pdMS_TO_TICKS(100)) != pdTRUE) {
-                ESP_LOGW(TAG, "Error al enviar respuesta a la cola");
-            }
-        }
-    }
+    // Crear estructura de contexto para terminal_commands
+    // Solo necesita las colas, que ya están en el contexto del servidor
+    struct {
+        QueueHandle_t gpio_command_queue;
+        QueueHandle_t gpio_response_queue;
+    } terminal_ctx = {
+        .gpio_command_queue = ctx->gpio_command_queue,
+        .gpio_response_queue = ctx->gpio_response_queue
+    };
+    
+    // Llamar a la función del módulo terminal_commands
+    terminal_command_task(&terminal_ctx);
 }
 
 // ===== SECCIÓN: TAREA DE GESTIÓN DE SESIONES =====
@@ -445,7 +388,7 @@ static esp_err_t terminal_get_handler(httpd_req_t *req) {
         httpd_resp_send(req, NULL, 0);
         return ESP_OK;
     }
-    return send_file_from_spiffs(req, "/spiffs/index.html", "text/html");
+    return send_file_from_spiffs(req, "/spiffs/terminal.html", "text/html");
 }
 
 /**
@@ -891,6 +834,7 @@ static int verify_spiffs_files(void) {
         "/spiffs/index.html",
         "/spiffs/login.html",
         "/spiffs/dashboard.html",
+        "/spiffs/terminal.html",
         "/spiffs/slider.html",
         "/spiffs/style.css",
         "/spiffs/script.js"
@@ -1086,7 +1030,7 @@ void start_webserver(void) {
     ESP_LOGI(TAG, "Colas de comandos GPIO creadas");
     
     // 0.4. Crear tarea de procesamiento de comandos GPIO (pasar contexto)
-    xTaskCreate(gpio_command_task, "gpio_cmd_task", 4096, &ctx, 5, NULL);
+    xTaskCreate(gpio_command_task_wrapper, "gpio_cmd_task", 4096, &ctx, 5, NULL);
     ESP_LOGI(TAG, "Tarea de comandos GPIO creada");
     
     // 0.5. Crear tarea de gestión de sesiones (pasar contexto)

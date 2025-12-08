@@ -29,9 +29,10 @@
  * 
  * 5. Panel de control (slider.html):
  *    - Control de ventilador con 4 modos (apagado, horario, temperatura, manual)
- *    - Gestión de horarios programados
+ *    - Gestión de horarios programados con almacenamiento persistente
  *    - Control de velocidad con slider
  *    - Monitoreo de temperatura para control automático
+ *    - Registros guardados en SPIFFS del ESP32 (persistencia tras reinicio)
  * 
  * 6. Navegación:
  *    - Funciones para ir al dashboard
@@ -750,7 +751,12 @@
         }
     }
 
-    // Función para registrar el horario programado
+    /**
+     * Función para registrar el horario programado del ventilador
+     * Crea un registro local y lo envía al servidor ESP32 para almacenamiento persistente
+     * El registro se guarda en /spiffs/registros.json en el ESP32
+     * Utiliza POST /registros para enviar los datos al backend
+     */
     function registerFanSchedule() {
         const daySelect = document.getElementById('fanScheduleDay');
         const timeInput = document.getElementById('fanScheduleTime');
@@ -786,7 +792,8 @@
         
         console.log('[FAN SCHEDULE] Registro creado:', record);
         
-        // Enviar registro al servidor para almacenamiento persistente
+        // Enviar registro al servidor ESP32 para almacenamiento persistente en SPIFFS
+        // El backend guardará el registro en /spiffs/registros.json usando el módulo registros.c
         fetch('/registros', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1306,7 +1313,12 @@
         }
     }
 
-    // Función para cargar registros desde el servidor
+    /**
+     * Función para cargar registros desde el servidor ESP32
+     * Obtiene todos los registros almacenados en SPIFFS (/spiffs/registros.json)
+     * Utiliza GET /registros que lee los datos usando el módulo registros.c
+     * Los registros se cargan al iniciar la página del dashboard/slider
+     */
     function cargarRegistrosDesdeServidor() {
         fetch('/registros')
             .then(resp => {
@@ -1314,8 +1326,9 @@
                 return resp.json();
             })
             .then(lista => {
-                console.log('[FAN SCHEDULE] Registros cargados desde servidor:', lista);
-                // Convertir formato del servidor al formato local
+                console.log('[FAN SCHEDULE] Registros cargados desde servidor (SPIFFS):', lista);
+                // Convertir formato del servidor (dia/hora/velocidad) al formato local (day/time/speed)
+                // Los registros vienen desde /spiffs/registros.json del ESP32
                 fanState.scheduleRecords = lista.map(reg => ({
                     id: reg.id || Date.now(),
                     day: reg.dia,
@@ -1338,9 +1351,10 @@
             });
     }
 
-    // Inicializar la visualización de registros al cargar
+    // Inicializar la visualización de registros al cargar la página
+    // Cargar registros persistentes desde SPIFFS del ESP32 al iniciar
     if (document.getElementById('logsList')) {
-        // Cargar registros desde el servidor primero
+        // Cargar registros desde el servidor (almacenados en /spiffs/registros.json)
         cargarRegistrosDesdeServidor();
     }
 

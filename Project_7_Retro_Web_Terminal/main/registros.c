@@ -5,8 +5,17 @@
  * 
  * RESUMEN:
  * Implementación de la gestión de registros de horarios del ventilador.
- * Las funciones guardan y leen registros desde el archivo registros.json
- * en la partición SPIFFS.
+ * Este módulo proporciona funciones para almacenar y leer registros de forma
+ * persistente en la partición SPIFFS del ESP32.
+ * 
+ * Funcionalidades:
+ * - Creación automática del archivo registros.json si no existe
+ * - Guardado de registros en formato JSON en /spiffs/registros.json
+ * - Lectura de todos los registros almacenados
+ * - Persistencia de datos tras reinicio del ESP32
+ * 
+ * Los registros se utilizan desde el módulo web_server.c a través de los
+ * endpoints HTTP GET /registros y POST /registros.
  * 
  * ============================================================================
  */
@@ -44,8 +53,10 @@ static int64_t get_time_ms(void) {
 
 // ===== FUNCIONES PÚBLICAS =====
 /**
- * Crea el archivo registros.json si no existe
- * Inicializa con un array JSON vacío []
+ * Crea el archivo registros.json en SPIFFS si no existe
+ * Inicializa el archivo con un array JSON vacío []
+ * Esta función debe llamarse durante la inicialización del servidor web
+ * para asegurar que el archivo existe antes de intentar leer/escribir registros
  */
 void crear_archivo_si_no_existe(void) {
     FILE *f = fopen("/spiffs/registros.json", "r");
@@ -65,11 +76,17 @@ void crear_archivo_si_no_existe(void) {
 }
 
 /**
- * Agrega un registro al archivo registros.json
- * @param dia: Día de la semana (ej: "lunes")
+ * Agrega un registro al archivo registros.json en SPIFFS
+ * Lee el archivo completo, agrega el nuevo registro al array JSON,
+ * y guarda el archivo actualizado de forma persistente.
+ * 
+ * @param dia: Día de la semana (ej: "lunes", "martes", etc.)
  * @param hora: Hora en formato HH:MM (ej: "14:30")
  * @param velocidad: Velocidad del ventilador (0-100)
- * @return true si éxito, false si error
+ * @return true si éxito, false si error (archivo no existe, error de escritura, etc.)
+ * 
+ * Nota: El registro incluye un ID único basado en timestamp para compatibilidad
+ * con el frontend que espera un campo "id" en cada registro.
  */
 bool agregar_registro(const char *dia, const char *hora, int velocidad) {
     FILE *f = fopen("/spiffs/registros.json", "r");
@@ -151,9 +168,18 @@ bool agregar_registro(const char *dia, const char *hora, int velocidad) {
 }
 
 /**
- * Lee todos los registros del archivo registros.json
+ * Lee todos los registros del archivo registros.json desde SPIFFS
+ * Retorna un string JSON con el array completo de registros almacenados.
+ * 
  * @return String JSON con todos los registros (debe ser liberado con free())
- *         Retorna "[]" si hay error o el archivo está vacío
+ *         Retorna "[]" (array vacío) si hay error, el archivo no existe o está vacío
+ * 
+ * Formato del JSON retornado:
+ * [
+ *   {"dia": "lunes", "hora": "14:30", "velocidad": 50, "id": "1234567890"},
+ *   {"dia": "martes", "hora": "08:00", "velocidad": 75, "id": "1234567891"},
+ *   ...
+ * ]
  */
 char *leer_registros_json(void) {
     FILE *f = fopen("/spiffs/registros.json", "r");

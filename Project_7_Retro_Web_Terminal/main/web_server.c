@@ -12,7 +12,7 @@
  * 
  * 2. Servidor HTTP con múltiples rutas:
  *    - Páginas web: login, dashboard, terminal, slider
- *    - API REST: /cmd (comandos), /temperature (datos JSON)
+ *    - API REST: /cmd (comandos), /temperature (datos JSON), /registros (gestión de registros)
  *    - Autenticación: /login, /logout
  * 
  * 3. Sistema de autenticación y sesiones:
@@ -28,6 +28,11 @@
  * 5. Gestión de temperatura:
  *    - Endpoint JSON para obtener temperatura actual
  *    - Datos actualizados desde la tarea de lectura del sensor
+ * 
+ * 6. Gestión de registros de horarios:
+ *    - Endpoints HTTP para guardar y leer registros (/registros)
+ *    - Utiliza el módulo registros.c para almacenamiento persistente en SPIFFS
+ *    - Los registros se guardan en /spiffs/registros.json
  * 
  * ============================================================================
  * ÍNDICE DE SECCIONES:
@@ -495,7 +500,9 @@ static esp_err_t favicon_get_handler(httpd_req_t *req) {
 
 /**
  * Handler para GET /registros
- * Devuelve todos los registros almacenados en formato JSON
+ * Devuelve todos los registros almacenados en formato JSON desde SPIFFS
+ * Utiliza la función leer_registros_json() del módulo registros.c
+ * Respuesta: Array JSON con todos los registros [{"dia": "...", "hora": "...", "velocidad": ...}, ...]
  * Requiere autenticación
  */
 static esp_err_t registros_get_handler(httpd_req_t *req) {
@@ -506,6 +513,7 @@ static esp_err_t registros_get_handler(httpd_req_t *req) {
         return ESP_OK;
     }
     
+    // Leer registros desde SPIFFS usando el módulo registros.c
     char *json = leer_registros_json();
     httpd_resp_set_type(req, "application/json");
     httpd_resp_sendstr(req, json);
@@ -516,8 +524,10 @@ static esp_err_t registros_get_handler(httpd_req_t *req) {
 
 /**
  * Handler para POST /registros
- * Agrega un nuevo registro al archivo registros.json
+ * Agrega un nuevo registro al archivo registros.json en SPIFFS
+ * Utiliza la función agregar_registro() del módulo registros.c
  * Body esperado: {"dia": "lunes", "hora": "14:30", "velocidad": 50}
+ * El registro se guarda de forma persistente en /spiffs/registros.json
  * Requiere autenticación
  */
 static esp_err_t registros_post_handler(httpd_req_t *req) {
@@ -562,6 +572,7 @@ static esp_err_t registros_post_handler(httpd_req_t *req) {
     const char *hora = hora_item->valuestring;
     int velocidad = velocidad_item->valueint;
     
+    // Guardar registro en SPIFFS usando el módulo registros.c
     bool ok = agregar_registro(dia, hora, velocidad);
     cJSON_Delete(root);
     
@@ -1090,7 +1101,8 @@ void start_webserver(void) {
     // Verificar que todos los archivos necesarios estén presentes
     verify_spiffs_files();
     
-    // Crear archivo registros.json si no existe
+    // Inicializar sistema de registros: crear archivo registros.json si no existe
+    // Utiliza la función del módulo registros.c para crear el archivo base en SPIFFS
     crear_archivo_si_no_existe();
 
     // 2. Configurar Server

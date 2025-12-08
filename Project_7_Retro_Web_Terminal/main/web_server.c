@@ -50,6 +50,88 @@
  * Sección 11: REGISTRO DE RUTAS HTTP se encuentra en las líneas 871 a 928
  * Sección 12: INICIALIZACIÓN DEL SERVIDOR se encuentra en las líneas 930 a 1010
  * ============================================================================
+ * 
+ * ============================================================================
+ * RESUMEN DE TAREAS, COLAS Y SEMÁFOROS IMPLEMENTADOS:
+ * ============================================================================
+ * 
+ * === TAREAS (TASKS) ===
+ * 
+ * 1. gpio_command_task_wrapper (Sección 5)
+ *    - Nombre: "gpio_cmd_task"
+ *    - Stack: 4096 bytes
+ *    - Prioridad: 5 (alta)
+ *    - Función: Wrapper que adapta el contexto del servidor web y llama a 
+ *               terminal_command_task() del módulo terminal_commands.c
+ *    - Propósito: Procesar comandos de la terminal web de forma asíncrona
+ *    - Estado: Loop infinito, bloquea esperando comandos de la cola
+ * 
+ * 2. session_management_task (Sección 6)
+ *    - Nombre: "session_mgmt"
+ *    - Stack: 2048 bytes
+ *    - Prioridad: 3 (media)
+ *    - Función: Verifica periódicamente las sesiones y expira las inactivas
+ *    - Propósito: Gestión automática del ciclo de vida de sesiones
+ *    - Estado: Loop infinito, verifica cada 2 segundos
+ *    - Acciones: Expira sesiones inactivas > 3 minutos, apaga LEDs automáticamente
+ * 
+ * === COLAS (QUEUES) ===
+ * 
+ * 1. gpio_command_queue
+ *    - Tipo: QueueHandle_t (FreeRTOS queue)
+ *    - Tamaño: GPIO_QUEUE_SIZE (10 elementos)
+ *    - Elemento: gpio_command_t (estructura con ID, comando y respuesta)
+ *    - Dirección: Handler HTTP → Tarea de procesamiento
+ *    - Uso: El handler HTTP /cmd envía comandos aquí
+ *    - Operaciones: xQueueSend() desde handler, xQueueReceive() desde tarea
+ *    - Thread-safe: Sí, permite comunicación segura entre tareas
+ * 
+ * 2. gpio_response_queue
+ *    - Tipo: QueueHandle_t (FreeRTOS queue)
+ *    - Tamaño: GPIO_QUEUE_SIZE (10 elementos)
+ *    - Elemento: gpio_command_t (mismo comando con respuesta generada)
+ *    - Dirección: Tarea de procesamiento → Handler HTTP
+ *    - Uso: La tarea terminal_command_task envía respuestas aquí
+ *    - Operaciones: xQueueSend() desde tarea, xQueueReceive() desde handler
+ *    - Thread-safe: Sí, permite comunicación asíncrona entre tareas
+ * 
+ * === SEMÁFOROS (MUTEXES) ===
+ * 
+ * 1. session_mutex
+ *    - Tipo: SemaphoreHandle_t (FreeRTOS mutex)
+ *    - Protege: Array ctx->sessions[] (MAX_SESSIONS = 5)
+ *    - Uso: Protege acceso concurrente a sesiones de múltiples requests HTTP
+ *    - Operaciones: xSemaphoreTake() antes de leer/escribir, xSemaphoreGive() después
+ *    - Timeout: Variable (100ms en verificaciones, portMAX_DELAY en creación)
+ *    - Funciones que lo usan:
+ *      * find_or_create_session() - Crear/buscar sesiones
+ *      * is_authenticated() - Verificar autenticación
+ *      * session_management_task() - Expirar sesiones inactivas
+ * 
+ * 2. command_id_mutex
+ *    - Tipo: SemaphoreHandle_t (FreeRTOS mutex)
+ *    - Protege: ctx->command_id_counter (contador de IDs únicos)
+ *    - Uso: Garantiza generación atómica de IDs únicos para comandos
+ *    - Operaciones: xSemaphoreTake() antes de incrementar, xSemaphoreGive() después
+ *    - Timeout: portMAX_DELAY (espera indefinidamente)
+ *    - Funciones que lo usan:
+ *      * cmd_get_handler() - Genera ID único para cada comando
+ *    - Propósito: Permite emparejar comandos-respuestas cuando hay múltiples comandos simultáneos
+ * 
+ * ============================================================================
+ * FLUJO DE COMUNICACIÓN:
+ * ============================================================================
+ * 
+ * Cliente Web → Handler HTTP (/cmd)
+ *   ↓ [xQueueSend] gpio_command_queue
+ * Tarea: terminal_command_task
+ *   ↓ [process_terminal_command()]
+ *   ↓ [xQueueSend] gpio_response_queue
+ * Handler HTTP (/cmd)
+ *   ↓ [xQueueReceive]
+ * Cliente Web ← Respuesta
+ * 
+ * ============================================================================
  */
 
 // ===== INCLUDES =====
@@ -114,11 +196,45 @@ typedef struct {
 // Encapsula todo el estado del servidor para evitar variables globales
 typedef struct {
     httpd_handle_t server;
+    
+    // ===== COLAS (QUEUES) =====
+    // Las colas permiten comunicación thread-safe entre tareas
+    // gpio_command_queue: Cola para enviar comandos desde el handler HTTP a la tarea de procesamiento
+    //   - Tipo: QueueHandle_t (FreeRTOS queue)
+    //   - Tamaño: GPIO_QUEUE_SIZE (10 elementos)
+    //   - Elemento: gpio_command_t (comando con ID, texto y buffer de respuesta)
+    //   - Uso: El handler HTTP /cmd envía comandos aquí, la tarea terminal_command_task los recibe
+    //   - Thread-safe: Sí, FreeRTOS garantiza acceso seguro desde múltiples tareas
     QueueHandle_t gpio_command_queue;
+    
+    // gpio_response_queue: Cola para recibir respuestas de la tarea de procesamiento
+    //   - Tipo: QueueHandle_t (FreeRTOS queue)
+    //   - Tamaño: GPIO_QUEUE_SIZE (10 elementos)
+    //   - Elemento: gpio_command_t (mismo comando con respuesta generada)
+    //   - Uso: La tarea terminal_command_task envía respuestas aquí, el handler HTTP las recibe
+    //   - Thread-safe: Sí, permite comunicación asíncrona entre tareas
     QueueHandle_t gpio_response_queue;
+    
+    // ===== SEMÁFOROS (MUTEXES) =====
+    // Los mutexes protegen recursos compartidos de acceso concurrente
+    // session_mutex: Protege el array de sesiones de acceso concurrente
+    //   - Tipo: SemaphoreHandle_t (FreeRTOS mutex)
+    //   - Uso: Protege ctx->sessions[] de race conditions
+    //   - Necesario porque: Múltiples requests HTTP pueden acceder simultáneamente a las sesiones
+    //   - Operaciones: xSemaphoreTake() antes de leer/escribir, xSemaphoreGive() después
+    //   - Ejemplo: find_or_create_session(), is_authenticated(), session_management_task()
     SemaphoreHandle_t session_mutex;
-    uint32_t command_id_counter;
+    
+    uint32_t command_id_counter;  // Contador para IDs únicos de comandos
+    
+    // command_id_mutex: Protege el contador de IDs de comandos
+    //   - Tipo: SemaphoreHandle_t (FreeRTOS mutex)
+    //   - Uso: Protege ctx->command_id_counter de race conditions
+    //   - Necesario porque: Múltiples requests HTTP pueden generar IDs simultáneamente
+    //   - Operaciones: xSemaphoreTake() antes de incrementar, xSemaphoreGive() después
+    //   - Ejemplo: cmd_get_handler() genera IDs únicos para emparejar comandos-respuestas
     SemaphoreHandle_t command_id_mutex;
+    
     session_t sessions[MAX_SESSIONS];
 } webserver_context_t;
 
@@ -136,6 +252,20 @@ static int64_t get_time_ms(void) {
  * Wrapper para la tarea de procesamiento de comandos
  * Esta función adapta el contexto del servidor web al contexto de terminal
  * y llama a la función del módulo terminal_commands
+ * 
+ * ===== EXPLICACIÓN DE LA TAREA =====
+ * Esta función crea un wrapper que adapta el contexto del servidor web
+ * al formato esperado por terminal_command_task(). La tarea real se ejecuta
+ * en terminal_commands.c, pero este wrapper permite mantener la modularidad
+ * del código.
+ * 
+ * La tarea real (terminal_command_task) se ejecuta en un loop infinito:
+ * 1. Espera comandos de gpio_command_queue (bloqueante, portMAX_DELAY)
+ * 2. Procesa el comando usando process_terminal_command()
+ * 3. Envía la respuesta a gpio_response_queue
+ * 
+ * Esta arquitectura permite que el handler HTTP no se bloquee esperando
+ * el procesamiento del comando, mejorando la capacidad de respuesta del servidor.
  */
 static void gpio_command_task_wrapper(void *pvParameters) {
     webserver_context_t *ctx = (webserver_context_t *)pvParameters;
@@ -158,6 +288,33 @@ static void gpio_command_task_wrapper(void *pvParameters) {
 /**
  * Tarea que verifica periódicamente las sesiones y expira las inactivas
  * Apaga los LEDs cuando una sesión expira por timeout
+ * 
+ * ===== EXPLICACIÓN DE LA TAREA =====
+ * Esta es una tarea de FreeRTOS que se ejecuta de forma independiente
+ * en segundo plano para gestionar el ciclo de vida de las sesiones.
+ * 
+ * Funcionamiento:
+ * 1. Se ejecuta en un loop infinito (while(1))
+ * 2. Espera 2 segundos entre cada verificación (vTaskDelay)
+ * 3. Obtiene el tiempo actual y compara con last_activity de cada sesión
+ * 4. Si una sesión está inactiva más de SESSION_TIMEOUT_MS (3 minutos):
+ *    - Marca la sesión como no autenticada
+ *    - Apaga los LEDs por seguridad
+ *    - Registra el evento en el log
+ * 
+ * Uso del semáforo (mutex):
+ * - session_mutex protege el acceso al array ctx->sessions[]
+ * - xSemaphoreTake() adquiere el mutex antes de leer/escribir
+ * - xSemaphoreGive() libera el mutex después de la operación
+ * - Timeout de 100ms para evitar bloqueo indefinido si hay problemas
+ * 
+ * Prioridad: 3 (configurada en start_webserver())
+ * Stack: 2048 bytes
+ * 
+ * Esta tarea es crítica para la seguridad del sistema, ya que:
+ * - Previene sesiones huérfanas que consuman recursos
+ * - Apaga los LEDs automáticamente cuando el usuario se desconecta
+ * - Libera slots de sesión para nuevos usuarios
  */
 static void session_management_task(void *pvParameters) {
     webserver_context_t *ctx = (webserver_context_t *)pvParameters;
@@ -169,16 +326,23 @@ static void session_management_task(void *pvParameters) {
         int64_t now = get_time_ms();
         
         // Proteger acceso a sesiones con mutex
+        // xSemaphoreTake() adquiere el mutex con timeout de 100ms
+        // Si no se puede adquirir en 100ms, se omite esta iteración
         if (ctx->session_mutex != NULL && xSemaphoreTake(ctx->session_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+            // Iterar sobre todas las sesiones posibles
             for (int i = 0; i < MAX_SESSIONS; i++) {
+                // Verificar si la sesión está autenticada y ha expirado
                 if (ctx->sessions[i].authenticated && 
                     (now - ctx->sessions[i].last_activity > SESSION_TIMEOUT_MS)) {
+                    // Expirar la sesión
                     ctx->sessions[i].authenticated = false;
+                    // Apagar LEDs por seguridad cuando la sesión expira
                     gpio_set_yellow(false);
                     gpio_set_blue(false);
                     ESP_LOGI(TAG, "Sesión expirada para IP %s. LEDs apagados.", ctx->sessions[i].ip);
                 }
             }
+            // Liberar el mutex después de terminar las operaciones
             xSemaphoreGive(ctx->session_mutex);
         }
     }
@@ -207,12 +371,30 @@ static void get_client_ip(httpd_req_t *req, char *ip_str, size_t len) {
  * @param ctx: Contexto del servidor web
  * @param ip: Dirección IP del cliente
  * @return Puntero a la sesión o NULL si no hay slots disponibles
+ * 
+ * ===== USO DE SEMÁFORO (MUTEX) =====
+ * Esta función accede al array ctx->sessions[] que es compartido entre:
+ * - Múltiples handlers HTTP (pueden ejecutarse simultáneamente)
+ * - La tarea session_management_task (verifica timeouts periódicamente)
+ * 
+ * El mutex session_mutex garantiza acceso exclusivo:
+ * - xSemaphoreTake() adquiere el mutex (portMAX_DELAY = espera indefinidamente)
+ * - Solo una tarea puede acceder a sessions[] a la vez
+ * - xSemaphoreGive() libera el mutex al finalizar
+ * 
+ * Sin el mutex, habría race conditions:
+ * - Dos handlers HTTP podrían crear sesiones duplicadas
+ * - La tarea de gestión podría expirar una sesión mientras se está usando
+ * - Corrupción de datos en el array de sesiones
  */
 static session_t* find_or_create_session(webserver_context_t *ctx, const char *ip) {
     int64_t now = get_time_ms();
     session_t *session = NULL;
     
-    // Proteger acceso con mutex
+    // ===== ADQUIRIR MUTEX =====
+    // Proteger acceso con mutex antes de leer/escribir sessions[]
+    // portMAX_DELAY: esperar indefinidamente hasta adquirir el mutex
+    // Esto es seguro porque las operaciones son rápidas y el mutex se libera rápidamente
     if (ctx->session_mutex != NULL && xSemaphoreTake(ctx->session_mutex, portMAX_DELAY) == pdTRUE) {
         // Buscar sesión existente
         for (int i = 0; i < MAX_SESSIONS; i++) {
@@ -241,6 +423,9 @@ static session_t* find_or_create_session(webserver_context_t *ctx, const char *i
             }
         }
         
+        // ===== LIBERAR MUTEX =====
+        // Liberar el mutex después de terminar todas las operaciones en sessions[]
+        // Es crítico liberar el mutex, de lo contrario otras tareas quedarían bloqueadas
         xSemaphoreGive(ctx->session_mutex);
     }
     
@@ -252,6 +437,20 @@ static session_t* find_or_create_session(webserver_context_t *ctx, const char *i
  * @param ctx: Contexto del servidor web
  * @param req: Request HTTP
  * @return true si está autenticado, false en caso contrario
+ * 
+ * ===== USO DE SEMÁFORO (MUTEX) =====
+ * Esta función lee y modifica session->authenticated y session->last_activity
+ * que son compartidos con:
+ * - Otros handlers HTTP (múltiples requests simultáneos)
+ * - La tarea session_management_task (expira sesiones)
+ * 
+ * El mutex session_mutex protege estas operaciones:
+ * - Lectura de session->authenticated (verificar estado)
+ * - Escritura de session->last_activity (actualizar timestamp)
+ * - Escritura de session->authenticated (expirar sesión si timeout)
+ * 
+ * Timeout de 100ms: si el mutex está ocupado, espera máximo 100ms
+ * Si no se puede adquirir, retorna false (sesión no autenticada por seguridad)
  */
 static bool is_authenticated(webserver_context_t *ctx, httpd_req_t *req) {
     char ip[16] = {0};
@@ -262,7 +461,10 @@ static bool is_authenticated(webserver_context_t *ctx, httpd_req_t *req) {
         return false;
     }
     
-    // Proteger acceso con mutex
+    // ===== ADQUIRIR MUTEX =====
+    // Proteger acceso con mutex antes de leer/escribir campos de la sesión
+    // Timeout de 100ms: si no se puede adquirir rápidamente, asumir no autenticado
+    // Esto previene bloqueos largos en el handler HTTP
     bool authenticated = false;
     if (ctx->session_mutex != NULL && xSemaphoreTake(ctx->session_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
         if (!session->authenticated) {
@@ -281,6 +483,8 @@ static bool is_authenticated(webserver_context_t *ctx, httpd_req_t *req) {
                 authenticated = true;
             }
         }
+        // ===== LIBERAR MUTEX =====
+        // Liberar el mutex después de terminar las operaciones en la sesión
         xSemaphoreGive(ctx->session_mutex);
     }
     
@@ -686,36 +890,54 @@ static esp_err_t cmd_get_handler(httpd_req_t *req) {
                     return ESP_OK;
                 }
                 
-                // Obtener ID único para el comando
+                // ===== GENERACIÓN DE ID ÚNICO CON MUTEX =====
+                // El mutex command_id_mutex protege el contador de IDs
+                // Esto es necesario porque múltiples requests HTTP pueden ejecutarse simultáneamente
+                // y necesitamos garantizar que cada comando tenga un ID único
                 uint32_t cmd_id = 0;
                 if (ctx->command_id_mutex != NULL && xSemaphoreTake(ctx->command_id_mutex, portMAX_DELAY) == pdTRUE) {
+                    // Incrementar contador de forma atómica (protegido por mutex)
                     cmd_id = ++ctx->command_id_counter;
                     xSemaphoreGive(ctx->command_id_mutex);
                 }
                 
-                // Enviar comando a la cola para procesamiento por la tarea
+                // ===== ENVÍO DE COMANDO A LA COLA =====
+                // Preparar estructura de comando con ID único
                 gpio_command_t command;
                 command.command_id = cmd_id;
                 strncpy(command.command, cmd, sizeof(command.command) - 1);
                 command.command[sizeof(command.command) - 1] = '\0';
                 
+                // Enviar comando a la cola gpio_command_queue
+                // xQueueSend() es thread-safe y bloquea si la cola está llena
+                // Timeout de 1000ms: si la cola está llena por más de 1 segundo, falla
+                // La tarea terminal_command_task recibe este comando y lo procesa
                 if (ctx->gpio_command_queue != NULL && 
                     xQueueSend(ctx->gpio_command_queue, &command, pdMS_TO_TICKS(1000)) == pdTRUE) {
-                    // Esperar respuesta de la tarea (con timeout)
+                    
+                    // ===== RECEPCIÓN DE RESPUESTA DE LA COLA =====
+                    // Esperar respuesta de la tarea terminal_command_task
+                    // La respuesta viene en gpio_response_queue con el mismo command_id
                     gpio_command_t response;
                     bool response_received = false;
                     
                     // Intentar recibir respuesta (múltiples intentos para manejar respuestas de otros comandos)
+                    // Esto es necesario porque múltiples comandos pueden estar en proceso simultáneamente
                     for (int attempts = 0; attempts < CMD_RESPONSE_MAX_ATTEMPTS && !response_received; attempts++) {
+                        // xQueueReceive() recibe de la cola con timeout de 500ms
+                        // Si no hay respuesta en 500ms, intenta de nuevo (hasta CMD_RESPONSE_MAX_ATTEMPTS veces)
                         if (ctx->gpio_response_queue != NULL && 
                             xQueueReceive(ctx->gpio_response_queue, &response, pdMS_TO_TICKS(CMD_RESPONSE_TIMEOUT_MS)) == pdTRUE) {
-                            // Verificar que la respuesta corresponde a nuestro comando
+                            // Verificar que la respuesta corresponde a nuestro comando usando command_id
+                            // Esto es crítico porque múltiples comandos pueden estar en proceso
                             if (response.command_id == cmd_id) {
+                                // Respuesta correcta: enviar al cliente HTTP
                                 httpd_resp_send(req, response.response, HTTPD_RESP_USE_STRLEN);
                                 response_received = true;
                                 return ESP_OK;
                             } else {
-                                // Respuesta de otro comando, devolverla a la cola
+                                // Respuesta de otro comando: devolverla a la cola para que otro handler la reciba
+                                // xQueueSendToFront() la coloca al frente para que se procese rápidamente
                                 xQueueSendToFront(ctx->gpio_response_queue, &response, 0);
                             }
                         }
@@ -1006,36 +1228,70 @@ void start_webserver(void) {
     // 0. Inicializar sesiones
     memset(ctx.sessions, 0, sizeof(ctx.sessions));
     
+    // ===== CREACIÓN DE SEMÁFOROS (MUTEXES) =====
     // 0.1. Crear mutex para sesiones
+    // Este mutex protege el array ctx->sessions[] de acceso concurrente
+    // Múltiples requests HTTP pueden acceder simultáneamente a las sesiones
+    // El mutex garantiza que solo una tarea acceda a la vez
     ctx.session_mutex = xSemaphoreCreateMutex();
     if (ctx.session_mutex == NULL) {
         ESP_LOGE(TAG, "Error al crear mutex para sesiones");
         return;
     }
+    ESP_LOGI(TAG, "Mutex de sesiones creado");
     
     // 0.2. Crear mutex para IDs de comandos
+    // Este mutex protege ctx->command_id_counter de race conditions
+    // Cuando múltiples requests HTTP generan comandos simultáneamente,
+    // cada uno necesita un ID único, por lo que el incremento debe ser atómico
     ctx.command_id_mutex = xSemaphoreCreateMutex();
     if (ctx.command_id_mutex == NULL) {
         ESP_LOGE(TAG, "Error al crear mutex para IDs de comandos");
         return;
     }
+    ESP_LOGI(TAG, "Mutex de IDs de comandos creado");
     
+    // ===== CREACIÓN DE COLAS (QUEUES) =====
     // 0.3. Crear colas para comandos GPIO
+    // Las colas permiten comunicación thread-safe entre el handler HTTP y la tarea de procesamiento
+    // gpio_command_queue: Handler HTTP -> Tarea de procesamiento (comandos)
+    // gpio_response_queue: Tarea de procesamiento -> Handler HTTP (respuestas)
+    // Tamaño: GPIO_QUEUE_SIZE (10 elementos) - permite hasta 10 comandos en cola
+    // Elemento: gpio_command_t (estructura con ID, comando y respuesta)
     ctx.gpio_command_queue = xQueueCreate(GPIO_QUEUE_SIZE, sizeof(gpio_command_t));
     ctx.gpio_response_queue = xQueueCreate(GPIO_QUEUE_SIZE, sizeof(gpio_command_t));
     if (ctx.gpio_command_queue == NULL || ctx.gpio_response_queue == NULL) {
         ESP_LOGE(TAG, "Error al crear colas para comandos GPIO");
         return;
     }
-    ESP_LOGI(TAG, "Colas de comandos GPIO creadas");
+    ESP_LOGI(TAG, "Colas de comandos GPIO creadas (tamaño: %d)", GPIO_QUEUE_SIZE);
     
-    // 0.4. Crear tarea de procesamiento de comandos GPIO (pasar contexto)
+    // ===== CREACIÓN DE TAREAS (TASKS) =====
+    // 0.4. Crear tarea de procesamiento de comandos GPIO
+    // Esta tarea se ejecuta de forma independiente y procesa comandos de la cola
+    // Parámetros:
+    //   - gpio_command_task_wrapper: Función que se ejecutará (wrapper que llama a terminal_command_task)
+    //   - "gpio_cmd_task": Nombre de la tarea (útil para debugging)
+    //   - 4096: Tamaño del stack en bytes (suficiente para procesamiento de comandos)
+    //   - &ctx: Contexto pasado a la tarea (puntero al webserver_context_t)
+    //   - 5: Prioridad de la tarea (mayor número = mayor prioridad, rango típico: 1-10)
+    //   - NULL: Handle de la tarea (no lo necesitamos, por eso NULL)
+    // La tarea se ejecuta en un loop infinito esperando comandos de gpio_command_queue
     xTaskCreate(gpio_command_task_wrapper, "gpio_cmd_task", 4096, &ctx, 5, NULL);
-    ESP_LOGI(TAG, "Tarea de comandos GPIO creada");
+    ESP_LOGI(TAG, "Tarea de comandos GPIO creada (stack: 4096, prioridad: 5)");
     
-    // 0.5. Crear tarea de gestión de sesiones (pasar contexto)
+    // 0.5. Crear tarea de gestión de sesiones
+    // Esta tarea verifica periódicamente las sesiones y expira las inactivas
+    // Parámetros:
+    //   - session_management_task: Función que se ejecutará
+    //   - "session_mgmt": Nombre de la tarea
+    //   - 2048: Tamaño del stack (menor que la anterior porque hace menos trabajo)
+    //   - &ctx: Contexto con las sesiones y el mutex
+    //   - 3: Prioridad más baja (no es crítica, solo mantenimiento)
+    //   - NULL: Handle de la tarea
+    // La tarea se ejecuta cada 2 segundos verificando timeouts de sesiones
     xTaskCreate(session_management_task, "session_mgmt", 2048, &ctx, 3, NULL);
-    ESP_LOGI(TAG, "Tarea de gestión de sesiones creada");
+    ESP_LOGI(TAG, "Tarea de gestión de sesiones creada (stack: 2048, prioridad: 3)");
     
     // 1. Iniciar SPIFFS
     if (init_spiffs() != ESP_OK) {

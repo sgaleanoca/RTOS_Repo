@@ -21,6 +21,64 @@
  * Sección 3: FUNCIÓN DE PROCESAMIENTO DE COMANDOS se encuentra en las líneas 52 a 100
  * Sección 4: TAREA DE PROCESAMIENTO DE COMANDOS se encuentra en las líneas 102 a 130
  * ============================================================================
+ * 
+ * ============================================================================
+ * RESUMEN DE TAREAS, COLAS Y SEMÁFOROS IMPLEMENTADOS:
+ * ============================================================================
+ * 
+ * === TAREAS (TASKS) ===
+ * 
+ * 1. terminal_command_task (Sección 4)
+ *    - Nombre: "gpio_cmd_task" (configurado en web_server.c)
+ *    - Stack: 4096 bytes
+ *    - Prioridad: 5 (alta)
+ *    - Función: Procesa comandos GPIO recibidos desde la terminal web
+ *    - Propósito: Ejecutar comandos de forma asíncrona sin bloquear el servidor HTTP
+ *    - Estado: Loop infinito, bloquea esperando comandos (portMAX_DELAY)
+ *    - Flujo:
+ *      1. Recibe comando de gpio_command_queue (xQueueReceive, bloqueante)
+ *      2. Procesa comando con process_terminal_command()
+ *      3. Envía respuesta a gpio_response_queue (xQueueSend)
+ * 
+ * === COLAS (QUEUES) ===
+ * 
+ * 1. gpio_command_queue (recibida en contexto)
+ *    - Tipo: QueueHandle_t
+ *    - Tamaño: GPIO_QUEUE_SIZE (10 elementos)
+ *    - Elemento: gpio_command_t
+ *    - Dirección: Handler HTTP → Esta tarea
+ *    - Operación: xQueueReceive() con portMAX_DELAY (bloqueante)
+ *    - Uso: Esta tarea recibe comandos de la cola para procesarlos
+ * 
+ * 2. gpio_response_queue (recibida en contexto)
+ *    - Tipo: QueueHandle_t
+ *    - Tamaño: GPIO_QUEUE_SIZE (10 elementos)
+ *    - Elemento: gpio_command_t (con respuesta generada)
+ *    - Dirección: Esta tarea → Handler HTTP
+ *    - Operación: xQueueSend() con timeout de 100ms
+ *    - Uso: Esta tarea envía respuestas procesadas a la cola
+ * 
+ * === SEMÁFOROS (MUTEXES) ===
+ * 
+ * Ninguno en este módulo. Los semáforos se gestionan en web_server.c
+ * 
+ * ============================================================================
+ * ARQUITECTURA:
+ * ============================================================================
+ * 
+ * Esta tarea implementa el patrón Producer-Consumer:
+ * - Producer: Handler HTTP /cmd (envía comandos a gpio_command_queue)
+ * - Consumer: terminal_command_task (recibe y procesa comandos)
+ * - Producer: terminal_command_task (envía respuestas a gpio_response_queue)
+ * - Consumer: Handler HTTP /cmd (recibe respuestas)
+ * 
+ * Ventajas:
+ * - Servidor HTTP no se bloquea esperando procesamiento
+ * - Múltiples comandos pueden estar en cola simultáneamente
+ * - Thread-safe gracias a las colas de FreeRTOS
+ * - Permite manejar picos de tráfico sin perder comandos
+ * 
+ * ============================================================================
  */
 
 // ===== INCLUDES =====
@@ -123,23 +181,72 @@ void process_terminal_command(gpio_command_t *cmd) {
  * Lee comandos de la cola, los ejecuta y envía respuestas
  * 
  * @param pvParameters: Puntero al contexto del servidor web (terminal_context_t)
+ * 
+ * ===== EXPLICACIÓN DE LA TAREA =====
+ * Esta es una tarea de FreeRTOS que se ejecuta de forma independiente
+ * para procesar comandos de la terminal web de manera asíncrona.
+ * 
+ * Arquitectura:
+ * 1. El handler HTTP (/cmd) recibe un comando del cliente web
+ * 2. El handler envía el comando a gpio_command_queue (no bloquea)
+ * 3. Esta tarea recibe el comando de la cola (bloqueante)
+ * 4. Procesa el comando usando process_terminal_command()
+ * 5. Envía la respuesta a gpio_response_queue
+ * 6. El handler HTTP recibe la respuesta y la envía al cliente
+ * 
+ * Ventajas de esta arquitectura:
+ * - El servidor HTTP no se bloquea esperando procesamiento
+ * - Múltiples comandos pueden estar en cola simultáneamente
+ * - El procesamiento es thread-safe gracias a las colas
+ * - Permite manejar picos de tráfico sin perder comandos
+ * 
+ * ===== USO DE COLAS =====
+ * gpio_command_queue (entrada):
+ *   - xQueueReceive() espera indefinidamente (portMAX_DELAY) hasta recibir un comando
+ *   - Cuando recibe un comando, lo copia a la variable local 'cmd'
+ *   - La cola es thread-safe: múltiples handlers HTTP pueden enviar simultáneamente
+ * 
+ * gpio_response_queue (salida):
+ *   - xQueueSend() envía la respuesta con el mismo command_id
+ *   - Timeout de 100ms: si la cola está llena, espera máximo 100ms
+ *   - Si falla, registra un warning pero continúa (el handler HTTP manejará el timeout)
+ * 
+ * ===== FLUJO DE DATOS =====
+ * Cliente Web -> Handler HTTP -> gpio_command_queue -> Esta Tarea -> 
+ * process_terminal_command() -> gpio_response_queue -> Handler HTTP -> Cliente Web
+ * 
+ * Prioridad: 5 (configurada en web_server.c)
+ * Stack: 4096 bytes (suficiente para procesamiento de comandos)
  */
 void terminal_command_task(void *pvParameters) {
     terminal_context_t *ctx = (terminal_context_t *)pvParameters;
     gpio_command_t cmd;
     ESP_LOGI(TAG, "Tarea de procesamiento de comandos GPIO iniciada");
     
+    // Loop infinito: la tarea se ejecuta continuamente
     while (1) {
-        // Esperar comando de la cola (bloqueante)
+        // ===== RECEPCIÓN DE COMANDO DE LA COLA =====
+        // xQueueReceive() es bloqueante: espera hasta que haya un comando disponible
+        // portMAX_DELAY: espera indefinidamente (no hay timeout)
+        // pdTRUE: indica que se recibió un elemento correctamente
+        // La cola gpio_command_queue es llenada por el handler HTTP /cmd
         if (ctx->gpio_command_queue != NULL && 
             xQueueReceive(ctx->gpio_command_queue, &cmd, portMAX_DELAY) == pdTRUE) {
             
-            // Procesar comando usando la función del módulo
+            // ===== PROCESAMIENTO DEL COMANDO =====
+            // process_terminal_command() modifica cmd->response in-place
+            // Ejecuta la acción correspondiente (control de LEDs, status, help, etc.)
             process_terminal_command(&cmd);
             
-            // Enviar respuesta a la cola de respuestas (mantener el command_id)
+            // ===== ENVÍO DE RESPUESTA A LA COLA =====
+            // Enviar la respuesta a gpio_response_queue para que el handler HTTP la reciba
+            // El command_id se mantiene para que el handler pueda emparejar comando-respuesta
+            // xQueueSend() es thread-safe y bloquea si la cola está llena
+            // Timeout de 100ms: si la cola está llena, espera máximo 100ms
             if (ctx->gpio_response_queue != NULL && 
                 xQueueSend(ctx->gpio_response_queue, &cmd, pdMS_TO_TICKS(100)) != pdTRUE) {
+                // Si falla el envío, registrar warning pero continuar
+                // El handler HTTP manejará el timeout y enviará un error al cliente
                 ESP_LOGW(TAG, "Error al enviar respuesta a la cola");
             }
         }

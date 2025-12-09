@@ -1,0 +1,101 @@
+<!--
+============================================================================
+ARCHIVO: login.html
+============================================================================
+
+RESUMEN:
+Página de inicio de sesión del sistema. Los usuarios deben autenticarse
+antes de acceder a las funcionalidades del sistema.
+
+Características:
+- Formulario de login con usuario y contraseña
+- Validación de credenciales en el servidor (POST /login)
+- Redirección automática al dashboard si login exitoso
+- Mensajes de error si las credenciales son incorrectas
+- Diseño retro con estilo terminal
+
+Credenciales por defecto:
+- Usuario: root
+- Contraseña: matrix123
+
+Nota: La sesión expira después de 3 minutos de inactividad
+
+============================================================================
+ÍNDICE DE SECCIONES:
+============================================================================
+Sección 1: METADATOS Y CONFIGURACIÓN (HEAD) se encuentra en las líneas 28 a 37
+Sección 2: FORMULARIO DE LOGIN se encuentra en las líneas 40 a 82
+  - Subsección 2.1: Icono decorativo se encuentra en las líneas 44 a 51
+  - Subsección 2.2: Título se encuentra en las líneas 53 a 54
+  - Subsección 2.3: Formulario se encuentra en las líneas 56 a 71
+  - Subsección 2.4: Mensajes de error e información se encuentra en las líneas 73 a 75
+Sección 3: SCRIPTS se encuentra en las líneas 77 a 78
+============================================================================
+-->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- ===== SECCIÓN: METADATOS Y CONFIGURACIÓN ===== -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="screen-orientation" content="portrait" />
+    <meta name="orientation" content="portrait" />
+    <title>Login - ESP32 Terminal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ===== SECCIÓN: FORMULARIO DE LOGIN ===== -->
+    
+    <div class="box">
+        <!-- Icono decorativo estilo retro -->
+        <div class="smiley">
+            <svg viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="#33ff33" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="32" cy="32" r="30"/>
+                <circle cx="22" cy="24" r="4"/>
+                <circle cx="42" cy="24" r="4"/>
+                <path d="M 20 42 Q 32 50 44 42"/>
+            </svg>
+        </div>
+        
+        <!-- Título de la aplicación -->
+        <div class="title">ESP32 Terminal</div>
+        
+        <!-- Formulario de login -->
+        <form id="loginForm">
+                <!-- Campo de usuario (pre-rellenado con "root") -->
+            <input class="input-field" 
+                   name="user" 
+                   placeholder="usuario" 
+                   value="root" 
+                   required 
+                   autocomplete="username" />
+            <br/>
+            
+            <!-- Campo de contraseña -->
+            <input class="input-field" 
+                   name="pass" 
+                   type="password" 
+                   placeholder="contraseña" 
+                   required 
+                   autocomplete="current-password" />
+            <br/>
+            
+            <!-- Botón de envío -->
+            <button class="btn" type="submit">Entrar</button>
+        </form>
+        
+            <!-- Área para mostrar mensajes de error -->
+            <div id="error" class="error"></div>
+            
+            <!-- Información sobre timeout de sesión -->
+            <div class="small">Inactividad 3 min = logout</div>
+    </div>
+
+    <!-- ===== SECCIÓN: SCRIPTS ===== -->
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+Command: ninja all
+[1/17] Linking C static library esp-idf/json/libjson.a
+[2/17] Linking C static library esp-idf/driver/libdriver.a
+[3/17] Performing build step for 'bootloader'
+[1/1] cd /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/build/bootloader/esp-idf/esptool_py && /home/zerendor/.espressif/python_env/idf5.5_py3.12_env/bin/python /home/zerendor/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x1000 /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/build/bootloader/bootloader.bin
+Bootloader binary size 0x6680 bytes. 0x980 bytes (8%) free.
+[4/17] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/main.c.obj
+[5/17] Linking C static library esp-idf/esp_adc/libesp_adc.a
+[6/17] No install step for 'bootloader'
+[7/17] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/gpio_driver.c.obj
+[8/17] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/registros.c.obj
+[9/17] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/ntc_sensor.c.obj
+[10/17] Completed 'bootloader'
+[11/17] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/iot_client.c.obj
+/home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/main/iot_client.c: In function 'temperature_sender_task':
+/home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/main/iot_client.c:141:10: warning: unused variable 'json_buffer' [-Wunused-variable]
+  141 |     char json_buffer[256];
+      |          ^~~~~~~~~~~
+[12/17] Linking C static library esp-idf/main/libmain.a
+[13/17] Generating esp-idf/esp_system/ld/sections.ld
+[14/17] Building C object CMakeFiles/Project_7_Retro_Web_Terminal.elf.dir/project_elf_src_esp32.c.obj
+[15/17] Linking CXX executable Project_7_Retro_Web_Terminal.elf
+[16/17] Generating binary image from built executable
+esptool.py v4.10.dev2
+Creating esp32 image...
+Merged 2 ELF sections
+Successfully created esp32 image.
+Generated /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/build/Project_7_Retro_Web_Terminal.bin
+[17/17] cd /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/build/esp-idf/esptool_py && /home/zerendor/.espressif/python_env/idf5.5_py3.12_env/bin/python /home/zerendor/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/build/partition_table/partition-table.bin /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/build/Project_7_Retro_Web_Terminal.bin
+Project_7_Retro_Web_Terminal.bin binary size 0xf2da0 bytes. Smallest app partition is 0x100000 bytes. 0xd260 bytes (5%) free.

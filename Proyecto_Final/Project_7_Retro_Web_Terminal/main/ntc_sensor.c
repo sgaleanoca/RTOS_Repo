@@ -33,6 +33,7 @@
 // ===== INCLUDES =====
 // Header local
 #include "ntc_sensor.h"
+#include "iot_client.h"
 
 // ESP-IDF
 #include "esp_log.h"
@@ -48,6 +49,7 @@
 
 // Estándar C
 #include <math.h>
+#include <time.h>
 
 // ===== DEFINICIONES Y CONSTANTES =====
 static const char *TAG = "NTC_TEMP_CONTROL";
@@ -237,6 +239,15 @@ static void ntc_reading_task(void *arg)
                 isfinite(ntc_data.temperature_c) && 
                 !isnan(ntc_data.temperature_c)) {
                 data_ready = true;
+                
+                // Enviar temperatura al servidor IoT si el cliente está listo
+                if (iot_client_is_ready()) {
+                    iot_temperature_data_t iot_data = {
+                        .temperature = ntc_data.temperature_c,
+                        .timestamp = (uint32_t)time(NULL)
+                    };
+                    iot_send_temperature(&iot_data);
+                }
             } else {
                 data_ready = false;
             }

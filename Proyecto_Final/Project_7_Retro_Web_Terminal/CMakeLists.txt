@@ -11,4 +11,5 @@ project(Project_7_Retro_Web_Terminal)
 
 # Esto crea la imagen SPIFFS desde la carpeta "front"
 # FLASH_IN_APP debería incluirla automáticamente en idf.py flash
-spiffs_create_partition_image(storage front FLASH_IN_APP)
+# Comentado: la carpeta "front" no existe
+# spiffs_create_partition_image(storage front FLASH_IN_APP)

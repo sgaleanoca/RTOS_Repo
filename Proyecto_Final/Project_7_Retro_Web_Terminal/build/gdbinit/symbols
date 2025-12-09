@@ -18,8 +18,8 @@ end
 
 # Load bootloader symbols
 set confirm off
-    add-symbol-file /home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/bootloader/bootloader.elf
+    add-symbol-file /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/build/bootloader/bootloader.elf
 set confirm on
 
 # Load application symbols
-file /home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/Project_7_Retro_Web_Terminal.elf
+file /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/build/Project_7_Retro_Web_Terminal.elf

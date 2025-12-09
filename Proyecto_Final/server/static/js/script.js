@@ -330,20 +330,31 @@
 
         function sendCommand(cmd) {
             appendLine("> " + cmd);
-            fetch("/api/cmd?c=" + encodeURIComponent(cmd))
+            fetch("/api/terminal", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ command: cmd })
+            })
                 .then(resp => {
                     if (!resp.ok) { 
-                        throw new Error("Sesión expirada. Redirigiendo..."); 
+                        if (resp.status === 401) {
+                            throw new Error("Sesión expirada. Redirigiendo...");
+                        }
+                        throw new Error(`HTTP ${resp.status}`);
                     }
-                    return resp.text();
+                    return resp.json();
                 })
-                .then(text => {
-                    appendLine(text);
+                .then(data => {
+                    // La respuesta viene en formato JSON: {"response": "texto"}
+                    const responseText = data.response || data;
+                    appendLine(responseText);
                     terminalState.lastActivity = Date.now();
                 })
                 .catch(e => {
                     appendLine("[ERROR] " + e.message);
-                    setTimeout(() => { window.AppModule.doLogout(); }, 1200);
+                    if (e.message.includes("Sesión expirada") || e.message.includes("401")) {
+                        setTimeout(() => { window.AppModule.doLogout(); }, 1200);
+                    }
                 });
         }
 
@@ -849,7 +860,7 @@
         
         // Enviar registro al servidor ESP32 para almacenamiento persistente en SPIFFS
         // El backend guardará el registro en /spiffs/registros.json usando el módulo registros.c
-        fetch('/api/registros', {
+        fetch('/api/logs/add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -860,11 +871,15 @@
         })
         .then(resp => {
             if (!resp.ok) throw new Error('Error al guardar registro');
-            return resp.text();
+            return resp.json();
         })
         .then(data => {
             console.log('[FAN SCHEDULE] Registro guardado en servidor:', data);
-            showScheduleConfirmationMessage('✓ Registro guardado correctamente');
+            if (data.error) {
+                showScheduleConfirmationMessage('✗ ' + data.error);
+            } else {
+                showScheduleConfirmationMessage('✓ Registro guardado correctamente');
+            }
         })
         .catch(err => {
             console.error('[FAN SCHEDULE] Error al guardar registro:', err);
@@ -1371,11 +1386,11 @@
     /**
      * Función para cargar registros desde el servidor ESP32
      * Obtiene todos los registros almacenados en SPIFFS (/spiffs/registros.json)
-     * Utiliza GET /registros que lee los datos usando el módulo registros.c
+     * Utiliza GET /api/logs que lee los datos usando el módulo registros.c
      * Los registros se cargan al iniciar la página del dashboard/slider
      */
     function cargarRegistrosDesdeServidor() {
-        fetch('/api/registros')
+        fetch('/api/logs')
             .then(resp => {
                 if (!resp.ok) throw new Error('Error al cargar registros');
                 return resp.json();
@@ -1408,9 +1423,19 @@
 
     // Inicializar la visualización de registros al cargar la página
     // Cargar registros persistentes desde SPIFFS del ESP32 al iniciar
-    if (document.getElementById('logsList')) {
-        // Cargar registros desde el servidor (almacenados en /spiffs/registros.json)
-        cargarRegistrosDesdeServidor();
+    function initLogsIfAvailable() {
+        if (document.getElementById('logsList')) {
+            // Cargar registros desde el servidor (almacenados en /spiffs/registros.json)
+            cargarRegistrosDesdeServidor();
+        }
+    }
+    
+    // Cargar registros cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initLogsIfAvailable);
+    } else {
+        // DOM ya está listo, ejecutar inmediatamente
+        initLogsIfAvailable();
     }
 
     // Optimización: Pausar monitoreo cuando la página no está visible (ahorro de batería en móvil)

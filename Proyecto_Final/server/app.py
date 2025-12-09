@@ -25,7 +25,7 @@ from functools import wraps
 import time
 
 # ===== CONFIGURACIÓN =====
-ESP32_IP = "http://192.168.4.1"  # IP del ESP32 en la red
+ESP32_IP = "http://192.168.4.80"  # IP del ESP32 en la red
 SESSION_TIMEOUT = 180  # Timeout de sesión en segundos (3 minutos)
 
 app = Flask(__name__)
@@ -36,13 +36,24 @@ def login_required(f):
     """Decorador para proteger rutas que requieren autenticación"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        # Verificar si la petición es AJAX (tiene header X-Requested-With o Content-Type application/json)
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest' or \
+                  request.headers.get('Content-Type', '').startswith('application/json') or \
+                  request.path.startswith('/api/')
+        
         if 'authenticated' not in session or not session['authenticated']:
+            if is_ajax:
+                return jsonify({"error": "No autenticado"}), 401
             return redirect(url_for('login'))
+        
         # Verificar timeout de sesión
         if 'last_activity' in session:
             if time.time() - session['last_activity'] > SESSION_TIMEOUT:
                 session.clear()
+                if is_ajax:
+                    return jsonify({"error": "Sesión expirada"}), 401
                 return redirect(url_for('login'))
+        
         session['last_activity'] = time.time()
         return f(*args, **kwargs)
     return decorated_function
@@ -104,10 +115,20 @@ def slider():
 # Nota: Los endpoints /api/estado y /api/modo pueden implementarse en el ESP32 si se necesitan
 # Por ahora, usamos los endpoints básicos: temperature, time, logs, terminal
 
+# ===== ALMACENAMIENTO DE DATOS IoT =====
+# Almacenar datos recibidos del ESP32 en memoria (puedes cambiar a base de datos si lo necesitas)
+iot_temperature_data = {"temperature": None, "timestamp": None}
+iot_registros = []  # Lista de registros recibidos del ESP32
+
 @app.route("/api/temperature")
 @login_required
 def temperature():
     """Obtener temperatura actual del ESP32"""
+    # Primero intentar obtener de datos IoT (si están disponibles)
+    if iot_temperature_data["temperature"] is not None:
+        return jsonify(iot_temperature_data), 200
+    
+    # Si no hay datos IoT, hacer polling al ESP32 (fallback)
     try:
         r = requests.get(f"{ESP32_IP}/api/temperature", timeout=2)
         if r.status_code == 200:
@@ -117,9 +138,56 @@ def temperature():
     except requests.exceptions.RequestException as e:
         return jsonify({"error": "No se pudo contactar al ESP32", "details": str(e)}), 500
 
+# ===== ENDPOINTS IoT PARA RECIBIR DATOS DEL ESP32 =====
+
+@app.route("/api/iot/temperature", methods=["POST"])
+def iot_temperature():
+    """Recibir datos de temperatura del ESP32 (sin autenticación para permitir push)"""
+    try:
+        data = request.json
+        if not data or 'temperature' not in data:
+            return jsonify({"error": "Datos inválidos"}), 400
+        
+        # Almacenar datos recibidos
+        iot_temperature_data["temperature"] = data.get("temperature")
+        iot_temperature_data["timestamp"] = data.get("timestamp", time.time())
+        
+        print(f"[IoT] Temperatura recibida: {iot_temperature_data['temperature']}°C")
+        return jsonify({"status": "ok"}), 200
+    except Exception as e:
+        print(f"[IoT] Error recibiendo temperatura: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/iot/registro", methods=["POST"])
+def iot_registro():
+    """Recibir registro de horario del ESP32 (sin autenticación para permitir push)"""
+    try:
+        data = request.json
+        if not data or 'dia' not in data or 'hora' not in data or 'velocidad' not in data:
+            return jsonify({"error": "Datos inválidos"}), 400
+        
+        # Agregar registro a la lista
+        registro = {
+            "dia": data.get("dia"),
+            "hora": data.get("hora"),
+            "velocidad": data.get("velocidad"),
+            "timestamp": data.get("timestamp", time.time())
+        }
+        iot_registros.append(registro)
+        
+        # Mantener solo los últimos 100 registros
+        if len(iot_registros) > 100:
+            iot_registros.pop(0)
+        
+        print(f"[IoT] Registro recibido: {registro['dia']} {registro['hora']} - {registro['velocidad']}%")
+        return jsonify({"status": "ok"}), 200
+    except Exception as e:
+        print(f"[IoT] Error recibiendo registro: {e}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/api/time")
 @login_required
-def time():
+def get_time():
     """Obtener hora actual del ESP32"""
     try:
         r = requests.get(f"{ESP32_IP}/api/time", timeout=2)
@@ -134,6 +202,11 @@ def time():
 @login_required
 def logs():
     """Obtener registros de horarios"""
+    # Primero intentar obtener de datos IoT (si están disponibles)
+    if iot_registros:
+        return jsonify(iot_registros), 200
+    
+    # Si no hay datos IoT, hacer polling al ESP32 (fallback)
     try:
         r = requests.get(f"{ESP32_IP}/api/logs", timeout=2)
         return r.text, r.status_code, {'Content-Type': 'application/json'}
@@ -142,7 +215,7 @@ def logs():
 
 @app.route("/api/terminal", methods=["POST"])
 @login_required
-def terminal():
+def api_terminal():
     """Ejecutar comando en el ESP32 (para terminal)"""
     try:
         data = request.json
@@ -150,6 +223,20 @@ def terminal():
             return jsonify({"error": "Campo 'command' requerido"}), 400
         
         r = requests.post(f"{ESP32_IP}/api/terminal", json=data, timeout=5)
+        return r.text, r.status_code, {'Content-Type': 'application/json'}
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": "No se pudo contactar al ESP32", "details": str(e)}), 500
+
+@app.route("/api/logs/add", methods=["POST"])
+@login_required
+def logs_add():
+    """Agregar registro de horario al ESP32"""
+    try:
+        data = request.json
+        if not data:
+            return jsonify({"error": "Datos JSON requeridos"}), 400
+        
+        r = requests.post(f"{ESP32_IP}/api/logs/add", json=data, timeout=2)
         return r.text, r.status_code, {'Content-Type': 'application/json'}
     except requests.exceptions.RequestException as e:
         return jsonify({"error": "No se pudo contactar al ESP32", "details": str(e)}), 500
@@ -179,11 +266,21 @@ def cmd():
 @app.route("/api/registros", methods=["POST"])
 @login_required
 def registros_post():
-    """Agregar registro de horario (compatibilidad)"""
+    """Agregar registro de horario (compatibilidad - redirige a /api/logs/add)"""
     try:
         data = request.json
-        r = requests.post(f"{ESP32_IP}/api/logs", json=data, timeout=2)
-        return r.text, r.status_code
+        r = requests.post(f"{ESP32_IP}/api/logs/add", json=data, timeout=2)
+        return r.text, r.status_code, {'Content-Type': 'application/json'}
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": "No se pudo contactar al ESP32", "details": str(e)}), 500
+
+@app.route("/api/registros", methods=["GET"])
+@login_required
+def registros_get():
+    """Obtener registros de horario (compatibilidad - redirige a /api/logs)"""
+    try:
+        r = requests.get(f"{ESP32_IP}/api/logs", timeout=2)
+        return r.text, r.status_code, {'Content-Type': 'application/json'}
     except requests.exceptions.RequestException as e:
         return jsonify({"error": "No se pudo contactar al ESP32", "details": str(e)}), 500
 
@@ -193,4 +290,6 @@ if __name__ == "__main__":
     print("Servidor Flask iniciando...")
     print(f"ESP32 IP: {ESP32_IP}")
     print("=" * 60)
-    app.run(host="0.0.0.0", port=80, debug=True)
+    # Cambiar a puerto 5000 para evitar necesidad de permisos de root
+    # Si necesitas usar puerto 80, ejecuta con: sudo python3 app.py
+    app.run(host="0.0.0.0", port=5000, debug=True)

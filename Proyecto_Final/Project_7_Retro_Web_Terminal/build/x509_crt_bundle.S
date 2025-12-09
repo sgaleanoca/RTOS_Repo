@@ -1,4 +1,4 @@
-/* * Data converted from /home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/mbedtls/x509_crt_bundle
+/* * Data converted from /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/build/esp-idf/mbedtls/x509_crt_bundle
  */
 .data
 #if !defined (__APPLE__) && !defined (__linux__)

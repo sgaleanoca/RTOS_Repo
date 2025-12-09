@@ -1,0 +1,36 @@
+Command: ninja all
+[1/853] Generating project_elf_src_esp32.c
+[2/853] Generating /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/build/esp-idf/esp_system/ld/memory.ld linker script...
+[3/853] Generating /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/build/esp-idf/esp_system/ld/sections.ld.in linker script...
+[4/853] cd /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/build && /home/zerendor/.espressif/python_env/idf5.5_py3.12_env/bin/python /home/zerendor/esp/esp-idf/components/spiffs/spiffsgen.py 0x100000 /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/front /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/build/storage.bin --page-size=256 --obj-name-len=32 --meta-len=4 --use-magic --use-magic-len
+FAILED: CMakeFiles/spiffs_storage_bin /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/build/CMakeFiles/spiffs_storage_bin 
+cd /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/build && /home/zerendor/.espressif/python_env/idf5.5_py3.12_env/bin/python /home/zerendor/esp/esp-idf/components/spiffs/spiffsgen.py 0x100000 /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/front /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/build/storage.bin --page-size=256 --obj-name-len=32 --meta-len=4 --use-magic --use-magic-len
+Traceback (most recent call last):
+  File "/home/zerendor/esp/esp-idf/components/spiffs/spiffsgen.py", line 590, in <module>
+    main()
+  File "/home/zerendor/esp/esp-idf/components/spiffs/spiffsgen.py", line 567, in main
+    raise RuntimeError('given base directory %s does not exist' % args.base_dir)
+RuntimeError: given base directory /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/front does not exist
+[5/853] Building C object esp-idf/mbedtls/mbedtls/3rdparty/everest/CMakeFiles/everest.dir/library/x25519.c.obj
+[6/853] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/aesni.c.obj
+[7/853] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/aesce.c.obj
+[8/853] Building C object esp-idf/mbedtls/mbedtls/3rdparty/everest/CMakeFiles/everest.dir/library/Hacl_Curve25519_joined.c.obj
+[9/853] Building C object esp-idf/mbedtls/mbedtls/3rdparty/everest/CMakeFiles/everest.dir/library/everest.c.obj
+[10/853] Building C object esp-idf/mbedtls/mbedtls/3rdparty/p256-m/CMakeFiles/p256m.dir/p256-m_driver_entrypoints.c.obj
+[11/853] Building C object esp-idf/mbedtls/mbedtls/3rdparty/p256-m/CMakeFiles/p256m.dir/p256-m/p256-m.c.obj
+[12/853] Generating ../../partition_table/partition-table.bin
+Partition table binary generated. Contents:
+*******************************************************************************
+# ESP-IDF Partition Table
+# Name, Type, SubType, Offset, Size, Flags
+nvs,data,nvs,0x9000,24K,
+phy_init,data,phy,0xf000,4K,
+factory,app,factory,0x10000,1M,
+storage,data,spiffs,0x110000,1M,
+*******************************************************************************
+[13/853] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/asn1write.c.obj
+[14/853] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/asn1parse.c.obj
+[15/853] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/aes.c.obj
+[16/853] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/base64.c.obj
+[17/853] Building C object esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedcrypto.dir/aria.c.obj
+ninja: build stopped: subcommand failed.

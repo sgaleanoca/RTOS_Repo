@@ -139,6 +139,92 @@ static esp_err_t api_logs_get_handler(httpd_req_t *req) {
 }
 
 /**
+ * Handler POST /api/logs/add
+ * Agrega un nuevo registro de horario
+ * Body esperado: {"dia": "lunes", "hora": "14:30", "velocidad": 50}
+ * Respuesta: {"status": "ok"} o {"error": "mensaje"}
+ */
+static esp_err_t api_logs_add_post_handler(httpd_req_t *req) {
+    ESP_LOGI(TAG, "POST /api/logs/add");
+    
+    char buf[256];
+    int len = httpd_req_recv(req, buf, sizeof(buf) - 1);
+    if (len <= 0) {
+        httpd_resp_set_status(req, "400 Bad Request");
+        httpd_resp_set_type(req, "application/json");
+        httpd_resp_send(req, "{\"error\":\"Error recibiendo datos\"}", HTTPD_RESP_USE_STRLEN);
+        return ESP_FAIL;
+    }
+    buf[len] = '\0';
+    
+    // Parsear JSON
+    cJSON *root = cJSON_Parse(buf);
+    if (!root) {
+        ESP_LOGE(TAG, "Error parseando JSON");
+        httpd_resp_set_status(req, "400 Bad Request");
+        httpd_resp_set_type(req, "application/json");
+        httpd_resp_send(req, "{\"error\":\"JSON inválido\"}", HTTPD_RESP_USE_STRLEN);
+        return ESP_FAIL;
+    }
+    
+    cJSON *dia_item = cJSON_GetObjectItem(root, "dia");
+    cJSON *hora_item = cJSON_GetObjectItem(root, "hora");
+    cJSON *velocidad_item = cJSON_GetObjectItem(root, "velocidad");
+    
+    if (!dia_item || !cJSON_IsString(dia_item) ||
+        !hora_item || !cJSON_IsString(hora_item) ||
+        !velocidad_item || !cJSON_IsNumber(velocidad_item)) {
+        ESP_LOGE(TAG, "Campos faltantes o inválidos");
+        cJSON_Delete(root);
+        httpd_resp_set_status(req, "400 Bad Request");
+        httpd_resp_set_type(req, "application/json");
+        httpd_resp_send(req, "{\"error\":\"Campos 'dia', 'hora' y 'velocidad' requeridos\"}", HTTPD_RESP_USE_STRLEN);
+        return ESP_FAIL;
+    }
+    
+    const char *dia = dia_item->valuestring;
+    const char *hora = hora_item->valuestring;
+    int velocidad = velocidad_item->valueint;
+    
+    // Validar velocidad
+    if (velocidad < 0 || velocidad > 100) {
+        ESP_LOGE(TAG, "Velocidad fuera de rango: %d", velocidad);
+        cJSON_Delete(root);
+        httpd_resp_set_status(req, "400 Bad Request");
+        httpd_resp_set_type(req, "application/json");
+        httpd_resp_send(req, "{\"error\":\"Velocidad debe estar entre 0 y 100\"}", HTTPD_RESP_USE_STRLEN);
+        return ESP_FAIL;
+    }
+    
+    // Guardar registro
+    bool success = agregar_registro(dia, hora, velocidad);
+    cJSON_Delete(root);
+    
+    cJSON *response_json = cJSON_CreateObject();
+    if (success) {
+        cJSON_AddStringToObject(response_json, "status", "ok");
+        ESP_LOGI(TAG, "Registro guardado: %s %s velocidad=%d", dia, hora, velocidad);
+    } else {
+        cJSON_AddStringToObject(response_json, "error", "Error al guardar registro");
+        ESP_LOGE(TAG, "Error al guardar registro");
+    }
+    
+    char *json_string = cJSON_Print(response_json);
+    cJSON_Delete(response_json);
+    
+    httpd_resp_set_type(req, "application/json");
+    if (success) {
+        httpd_resp_send(req, json_string, HTTPD_RESP_USE_STRLEN);
+    } else {
+        httpd_resp_set_status(req, "500 Internal Server Error");
+        httpd_resp_send(req, json_string, HTTPD_RESP_USE_STRLEN);
+    }
+    free(json_string);
+    
+    return ESP_OK;
+}
+
+/**
  * Handler POST /api/terminal
  * Recibe un comando de terminal y retorna la respuesta
  * Body esperado: {"command": "led y on"}
@@ -336,10 +422,19 @@ void start_api_server(void) {
     };
     httpd_register_uri_handler(api_server, &terminal_uri);
     
+    httpd_uri_t logs_add_uri = {
+        .uri = "/api/logs/add",
+        .method = HTTP_POST,
+        .handler = api_logs_add_post_handler,
+        .user_ctx = NULL
+    };
+    httpd_register_uri_handler(api_server, &logs_add_uri);
+    
     ESP_LOGI(TAG, "Servidor API REST iniciado correctamente en puerto %d", config.server_port);
     ESP_LOGI(TAG, "Endpoints disponibles:");
     ESP_LOGI(TAG, "  GET  /api/temperature");
     ESP_LOGI(TAG, "  GET  /api/time");
     ESP_LOGI(TAG, "  GET  /api/logs");
+    ESP_LOGI(TAG, "  POST /api/logs/add");
     ESP_LOGI(TAG, "  POST /api/terminal");
 }

@@ -22,4 +22,4 @@ set confirm off
 set confirm on
 
 # Load application symbols
-file /home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/bootloader/bootloader.elf
+file /home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/build/bootloader/bootloader.elf

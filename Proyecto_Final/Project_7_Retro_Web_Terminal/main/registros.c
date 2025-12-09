@@ -22,6 +22,7 @@
 
 // ===== INCLUDES =====
 #include "registros.h"
+#include "iot_client.h"
 
 // ESP-IDF
 #include <esp_log.h>
@@ -164,6 +165,16 @@ bool agregar_registro(const char *dia, const char *hora, int velocidad) {
     free(json_str);
 
     ESP_LOGI(TAG, "Registro guardado correctamente: %s %s velocidad=%d", dia, hora, velocidad);
+    
+    // Enviar registro al servidor IoT si el cliente está listo
+    if (iot_client_is_ready()) {
+        iot_registro_data_t iot_registro = {0};
+        strncpy(iot_registro.dia, dia, sizeof(iot_registro.dia) - 1);
+        strncpy(iot_registro.hora, hora, sizeof(iot_registro.hora) - 1);
+        iot_registro.velocidad = velocidad;
+        iot_send_registro(&iot_registro);
+    }
+    
     return true;
 }
 

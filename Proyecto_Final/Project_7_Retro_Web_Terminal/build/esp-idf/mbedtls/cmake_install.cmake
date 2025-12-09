@@ -39,6 +39,6 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/zerendor/Documents/RTOS_Raiz/Project_7_Retro_Web_Terminal/build/esp-idf/mbedtls/mbedtls/cmake_install.cmake")
+  include("/home/zerendor/Documents/RTOS_Raiz/Proyecto_Final/Project_7_Retro_Web_Terminal/build/esp-idf/mbedtls/mbedtls/cmake_install.cmake")
 endif()
 

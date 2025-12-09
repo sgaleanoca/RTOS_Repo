@@ -9,10 +9,11 @@
  * - Sistema de almacenamiento no volátil (NVS) para WiFi
  * - Controladores de hardware (GPIO para LEDs, sensor NTC de temperatura)
  * - Configuración de WiFi en modo SoftAP (Access Point)
- * - Servidor web HTTP para la interfaz de usuario
+ * - Servidor API REST para exponer endpoints de control de hardware
  * 
- * El sistema crea una red WiFi propia a la que los usuarios pueden conectarse
- * y acceder a una terminal web retro para controlar LEDs y monitorear temperatura.
+ * Arquitectura de dos capas:
+ * - Frontend + servidor Flask en Raspberry Pi (sirve HTML/CSS/JS)
+ * - ESP32 manejando solo lógica de hardware + API liviana (endpoints REST)
  * 
  * ============================================================================
  * ÍNDICE DE SECCIONES:
@@ -22,7 +23,7 @@
  *   - Subsección 2.1: INICIALIZACIÓN DE NVS se encuentra en las líneas 43 a 51
  *   - Subsección 2.2: INICIALIZACIÓN DE HARDWARE se encuentra en las líneas 53 a 61
  *   - Subsección 2.3: INICIALIZACIÓN DE RED se encuentra en las líneas 63 a 66
- *   - Subsección 2.4: INICIO DEL SERVIDOR WEB se encuentra en las líneas 68 a 71
+ *   - Subsección 2.4: INICIO DEL SERVIDOR API se encuentra en las líneas 80 a 84
  * ============================================================================
  */
 
@@ -31,9 +32,9 @@
 #include <nvs_flash.h>
 
 // Headers locales (ordenados alfabéticamente)
+#include "api_server.h"
 #include "gpio_driver.h"
 #include "ntc_sensor.h"
-#include "web_server.h"
 #include "wifi_app.h"
 
 // ===== FUNCIÓN PRINCIPAL =====
@@ -45,7 +46,7 @@
  * 1. NVS (almacenamiento no volátil para configuración WiFi)
  * 2. Hardware (GPIO para LEDs y sensor NTC de temperatura)
  * 3. WiFi (configuración como Access Point)
- * 4. Servidor Web (HTTP con SPIFFS y rutas)
+ * 4. Servidor API REST (endpoints REST para controlar hardware)
  */
 void app_main(void) {
     esp_err_t ret;
@@ -75,8 +76,9 @@ void app_main(void) {
     // Crea una red WiFi propia: SSID "ESP32_Server", contraseña "12345678"
     wifi_init_softap(); 
 
-    // ===== SECCIÓN 4: INICIO DEL SERVIDOR WEB =====
-    // Inicia el servidor HTTP que sirve las páginas web y maneja las peticiones
-    // Monta SPIFFS, registra rutas y handlers para login, terminal, dashboard, etc.
-    start_webserver();
+    // ===== SECCIÓN 4: INICIO DEL SERVIDOR API =====
+    // Inicia el servidor API REST que expone endpoints para controlar el hardware
+    // No sirve HTML/CSS/JS (eso lo hace Flask en Raspberry Pi)
+    // Solo expone API REST: /api/temperature, /api/time, /api/logs, /api/terminal
+    start_api_server();
 }

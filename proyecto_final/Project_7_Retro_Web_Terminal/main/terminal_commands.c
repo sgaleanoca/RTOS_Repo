@@ -159,6 +159,13 @@ void process_terminal_command(gpio_command_t *cmd) {
     // ===== COMANDOS DE LED RGB =====
     // Comando "led <número>" para establecer brillo (0-100)
     if (strncmp(cmd->command, "led ", 4) == 0) {
+        // Verificar si el control PIR está activo
+        if (rgb_led_is_pir_control_active()) {
+            snprintf(cmd->response, sizeof(cmd->response), 
+                     "[INFO] El LED está controlado automáticamente por el sensor PIR. "
+                     "Se encenderá cuando detecte movimiento y se apagará cuando no haya movimiento.");
+            return;
+        }
         int brightness = atoi(cmd->command + 4);
         if (brightness >= 0 && brightness <= 100) {
             rgb_set_green_percent((uint8_t)brightness);
@@ -188,11 +195,25 @@ void process_terminal_command(gpio_command_t *cmd) {
     
     // ===== COMANDOS SIMPLES (LED RGB) =====
     if (strcmp(cmd->command, "led on") == 0) {
-        rgb_set_green_percent(100);
-        snprintf(cmd->response, sizeof(cmd->response), "[OK] LED RGB verde encendido (100%%).");
+        // Verificar si el control PIR está activo
+        if (rgb_led_is_pir_control_active()) {
+            snprintf(cmd->response, sizeof(cmd->response), 
+                     "[INFO] El LED está controlado automáticamente por el sensor PIR. "
+                     "Se encenderá cuando detecte movimiento y se apagará cuando no haya movimiento.");
+        } else {
+            rgb_set_green_percent(100);
+            snprintf(cmd->response, sizeof(cmd->response), "[OK] LED RGB verde encendido (100%%).");
+        }
     } else if (strcmp(cmd->command, "led off") == 0) {
-        rgb_set_green_percent(0);
-        snprintf(cmd->response, sizeof(cmd->response), "[OK] LED RGB verde apagado.");
+        // Verificar si el control PIR está activo
+        if (rgb_led_is_pir_control_active()) {
+            snprintf(cmd->response, sizeof(cmd->response), 
+                     "[INFO] El LED está controlado automáticamente por el sensor PIR. "
+                     "Se encenderá cuando detecte movimiento y se apagará cuando no haya movimiento.");
+        } else {
+            rgb_set_green_percent(0);
+            snprintf(cmd->response, sizeof(cmd->response), "[OK] LED RGB verde apagado.");
+        }
     // ===== COMANDOS SIMPLES (VENTILADOR) =====
     } else if (strcmp(cmd->command, "fan on") == 0) {
         // Enciende el ventilador al 50% en modo manual

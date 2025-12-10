@@ -294,3 +294,13 @@ void rgb_led_start_pir_control(void)
     pir_led_task_running = true;
     ESP_LOGI(TAG, "Tarea de control LED por PIR creada correctamente");
 }
+
+/**
+ * @brief Verifica si el control automático por PIR está activo
+ * 
+ * @return true si el control PIR está activo, false en caso contrario
+ */
+bool rgb_led_is_pir_control_active(void)
+{
+    return pir_led_task_running;
+}

@@ -436,8 +436,13 @@ static void session_management_task(void *pvParameters) {
                     // Expirar la sesión
                     ctx->sessions[i].authenticated = false;
                     // Apagar LED RGB por seguridad cuando la sesión expira
-                    rgb_set_green_percent(0);
-                    ESP_LOGI(TAG, "Sesión expirada para IP %s. LED RGB apagado.", ctx->sessions[i].ip);
+                    // Solo si el control PIR no está activo
+                    if (!rgb_led_is_pir_control_active()) {
+                        rgb_set_green_percent(0);
+                        ESP_LOGI(TAG, "Sesión expirada para IP %s. LED RGB apagado.", ctx->sessions[i].ip);
+                    } else {
+                        ESP_LOGI(TAG, "Sesión expirada para IP %s. LED RGB controlado por PIR.", ctx->sessions[i].ip);
+                    }
                 }
             }
             // Liberar el mutex después de terminar las operaciones
@@ -572,8 +577,13 @@ static bool is_authenticated(webserver_context_t *ctx, httpd_req_t *req) {
             int64_t now = get_time_ms();
             if (now - session->last_activity > SESSION_TIMEOUT_MS) {
                 session->authenticated = false;
-                rgb_set_green_percent(0);
-                ESP_LOGI(TAG, "Sesión expirada para IP %s. LED RGB apagado.", ip);
+                // Solo apagar LED si el control PIR no está activo
+                if (!rgb_led_is_pir_control_active()) {
+                    rgb_set_green_percent(0);
+                    ESP_LOGI(TAG, "Sesión expirada para IP %s. LED RGB apagado.", ip);
+                } else {
+                    ESP_LOGI(TAG, "Sesión expirada para IP %s. LED RGB controlado por PIR.", ip);
+                }
                 authenticated = false;
             } else {
                 session->last_activity = now;
@@ -1235,9 +1245,13 @@ static esp_err_t logout_get_handler(httpd_req_t *req) {
         }
     }
     
-    rgb_set_green_percent(0);
-    
-    ESP_LOGI(TAG, "Logout desde IP: %s. LED RGB apagado.", ip);
+    // Solo apagar LED si el control PIR no está activo
+    if (!rgb_led_is_pir_control_active()) {
+        rgb_set_green_percent(0);
+        ESP_LOGI(TAG, "Logout desde IP: %s. LED RGB apagado.", ip);
+    } else {
+        ESP_LOGI(TAG, "Logout desde IP: %s. LED RGB controlado por PIR.", ip);
+    }
     
     httpd_resp_set_hdr(req, "Location", "/");
     httpd_resp_set_status(req, "302 Found");

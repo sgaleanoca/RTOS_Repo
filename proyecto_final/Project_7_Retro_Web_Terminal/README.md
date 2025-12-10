@@ -36,7 +36,7 @@ El proyecto implementa un servidor web retro estilo terminal en un ESP32 que per
 │  │  │  (app_main)  │  │    Task      │  │  Management  │       │    │
 │  │  │              │  │              │  │     Task     │       │    │
 │  │  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘       │    │
-│  │         │                 │                  │              │    │
+│  │         │                 │                 │               │    │
 │  │  ┌──────▼───────┐  ┌──────▼───────┐  ┌──────▼───────┐       │    │
 │  │  │ NTC Reader   │  │ Fan Auto Temp│  │ Fan Schedule │       │    │
 │  │  │    Task      │  │     Task     │  │     Task     │       │    │

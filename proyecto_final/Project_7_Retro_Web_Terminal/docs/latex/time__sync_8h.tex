@@ -1,0 +1,155 @@
+\doxysection{Referencia del archivo main/time\+\_\+sync.h}
+\hypertarget{time__sync_8h}{}\label{time__sync_8h}\index{main/time\_sync.h@{main/time\_sync.h}}
+
+
+Sincronización de tiempo mediante SNTP.  
+
+
+{\ttfamily \#include $<$stdbool.\+h$>$}\newline
+{\ttfamily \#include $<$stddef.\+h$>$}\newline
+\doxysubsubsection*{Funciones}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{time__sync_8h_abcc7941866a530a5e1112a7b038f4278}{time\+\_\+sync\+\_\+init}} (void)
+\begin{DoxyCompactList}\small\item\em Inicializa el servicio SNTP para sincronizar la hora del sistema Debe llamarse después de que Wi\+Fi esté conectado. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{time__sync_8h_a012f1f8e74faccb6e87d9f756bc35d24}{obtener\+\_\+dia\+\_\+actual}} (char \texorpdfstring{$\ast$}{*}dia\+\_\+buffer, size\+\_\+t buffer\+\_\+size)
+\begin{DoxyCompactList}\small\item\em Obtiene el día de la semana actual en español. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{time__sync_8h_ad29433d08e62d34e13dcad6e9f42e9cf}{obtener\+\_\+hora\+\_\+actual}} (char \texorpdfstring{$\ast$}{*}hora\+\_\+buffer, size\+\_\+t buffer\+\_\+size)
+\begin{DoxyCompactList}\small\item\em Obtiene la hora actual en formato HH\+:MM. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{time__sync_8h_ae3dd675660b57518a66e42fc1388d321}{hora\+\_\+sincronizada}} (void)
+\begin{DoxyCompactList}\small\item\em Verifica si la hora del sistema está sincronizada. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{time__sync_8h_ae6074d3ae73046463f7ee3f619880ba4}{establecer\+\_\+hora\+\_\+manual}} (int year, int month, int day, int hour, int minute, int second)
+\begin{DoxyCompactList}\small\item\em Establece la hora manualmente (útil cuando SNTP no puede sincronizar) \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Descripción detallada}
+Sincronización de tiempo mediante SNTP. 
+
+\begin{DoxyAuthor}{Autor}
+Proyecto Final RTOS 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Fecha}
+2024
+\end{DoxyDate}
+Header file para la sincronización de tiempo usando SNTP (Simple Network Time Protocol). Este módulo permite obtener la hora y fecha actual del sistema, necesaria para el sistema de horarios del ventilador.\hypertarget{time__sync_8h_features}{}\doxysubsection{\texorpdfstring{Características}{Características}}\label{time__sync_8h_features}
+
+\begin{DoxyItemize}
+\item Sincronización automática con servidores NTP
+\item Configuración de zona horaria para Colombia (UTC-\/5)
+\item Persistencia de hora en NVS para restaurar después de reinicio
+\item Establecimiento manual de hora cuando SNTP no está disponible
+\item Obtención de día de la semana y hora actual en formato español
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{ARCHIVO\+: \doxylink{time__sync_8h}{time\+\_\+sync.\+h} }
+
+RESUMEN\+: Header file para la sincronización de tiempo usando SNTP (Simple Network Time Protocol). Este módulo permite obtener la hora y fecha actual del sistema, necesaria para el sistema de horarios del ventilador.
+
+Funcionalidades\+:
+\begin{DoxyItemize}
+\item Sincronización automática con servidores NTP
+\item Configuración de zona horaria para Colombia (UTC-\/5)
+\item Persistencia de hora en NVS para restaurar después de reinicio
+\item Establecimiento manual de hora cuando SNTP no está disponible
+\item Obtención de día de la semana y hora actual en formato español
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{Í\+NDICE DE SECCIONES\+: }
+
+\doxysubsection*{Sección 1\+: PROTOTIPOS DE FUNCIONES se encuentra en las líneas 24 a 58 }
+
+\doxysubsection{Documentación de funciones}
+\Hypertarget{time__sync_8h_ae6074d3ae73046463f7ee3f619880ba4}\label{time__sync_8h_ae6074d3ae73046463f7ee3f619880ba4} 
+\index{time\_sync.h@{time\_sync.h}!establecer\_hora\_manual@{establecer\_hora\_manual}}
+\index{establecer\_hora\_manual@{establecer\_hora\_manual}!time\_sync.h@{time\_sync.h}}
+\doxysubsubsection{\texorpdfstring{establecer\_hora\_manual()}{establecer\_hora\_manual()}}
+{\footnotesize\ttfamily bool establecer\+\_\+hora\+\_\+manual (\begin{DoxyParamCaption}\item[{int}]{year,  }\item[{int}]{month,  }\item[{int}]{day,  }\item[{int}]{hour,  }\item[{int}]{minute,  }\item[{int}]{second }\end{DoxyParamCaption})}
+
+
+
+Establece la hora manualmente (útil cuando SNTP no puede sincronizar) 
+
+
+\begin{DoxyParams}{Parámetros}
+{\em year} & Año (ej\+: 2024) \\
+\hline
+{\em month} & Mes (1-\/12) \\
+\hline
+{\em day} & Día (1-\/31) \\
+\hline
+{\em hour} & Hora (0-\/23) \\
+\hline
+{\em minute} & Minuto (0-\/59) \\
+\hline
+{\em second} & Segundo (0-\/59) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Devuelve}
+true si éxito, false si error
+\end{DoxyReturn}
+Establece la hora manualmente (útil cuando SNTP no puede sincronizar) \Hypertarget{time__sync_8h_ae3dd675660b57518a66e42fc1388d321}\label{time__sync_8h_ae3dd675660b57518a66e42fc1388d321} 
+\index{time\_sync.h@{time\_sync.h}!hora\_sincronizada@{hora\_sincronizada}}
+\index{hora\_sincronizada@{hora\_sincronizada}!time\_sync.h@{time\_sync.h}}
+\doxysubsubsection{\texorpdfstring{hora\_sincronizada()}{hora\_sincronizada()}}
+{\footnotesize\ttfamily bool hora\+\_\+sincronizada (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Verifica si la hora del sistema está sincronizada. 
+
+\begin{DoxyReturn}{Devuelve}
+true si está sincronizada, false en caso contrario 
+\end{DoxyReturn}
+\Hypertarget{time__sync_8h_a012f1f8e74faccb6e87d9f756bc35d24}\label{time__sync_8h_a012f1f8e74faccb6e87d9f756bc35d24} 
+\index{time\_sync.h@{time\_sync.h}!obtener\_dia\_actual@{obtener\_dia\_actual}}
+\index{obtener\_dia\_actual@{obtener\_dia\_actual}!time\_sync.h@{time\_sync.h}}
+\doxysubsubsection{\texorpdfstring{obtener\_dia\_actual()}{obtener\_dia\_actual()}}
+{\footnotesize\ttfamily bool obtener\+\_\+dia\+\_\+actual (\begin{DoxyParamCaption}\item[{char \texorpdfstring{$\ast$}{*}}]{dia\+\_\+buffer,  }\item[{size\+\_\+t}]{buffer\+\_\+size }\end{DoxyParamCaption})}
+
+
+
+Obtiene el día de la semana actual en español. 
+
+
+\begin{DoxyParams}{Parámetros}
+{\em dia\+\_\+buffer} & Buffer donde se almacenará el día (ej\+: "{}lunes"{}, "{}martes"{}) \\
+\hline
+{\em buffer\+\_\+size} & Tamaño del buffer \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Devuelve}
+true si éxito, false si la hora no está sincronizada 
+\end{DoxyReturn}
+\Hypertarget{time__sync_8h_ad29433d08e62d34e13dcad6e9f42e9cf}\label{time__sync_8h_ad29433d08e62d34e13dcad6e9f42e9cf} 
+\index{time\_sync.h@{time\_sync.h}!obtener\_hora\_actual@{obtener\_hora\_actual}}
+\index{obtener\_hora\_actual@{obtener\_hora\_actual}!time\_sync.h@{time\_sync.h}}
+\doxysubsubsection{\texorpdfstring{obtener\_hora\_actual()}{obtener\_hora\_actual()}}
+{\footnotesize\ttfamily bool obtener\+\_\+hora\+\_\+actual (\begin{DoxyParamCaption}\item[{char \texorpdfstring{$\ast$}{*}}]{hora\+\_\+buffer,  }\item[{size\+\_\+t}]{buffer\+\_\+size }\end{DoxyParamCaption})}
+
+
+
+Obtiene la hora actual en formato HH\+:MM. 
+
+
+\begin{DoxyParams}{Parámetros}
+{\em hora\+\_\+buffer} & Buffer donde se almacenará la hora (ej\+: "{}14\+:30"{}) \\
+\hline
+{\em buffer\+\_\+size} & Tamaño del buffer \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Devuelve}
+true si éxito, false si la hora no está sincronizada 
+\end{DoxyReturn}
+\Hypertarget{time__sync_8h_abcc7941866a530a5e1112a7b038f4278}\label{time__sync_8h_abcc7941866a530a5e1112a7b038f4278} 
+\index{time\_sync.h@{time\_sync.h}!time\_sync\_init@{time\_sync\_init}}
+\index{time\_sync\_init@{time\_sync\_init}!time\_sync.h@{time\_sync.h}}
+\doxysubsubsection{\texorpdfstring{time\_sync\_init()}{time\_sync\_init()}}
+{\footnotesize\ttfamily void time\+\_\+sync\+\_\+init (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Inicializa el servicio SNTP para sincronizar la hora del sistema Debe llamarse después de que Wi\+Fi esté conectado. 
+
+Inicializa el servicio SNTP para sincronizar la hora del sistema Debe llamarse después de que Wi\+Fi esté conectado. 

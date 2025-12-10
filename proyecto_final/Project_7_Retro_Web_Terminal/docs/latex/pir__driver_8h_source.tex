@@ -1,0 +1,39 @@
+\doxysection{pir\+\_\+driver.\+h}
+\hypertarget{pir__driver_8h_source}{}\label{pir__driver_8h_source}\index{main/pir\_driver.h@{main/pir\_driver.h}}
+\mbox{\hyperlink{pir__driver_8h}{Ir a la documentación de este archivo.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#ifndef\ PIR\_DRIVER\_H}}
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#define\ PIR\_DRIVER\_H}}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\#include\ <stdint.h>}}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\#include\ <stdbool.h>}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\#include\ "{}driver/gpio.h"{}}}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\#include\ "{}freertos/FreeRTOS.h"{}}}
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\#include\ "{}freertos/queue.h"{}}}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00069\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \textcolor{comment}{//\ =====\ CONFIGURACIÓN\ DE\ PIN\ GPIO\ =====}}
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\#define\ PIR\_GPIO\_PIN\ 12\ \ }\textcolor{comment}{//\ GPIO\ 12\ -\/\ Ajusta\ según\ tu\ hardware}}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \textcolor{comment}{//\ =====\ ESTRUCTURAS\ DE\ DATOS\ =====}}
+\DoxyCodeLine{00086\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structpir__event__t_a004644a6ca1a85e87991196121348589}{motion}};\ \ }
+\DoxyCodeLine{00088\ \}\ \mbox{\hyperlink{structpir__event__t}{pir\_event\_t}};}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \textcolor{comment}{//\ =====\ PROTOTIPOS\ DE\ FUNCIONES\ =====}}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00117\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{pir__driver_8h_a0eeed3cd7f30d6213009385f03ad018a}{pir\_init}}(gpio\_num\_t\ pir\_gpio,\ QueueHandle\_t\ pir\_queue);}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00131\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{pir__driver_8h_a81ffd3f243f99fd46341ee96793e6310}{pir\_is\_motion\_active}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00134\ \}}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ PIR\_DRIVER\_H}}
+
+\end{DoxyCode}

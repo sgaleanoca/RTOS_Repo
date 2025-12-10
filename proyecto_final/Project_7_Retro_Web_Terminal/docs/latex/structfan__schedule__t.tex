@@ -1,0 +1,54 @@
+\doxysection{Referencia de la estructura fan\+\_\+schedule\+\_\+t}
+\hypertarget{structfan__schedule__t}{}\label{structfan__schedule__t}\index{fan\_schedule\_t@{fan\_schedule\_t}}
+
+
+Estructura para el modo programado (legacy, actualmente se usan registros)  
+
+
+
+
+{\ttfamily \#include $<$fan\+\_\+control.\+h$>$}
+
+\doxysubsubsection*{Campos de datos}
+\begin{DoxyCompactItemize}
+\item 
+uint8\+\_\+t \mbox{\hyperlink{structfan__schedule__t_aa4e23989b66903bd5bcd3b7c94b10659}{start\+\_\+hour}}
+\item 
+uint8\+\_\+t \mbox{\hyperlink{structfan__schedule__t_ae3537bc599631f6887fef854e2db4ef5}{end\+\_\+hour}}
+\item 
+float \mbox{\hyperlink{structfan__schedule__t_a2c89c193d986a4865ba0f7ba97b43608}{min\+\_\+temp}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Descripción detallada}
+Estructura para el modo programado (legacy, actualmente se usan registros) 
+
+\begin{DoxyNote}{Nota}
+Esta estructura se mantiene por compatibilidad, pero el modo SCHEDULE ahora funciona basado en registros guardados en SPIFFS 
+\end{DoxyNote}
+
+
+\doxysubsection{Documentación de campos}
+\Hypertarget{structfan__schedule__t_ae3537bc599631f6887fef854e2db4ef5}\label{structfan__schedule__t_ae3537bc599631f6887fef854e2db4ef5} 
+\index{fan\_schedule\_t@{fan\_schedule\_t}!end\_hour@{end\_hour}}
+\index{end\_hour@{end\_hour}!fan\_schedule\_t@{fan\_schedule\_t}}
+\doxysubsubsection{\texorpdfstring{end\_hour}{end\_hour}}
+{\footnotesize\ttfamily uint8\+\_\+t fan\+\_\+schedule\+\_\+t\+::end\+\_\+hour}
+
+\Hypertarget{structfan__schedule__t_a2c89c193d986a4865ba0f7ba97b43608}\label{structfan__schedule__t_a2c89c193d986a4865ba0f7ba97b43608} 
+\index{fan\_schedule\_t@{fan\_schedule\_t}!min\_temp@{min\_temp}}
+\index{min\_temp@{min\_temp}!fan\_schedule\_t@{fan\_schedule\_t}}
+\doxysubsubsection{\texorpdfstring{min\_temp}{min\_temp}}
+{\footnotesize\ttfamily float fan\+\_\+schedule\+\_\+t\+::min\+\_\+temp}
+
+\Hypertarget{structfan__schedule__t_aa4e23989b66903bd5bcd3b7c94b10659}\label{structfan__schedule__t_aa4e23989b66903bd5bcd3b7c94b10659} 
+\index{fan\_schedule\_t@{fan\_schedule\_t}!start\_hour@{start\_hour}}
+\index{start\_hour@{start\_hour}!fan\_schedule\_t@{fan\_schedule\_t}}
+\doxysubsubsection{\texorpdfstring{start\_hour}{start\_hour}}
+{\footnotesize\ttfamily uint8\+\_\+t fan\+\_\+schedule\+\_\+t\+::start\+\_\+hour}
+
+
+
+La documentación de esta estructura está generada del siguiente archivo\+:\begin{DoxyCompactItemize}
+\item 
+main/\mbox{\hyperlink{fan__control_8h}{fan\+\_\+control.\+h}}\end{DoxyCompactItemize}

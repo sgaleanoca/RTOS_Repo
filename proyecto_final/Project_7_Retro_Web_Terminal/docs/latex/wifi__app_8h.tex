@@ -1,0 +1,181 @@
+\doxysection{Referencia del archivo main/wifi\+\_\+app.h}
+\hypertarget{wifi__app_8h}{}\label{wifi__app_8h}\index{main/wifi\_app.h@{main/wifi\_app.h}}
+
+
+Configuración y gestión de Wi\+Fi en modo AP+\+STA.  
+
+
+{\ttfamily \#include $<$stdbool.\+h$>$}\newline
+\doxysubsubsection*{defines}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{wifi__app_8h_ad2883d0cae1d96edaefd3b0a46b5ee46}{ESP\+\_\+\+WIFI\+\_\+\+SSID}}~"{}ESP32\+\_\+\+Server"{}
+\item 
+\#define \mbox{\hyperlink{wifi__app_8h_ac0354e38c60a7a189ea8653efc4e0cd6}{ESP\+\_\+\+WIFI\+\_\+\+PASS}}~"{}12345678"{}
+\item 
+\#define \mbox{\hyperlink{wifi__app_8h_a626a11e08b253d9570ba359f1fde64cc}{ESP\+\_\+\+WIFI\+\_\+\+CHANNEL}}~1
+\item 
+\#define \mbox{\hyperlink{wifi__app_8h_a428d6fc23e06208d09595c62b0a98aa9}{MAX\+\_\+\+STA\+\_\+\+CONN}}~4
+\item 
+\#define \mbox{\hyperlink{wifi__app_8h_a937ded4b9bc3bf7e1b1dd4f3fd2f627a}{WIFI\+\_\+\+STA\+\_\+\+SSID}}~"{}Mondongo"{}
+\item 
+\#define \mbox{\hyperlink{wifi__app_8h_adf7b15cc96c2dbc3b5c1590e67886bd9}{WIFI\+\_\+\+STA\+\_\+\+PASS}}~"{}huevos12"{}
+\item 
+\#define \mbox{\hyperlink{wifi__app_8h_a9889f5062c963896a887cd62a23730bf}{WIFI\+\_\+\+MAX\+\_\+\+RETRY}}~5
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Funciones}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{wifi__app_8h_a4a2bc421f17a5713e35165034943cea3}{wifi\+\_\+init\+\_\+softap}} (void)
+\begin{DoxyCompactList}\small\item\em Inicializa el ESP32 en modo AP+\+STA (Access Point + Station) \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{wifi__app_8h_ac2e99f68c3fb924e301871f4388ccc51}{wifi\+\_\+is\+\_\+connected}} (void)
+\begin{DoxyCompactList}\small\item\em Verifica si el ESP32 está conectado a Internet (modo Station) \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Descripción detallada}
+Configuración y gestión de Wi\+Fi en modo AP+\+STA. 
+
+\begin{DoxyAuthor}{Autor}
+Proyecto Final RTOS 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Fecha}
+2024
+\end{DoxyDate}
+Header file para la configuración y gestión de Wi\+Fi en modo AP+\+STA (Access Point + Station). Define las credenciales de las redes Wi\+Fi y las funciones para inicializar el punto de acceso y la conexión Station.\hypertarget{wifi__app_8h_softap}{}\doxysubsection{\texorpdfstring{Configuración Access Point (\+Soft\+AP)}{Configuración Access Point (SoftAP)}}\label{wifi__app_8h_softap}
+
+\begin{DoxyItemize}
+\item SSID\+: "{}\+ESP32\+\_\+\+Server"{}
+\item Contraseña\+: "{}12345678"{}
+\item Canal\+: 1
+\item Máximo de estaciones conectadas\+: 4
+\item Autenticación\+: WPA2 Personal
+\end{DoxyItemize}\hypertarget{wifi__app_8h_station}{}\doxysubsection{\texorpdfstring{Configuración Station (\+STA)}{Configuración Station (STA)}}\label{wifi__app_8h_station}
+
+\begin{DoxyItemize}
+\item SSID\+: "{}\+Mondongo"{}
+\item Contraseña\+: "{}huevos12"{}
+\item Máximo de reintentos\+: 5
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{ARCHIVO\+: \doxylink{wifi__app_8h}{wifi\+\_\+app.\+h} }
+
+RESUMEN\+: Header file para la configuración y gestión de Wi\+Fi en modo AP+\+STA (Access Point + Station). Define las credenciales de las redes Wi\+Fi y las funciones para inicializar el punto de acceso y la conexión Station.
+
+Configuración Access Point (Soft\+AP)\+:
+\begin{DoxyItemize}
+\item SSID\+: "{}\+ESP32\+\_\+\+Server"{}
+\item Contraseña\+: "{}12345678"{}
+\item Canal\+: 1
+\item Máximo de estaciones conectadas\+: 4
+\item Autenticación\+: WPA2 Personal
+\end{DoxyItemize}
+
+Configuración Station (STA)\+:
+\begin{DoxyItemize}
+\item SSID\+: "{}\+Mondongo"{}
+\item Contraseña\+: "{}huevos12"{}
+\item Máximo de reintentos\+: 5
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{Í\+NDICE DE SECCIONES\+: }
+
+Sección 1\+: CONFIGURACIÓN DE WIFI SOFTAP se encuentra en las líneas 33 a 34 Sección 2\+: CONFIGURACIÓN DE WIFI STATION se encuentra en las líneas 36 a 39 \doxysubsection*{Sección 3\+: PROTOTIPOS DE FUNCIONES se encuentra en las líneas 41 a 61 }
+
+\doxysubsection{Documentación de «define»}
+\Hypertarget{wifi__app_8h_a626a11e08b253d9570ba359f1fde64cc}\label{wifi__app_8h_a626a11e08b253d9570ba359f1fde64cc} 
+\index{wifi\_app.h@{wifi\_app.h}!ESP\_WIFI\_CHANNEL@{ESP\_WIFI\_CHANNEL}}
+\index{ESP\_WIFI\_CHANNEL@{ESP\_WIFI\_CHANNEL}!wifi\_app.h@{wifi\_app.h}}
+\doxysubsubsection{\texorpdfstring{ESP\_WIFI\_CHANNEL}{ESP\_WIFI\_CHANNEL}}
+{\footnotesize\ttfamily \#define ESP\+\_\+\+WIFI\+\_\+\+CHANNEL~1}
+
+\Hypertarget{wifi__app_8h_ac0354e38c60a7a189ea8653efc4e0cd6}\label{wifi__app_8h_ac0354e38c60a7a189ea8653efc4e0cd6} 
+\index{wifi\_app.h@{wifi\_app.h}!ESP\_WIFI\_PASS@{ESP\_WIFI\_PASS}}
+\index{ESP\_WIFI\_PASS@{ESP\_WIFI\_PASS}!wifi\_app.h@{wifi\_app.h}}
+\doxysubsubsection{\texorpdfstring{ESP\_WIFI\_PASS}{ESP\_WIFI\_PASS}}
+{\footnotesize\ttfamily \#define ESP\+\_\+\+WIFI\+\_\+\+PASS~"{}12345678"{}}
+
+\Hypertarget{wifi__app_8h_ad2883d0cae1d96edaefd3b0a46b5ee46}\label{wifi__app_8h_ad2883d0cae1d96edaefd3b0a46b5ee46} 
+\index{wifi\_app.h@{wifi\_app.h}!ESP\_WIFI\_SSID@{ESP\_WIFI\_SSID}}
+\index{ESP\_WIFI\_SSID@{ESP\_WIFI\_SSID}!wifi\_app.h@{wifi\_app.h}}
+\doxysubsubsection{\texorpdfstring{ESP\_WIFI\_SSID}{ESP\_WIFI\_SSID}}
+{\footnotesize\ttfamily \#define ESP\+\_\+\+WIFI\+\_\+\+SSID~"{}ESP32\+\_\+\+Server"{}}
+
+\Hypertarget{wifi__app_8h_a428d6fc23e06208d09595c62b0a98aa9}\label{wifi__app_8h_a428d6fc23e06208d09595c62b0a98aa9} 
+\index{wifi\_app.h@{wifi\_app.h}!MAX\_STA\_CONN@{MAX\_STA\_CONN}}
+\index{MAX\_STA\_CONN@{MAX\_STA\_CONN}!wifi\_app.h@{wifi\_app.h}}
+\doxysubsubsection{\texorpdfstring{MAX\_STA\_CONN}{MAX\_STA\_CONN}}
+{\footnotesize\ttfamily \#define MAX\+\_\+\+STA\+\_\+\+CONN~4}
+
+\Hypertarget{wifi__app_8h_a9889f5062c963896a887cd62a23730bf}\label{wifi__app_8h_a9889f5062c963896a887cd62a23730bf} 
+\index{wifi\_app.h@{wifi\_app.h}!WIFI\_MAX\_RETRY@{WIFI\_MAX\_RETRY}}
+\index{WIFI\_MAX\_RETRY@{WIFI\_MAX\_RETRY}!wifi\_app.h@{wifi\_app.h}}
+\doxysubsubsection{\texorpdfstring{WIFI\_MAX\_RETRY}{WIFI\_MAX\_RETRY}}
+{\footnotesize\ttfamily \#define WIFI\+\_\+\+MAX\+\_\+\+RETRY~5}
+
+\Hypertarget{wifi__app_8h_adf7b15cc96c2dbc3b5c1590e67886bd9}\label{wifi__app_8h_adf7b15cc96c2dbc3b5c1590e67886bd9} 
+\index{wifi\_app.h@{wifi\_app.h}!WIFI\_STA\_PASS@{WIFI\_STA\_PASS}}
+\index{WIFI\_STA\_PASS@{WIFI\_STA\_PASS}!wifi\_app.h@{wifi\_app.h}}
+\doxysubsubsection{\texorpdfstring{WIFI\_STA\_PASS}{WIFI\_STA\_PASS}}
+{\footnotesize\ttfamily \#define WIFI\+\_\+\+STA\+\_\+\+PASS~"{}huevos12"{}}
+
+\Hypertarget{wifi__app_8h_a937ded4b9bc3bf7e1b1dd4f3fd2f627a}\label{wifi__app_8h_a937ded4b9bc3bf7e1b1dd4f3fd2f627a} 
+\index{wifi\_app.h@{wifi\_app.h}!WIFI\_STA\_SSID@{WIFI\_STA\_SSID}}
+\index{WIFI\_STA\_SSID@{WIFI\_STA\_SSID}!wifi\_app.h@{wifi\_app.h}}
+\doxysubsubsection{\texorpdfstring{WIFI\_STA\_SSID}{WIFI\_STA\_SSID}}
+{\footnotesize\ttfamily \#define WIFI\+\_\+\+STA\+\_\+\+SSID~"{}Mondongo"{}}
+
+
+
+\doxysubsection{Documentación de funciones}
+\Hypertarget{wifi__app_8h_a4a2bc421f17a5713e35165034943cea3}\label{wifi__app_8h_a4a2bc421f17a5713e35165034943cea3} 
+\index{wifi\_app.h@{wifi\_app.h}!wifi\_init\_softap@{wifi\_init\_softap}}
+\index{wifi\_init\_softap@{wifi\_init\_softap}!wifi\_app.h@{wifi\_app.h}}
+\doxysubsubsection{\texorpdfstring{wifi\_init\_softap()}{wifi\_init\_softap()}}
+{\footnotesize\ttfamily void wifi\+\_\+init\+\_\+softap (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Inicializa el ESP32 en modo AP+\+STA (Access Point + Station) 
+
+
+\begin{DoxyItemize}
+\item Crea su propia red Wi\+Fi (Soft\+AP) para acceso local
+\item Se conecta a una red Wi\+Fi externa (Station) para tener Internet
+\end{DoxyItemize}
+
+Proceso\+:
+\begin{DoxyItemize}
+\item Inicializa la pila TCP/\+IP
+\item Crea el bucle de eventos
+\item Configura el driver Wi\+Fi en modo AP+\+STA
+\item Inicia el Access Point con credenciales locales
+\item Se conecta a la red Wi\+Fi externa para Internet
+\item Crea su propia red Wi\+Fi (Soft\+AP) para acceso local
+\item Se conecta a una red Wi\+Fi externa (Station) para tener Internet
+\end{DoxyItemize}
+
+Proceso de inicialización\+:
+\begin{DoxyEnumerate}
+\item Inicializa la pila TCP/\+IP
+\item Crea el bucle de eventos
+\item Crea las interfaces de red Wi\+Fi (AP y STA)
+\item Inicializa el driver Wi\+Fi
+\item Registra los manejadores de eventos (Wi\+Fi e IP)
+\item Configura credenciales del Access Point
+\item Configura credenciales del Station (red externa)
+\item Aplica configuración y inicia en modo AP+\+STA 
+\end{DoxyEnumerate}\Hypertarget{wifi__app_8h_ac2e99f68c3fb924e301871f4388ccc51}\label{wifi__app_8h_ac2e99f68c3fb924e301871f4388ccc51} 
+\index{wifi\_app.h@{wifi\_app.h}!wifi\_is\_connected@{wifi\_is\_connected}}
+\index{wifi\_is\_connected@{wifi\_is\_connected}!wifi\_app.h@{wifi\_app.h}}
+\doxysubsubsection{\texorpdfstring{wifi\_is\_connected()}{wifi\_is\_connected()}}
+{\footnotesize\ttfamily bool wifi\+\_\+is\+\_\+connected (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Verifica si el ESP32 está conectado a Internet (modo Station) 
+
+\begin{DoxyReturn}{Devuelve}
+true si está conectado, false en caso contrario 
+\end{DoxyReturn}

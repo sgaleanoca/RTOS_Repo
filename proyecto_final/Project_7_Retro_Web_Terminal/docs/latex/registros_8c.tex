@@ -1,0 +1,227 @@
+\doxysection{Referencia del archivo main/registros.c}
+\hypertarget{registros_8c}{}\label{registros_8c}\index{main/registros.c@{main/registros.c}}
+
+
+Implementación de la gestión de registros de horarios.  
+
+
+{\ttfamily \#include "{}registros.\+h"{}}\newline
+{\ttfamily \#include $<$esp\+\_\+log.\+h$>$}\newline
+{\ttfamily \#include $<$c\+JSON.\+h$>$}\newline
+{\ttfamily \#include "{}freertos/\+Free\+RTOS.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/task.\+h"{}}\newline
+{\ttfamily \#include $<$stdio.\+h$>$}\newline
+{\ttfamily \#include $<$string.\+h$>$}\newline
+{\ttfamily \#include $<$stdlib.\+h$>$}\newline
+{\ttfamily \#include $<$stdbool.\+h$>$}\newline
+{\ttfamily \#include $<$stdint.\+h$>$}\newline
+{\ttfamily \#include $<$inttypes.\+h$>$}\newline
+\doxysubsubsection*{Funciones}
+\begin{DoxyCompactItemize}
+\item 
+static int64\+\_\+t \mbox{\hyperlink{registros_8c_a3d91bca995f2145eb1e0f2160f74b9df}{get\+\_\+time\+\_\+ms}} (void)
+\begin{DoxyCompactList}\small\item\em Obtiene el tiempo actual en milisegundos desde el inicio del sistema. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{registros_8c_a08e1ccc606b0ae631b9cbc4f5e694522}{crear\+\_\+archivo\+\_\+si\+\_\+no\+\_\+existe}} (void)
+\begin{DoxyCompactList}\small\item\em Crea el archivo registros.\+json en SPIFFS si no existe Inicializa el archivo con un array JSON vacío \mbox{[}\mbox{]} Esta función debe llamarse durante la inicialización del servidor web para asegurar que el archivo existe antes de intentar leer/escribir registros. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{registros_8c_ade58386010b0b7549a41ecb872175d09}{agregar\+\_\+registro}} (const char \texorpdfstring{$\ast$}{*}dia, const char \texorpdfstring{$\ast$}{*}hora, int velocidad)
+\begin{DoxyCompactList}\small\item\em Agrega un registro al archivo registros.\+json en SPIFFS Lee el archivo completo, agrega el nuevo registro al array JSON, y guarda el archivo actualizado de forma persistente. \end{DoxyCompactList}\item 
+char \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{registros_8c_acb983bd3894be47c2e021b7b3ce9a302}{leer\+\_\+registros\+\_\+json}} (void)
+\begin{DoxyCompactList}\small\item\em Lee todos los registros del archivo registros.\+json desde SPIFFS Retorna un string JSON con el array completo de registros almacenados. \end{DoxyCompactList}\item 
+static void \mbox{\hyperlink{registros_8c_a2b72329f9b9b5fe54e2b2d6a61194ce7}{normalizar\+\_\+dia}} (const char \texorpdfstring{$\ast$}{*}dia, char \texorpdfstring{$\ast$}{*}output, size\+\_\+t output\+\_\+size)
+\begin{DoxyCompactList}\small\item\em Convierte el nombre del día en español a minúsculas normalizado. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{structregistro__activo__t}{registro\+\_\+activo\+\_\+t}} \mbox{\hyperlink{registros_8c_a7075e2189f78dced2ed46156273352d5}{verificar\+\_\+registro\+\_\+activo}} (const char \texorpdfstring{$\ast$}{*}dia\+\_\+actual, const char \texorpdfstring{$\ast$}{*}hora\+\_\+actual)
+\begin{DoxyCompactList}\small\item\em Verifica si hay un registro activo para el día y hora actuales Lee todos los registros desde SPIFFS y busca coincidencias exactas de día y hora. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+static const char \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{registros_8c_a5a85b9c772bbeb480b209a3e6ea92b4c}{TAG}} = "{}REGISTROS"{}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Descripción detallada}
+Implementación de la gestión de registros de horarios. 
+
+\begin{DoxyAuthor}{Autor}
+Proyecto Final RTOS 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Fecha}
+2024
+\end{DoxyDate}
+Implementación de la gestión de registros de horarios del ventilador. Este módulo proporciona funciones para almacenar y leer registros de forma persistente en la partición SPIFFS del ESP32.\hypertarget{wifi__app_8c_functionality}{}\doxysubsection{\texorpdfstring{Funcionalidades}{Funcionalidades}}\label{wifi__app_8c_functionality}
+
+\begin{DoxyItemize}
+\item Creación automática del archivo registros.\+json si no existe
+\item Guardado de registros en formato JSON en /spiffs/registros.json
+\item Lectura de todos los registros almacenados
+\item Verificación de registros activos para el día y hora actual
+\item Persistencia de datos tras reinicio del ESP32
+\end{DoxyItemize}\hypertarget{wifi__app_8c_usage}{}\doxysubsection{\texorpdfstring{Uso en el sistema}{Uso en el sistema}}\label{wifi__app_8c_usage}
+Los registros se utilizan desde el módulo \doxylink{web__server_8c}{web\+\_\+server.\+c} a través de los endpoints HTTP GET /registros y POST /registros, y desde \doxylink{fan__control_8c}{fan\+\_\+control.\+c} para el modo SCHEDULE del ventilador.\hypertarget{registros_8h_format}{}\doxysubsection{\texorpdfstring{Formato de registro}{Formato de registro}}\label{registros_8h_format}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ "{}dia"{}:\ "{}lunes"{},}
+\DoxyCodeLine{\ \ "{}hora"{}:\ "{}14:30"{},}
+\DoxyCodeLine{\ \ "{}velocidad"{}:\ 50,}
+\DoxyCodeLine{\ \ "{}id"{}:\ "{}1234567890"{}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+ \doxysubsection*{ARCHIVO\+: \doxylink{registros_8c}{registros.\+c} }
+
+RESUMEN\+: Implementación de la gestión de registros de horarios del ventilador. Este módulo proporciona funciones para almacenar y leer registros de forma persistente en la partición SPIFFS del ESP32.
+
+Funcionalidades\+:
+\begin{DoxyItemize}
+\item Creación automática del archivo registros.\+json si no existe
+\item Guardado de registros en formato JSON en /spiffs/registros.json
+\item Lectura de todos los registros almacenados
+\item Verificación de registros activos para el día y hora actual
+\item Persistencia de datos tras reinicio del ESP32
+\end{DoxyItemize}
+
+Los registros se utilizan desde el módulo \doxylink{web__server_8c}{web\+\_\+server.\+c} a través de los endpoints HTTP GET /registros y POST /registros, y desde \doxylink{fan__control_8c}{fan\+\_\+control.\+c} para el modo SCHEDULE del ventilador.
+
+Formato de registro\+: \{ "{}dia"{}\+: "{}lunes"{}, "{}hora"{}\+: "{}14\+:30"{}, "{}velocidad"{}\+: 50, "{}id"{}\+: "{}1234567890"{} \}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{Í\+NDICE DE SECCIONES\+: }
+
+Sección 1\+: INCLUDES se encuentra en las líneas 44 a 60 Sección 2\+: DEFINICIONES Y CONSTANTES se encuentra en las líneas 62 a 63 Sección 3\+: FUNCIONES INTERNAS se encuentra en las líneas 65 a 76 \doxysubsection*{Sección 4\+: FUNCIONES PÚ\+BLICAS se encuentra en las líneas 78 a 325 }
+
+\DoxyHorRuler{0}
+ \doxysubsection*{RESUMEN DE TAREAS, COLAS Y SEMÁ\+FOROS IMPLEMENTADOS\+: }
+
+=== TAREAS (TASKS) ===
+
+Ninguna en este módulo. Las funciones se llaman desde otras tareas.
+
+=== COLAS (QUEUES) ===
+
+Ninguna en este módulo.
+
+=== SEMÁ\+FOROS (MUTEXES) ===
+
+Ninguno en este módulo. El acceso a archivos SPIFFS es thread-\/safe mediante las funciones estándar de C (fopen, fread, fwrite).
+
+\DoxyHorRuler{0}
+ 
+
+\doxysubsection{Documentación de funciones}
+\Hypertarget{registros_8c_ade58386010b0b7549a41ecb872175d09}\label{registros_8c_ade58386010b0b7549a41ecb872175d09} 
+\index{registros.c@{registros.c}!agregar\_registro@{agregar\_registro}}
+\index{agregar\_registro@{agregar\_registro}!registros.c@{registros.c}}
+\doxysubsubsection{\texorpdfstring{agregar\_registro()}{agregar\_registro()}}
+{\footnotesize\ttfamily bool agregar\+\_\+registro (\begin{DoxyParamCaption}\item[{const char \texorpdfstring{$\ast$}{*}}]{dia,  }\item[{const char \texorpdfstring{$\ast$}{*}}]{hora,  }\item[{int}]{velocidad }\end{DoxyParamCaption})}
+
+
+
+Agrega un registro al archivo registros.\+json en SPIFFS Lee el archivo completo, agrega el nuevo registro al array JSON, y guarda el archivo actualizado de forma persistente. 
+
+Agrega un registro al archivo registros.\+json.
+
+
+\begin{DoxyParams}{Parámetros}
+{\em dia} & Día de la semana (ej\+: "{}lunes"{}, "{}martes"{}, etc.) \\
+\hline
+{\em hora} & Hora en formato HH\+:MM (ej\+: "{}14\+:30"{}) \\
+\hline
+{\em velocidad} & Velocidad del ventilador (0-\/100) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Devuelve}
+true si éxito, false si error (archivo no existe, error de escritura, etc.)
+\end{DoxyReturn}
+Nota\+: El registro incluye un ID único basado en timestamp para compatibilidad con el frontend que espera un campo "{}id"{} en cada registro. \Hypertarget{registros_8c_a08e1ccc606b0ae631b9cbc4f5e694522}\label{registros_8c_a08e1ccc606b0ae631b9cbc4f5e694522} 
+\index{registros.c@{registros.c}!crear\_archivo\_si\_no\_existe@{crear\_archivo\_si\_no\_existe}}
+\index{crear\_archivo\_si\_no\_existe@{crear\_archivo\_si\_no\_existe}!registros.c@{registros.c}}
+\doxysubsubsection{\texorpdfstring{crear\_archivo\_si\_no\_existe()}{crear\_archivo\_si\_no\_existe()}}
+{\footnotesize\ttfamily void crear\+\_\+archivo\+\_\+si\+\_\+no\+\_\+existe (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Crea el archivo registros.\+json en SPIFFS si no existe Inicializa el archivo con un array JSON vacío \mbox{[}\mbox{]} Esta función debe llamarse durante la inicialización del servidor web para asegurar que el archivo existe antes de intentar leer/escribir registros. 
+
+Crea el archivo registros.\+json si no existe Inicializa con un array JSON vacío \mbox{[}\mbox{]}. \Hypertarget{registros_8c_a3d91bca995f2145eb1e0f2160f74b9df}\label{registros_8c_a3d91bca995f2145eb1e0f2160f74b9df} 
+\index{registros.c@{registros.c}!get\_time\_ms@{get\_time\_ms}}
+\index{get\_time\_ms@{get\_time\_ms}!registros.c@{registros.c}}
+\doxysubsubsection{\texorpdfstring{get\_time\_ms()}{get\_time\_ms()}}
+{\footnotesize\ttfamily static int64\+\_\+t get\+\_\+time\+\_\+ms (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Obtiene el tiempo actual en milisegundos desde el inicio del sistema. 
+
+\begin{DoxyReturn}{Devuelve}
+Tiempo en milisegundos 
+\end{DoxyReturn}
+\Hypertarget{registros_8c_acb983bd3894be47c2e021b7b3ce9a302}\label{registros_8c_acb983bd3894be47c2e021b7b3ce9a302} 
+\index{registros.c@{registros.c}!leer\_registros\_json@{leer\_registros\_json}}
+\index{leer\_registros\_json@{leer\_registros\_json}!registros.c@{registros.c}}
+\doxysubsubsection{\texorpdfstring{leer\_registros\_json()}{leer\_registros\_json()}}
+{\footnotesize\ttfamily char \texorpdfstring{$\ast$}{*} leer\+\_\+registros\+\_\+json (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Lee todos los registros del archivo registros.\+json desde SPIFFS Retorna un string JSON con el array completo de registros almacenados. 
+
+Lee todos los registros del archivo registros.\+json.
+
+\begin{DoxyReturn}{Devuelve}
+String JSON con todos los registros (debe ser liberado con free()) Retorna "{}\mbox{[}$\,$\mbox{]}"{} (array vacío) si hay error, el archivo no existe o está vacío
+\end{DoxyReturn}
+Formato del JSON retornado\+: \mbox{[} \{"{}dia"{}\+: "{}lunes"{}, "{}hora"{}\+: "{}14\+:30"{}, "{}velocidad"{}\+: 50, "{}id"{}\+: "{}1234567890"{}\}, \{"{}dia"{}\+: "{}martes"{}, "{}hora"{}\+: "{}08\+:00"{}, "{}velocidad"{}\+: 75, "{}id"{}\+: "{}1234567891"{}\}, ... \mbox{]} \Hypertarget{registros_8c_a2b72329f9b9b5fe54e2b2d6a61194ce7}\label{registros_8c_a2b72329f9b9b5fe54e2b2d6a61194ce7} 
+\index{registros.c@{registros.c}!normalizar\_dia@{normalizar\_dia}}
+\index{normalizar\_dia@{normalizar\_dia}!registros.c@{registros.c}}
+\doxysubsubsection{\texorpdfstring{normalizar\_dia()}{normalizar\_dia()}}
+{\footnotesize\ttfamily static void normalizar\+\_\+dia (\begin{DoxyParamCaption}\item[{const char \texorpdfstring{$\ast$}{*}}]{dia,  }\item[{char \texorpdfstring{$\ast$}{*}}]{output,  }\item[{size\+\_\+t}]{output\+\_\+size }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Convierte el nombre del día en español a minúsculas normalizado. 
+
+
+\begin{DoxyParams}{Parámetros}
+{\em dia} & Día en español (puede tener mayúsculas) \\
+\hline
+{\em output} & Buffer donde se almacenará el día normalizado \\
+\hline
+{\em output\+\_\+size} & Tamaño del buffer \\
+\hline
+\end{DoxyParams}
+\Hypertarget{registros_8c_a7075e2189f78dced2ed46156273352d5}\label{registros_8c_a7075e2189f78dced2ed46156273352d5} 
+\index{registros.c@{registros.c}!verificar\_registro\_activo@{verificar\_registro\_activo}}
+\index{verificar\_registro\_activo@{verificar\_registro\_activo}!registros.c@{registros.c}}
+\doxysubsubsection{\texorpdfstring{verificar\_registro\_activo()}{verificar\_registro\_activo()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structregistro__activo__t}{registro\+\_\+activo\+\_\+t}} verificar\+\_\+registro\+\_\+activo (\begin{DoxyParamCaption}\item[{const char \texorpdfstring{$\ast$}{*}}]{dia\+\_\+actual,  }\item[{const char \texorpdfstring{$\ast$}{*}}]{hora\+\_\+actual }\end{DoxyParamCaption})}
+
+
+
+Verifica si hay un registro activo para el día y hora actuales Lee todos los registros desde SPIFFS y busca coincidencias exactas de día y hora. 
+
+Verifica si hay un registro activo para el día y hora actuales.
+
+Si encuentra una coincidencia, retorna la velocidad del registro.
+
+
+\begin{DoxyParams}{Parámetros}
+{\em dia\+\_\+actual} & Día actual en español (ej\+: "{}lunes"{}, "{}martes"{}, etc.) \\
+\hline
+{\em hora\+\_\+actual} & Hora actual en formato HH\+:MM (ej\+: "{}14\+:30"{}) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Devuelve}
+\doxylink{structregistro__activo__t}{registro\+\_\+activo\+\_\+t} con la velocidad si hay registro activo, o velocidad=0 y activo=false si no hay coincidencia 
+\end{DoxyReturn}
+
+
+\doxysubsection{Documentación de variables}
+\Hypertarget{registros_8c_a5a85b9c772bbeb480b209a3e6ea92b4c}\label{registros_8c_a5a85b9c772bbeb480b209a3e6ea92b4c} 
+\index{registros.c@{registros.c}!TAG@{TAG}}
+\index{TAG@{TAG}!registros.c@{registros.c}}
+\doxysubsubsection{\texorpdfstring{TAG}{TAG}}
+{\footnotesize\ttfamily const char\texorpdfstring{$\ast$}{*} TAG = "{}REGISTROS"{}\hspace{0.3cm}{\ttfamily [static]}}
+

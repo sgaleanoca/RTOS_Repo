@@ -1,0 +1,201 @@
+\doxysection{Referencia del archivo main/rgb\+\_\+led.c}
+\hypertarget{rgb__led_8c}{}\label{rgb__led_8c}\index{main/rgb\_led.c@{main/rgb\_led.c}}
+
+
+Implementación del controlador de LED RGB.  
+
+
+{\ttfamily \#include "{}rgb\+\_\+led.\+h"{}}\newline
+{\ttfamily \#include "{}driver/ledc.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+err.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+log.\+h"{}}\newline
+\doxysubsubsection*{defines}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{rgb__led_8c_ae36ab528655b95f5d618f1ddaccf131a}{GPIO\+\_\+\+GREEN}}~27
+\item 
+\#define \mbox{\hyperlink{rgb__led_8c_aa0308d9cb1b31fb1995dc8433a16556b}{LEDC\+\_\+\+TIMER}}~LEDC\+\_\+\+TIMER\+\_\+0
+\item 
+\#define \mbox{\hyperlink{rgb__led_8c_adaeb1cfe90b02710d73c9eb032e05bb6}{LEDC\+\_\+\+MODE}}~LEDC\+\_\+\+LOW\+\_\+\+SPEED\+\_\+\+MODE
+\item 
+\#define \mbox{\hyperlink{rgb__led_8c_a0f68dbef17231bdfc20c1a7508ac77c7}{LEDC\+\_\+\+CHANNEL\+\_\+G}}~LEDC\+\_\+\+CHANNEL\+\_\+1
+\item 
+\#define \mbox{\hyperlink{rgb__led_8c_a2ef79fb32dcc151508bf858adee1d8fb}{LEDC\+\_\+\+DUTY\+\_\+\+RES}}~LEDC\+\_\+\+TIMER\+\_\+8\+\_\+\+BIT
+\item 
+\#define \mbox{\hyperlink{rgb__led_8c_a27a7a2401d04400318ae8ff49e36a956}{LEDC\+\_\+\+FREQUENCY}}~5000
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Funciones}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{rgb__led_8c_a3998750ac5327295428745cd6b755701}{rgb\+\_\+led\+\_\+init}} (void)
+\begin{DoxyCompactList}\small\item\em Inicializa el controlador PWM para el LED RGB verde. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{rgb__led_8c_afa0d2f77515bfca8255a418ee003f399}{rgb\+\_\+set\+\_\+green\+\_\+percent}} (uint8\+\_\+t percent)
+\begin{DoxyCompactList}\small\item\em Establece el brillo del LED verde como porcentaje. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+static const char \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{rgb__led_8c_a5a85b9c772bbeb480b209a3e6ea92b4c}{TAG}} = "{}RGB\+\_\+\+LED"{}
+\item 
+static bool \mbox{\hyperlink{rgb__led_8c_a7262dcb04cd70c7f17090d8ff0e935b8}{rgb\+\_\+led\+\_\+initialized}} = false
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Descripción detallada}
+Implementación del controlador de LED RGB. 
+
+\begin{DoxyAuthor}{Autor}
+Proyecto Final RTOS 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Fecha}
+2024
+\end{DoxyDate}
+Implementación del controlador de LED RGB (actualmente solo canal verde). Este módulo gestiona el control PWM del LED RGB mediante el periférico LEDC del ESP32.\hypertarget{rgb__led_8h_hardware}{}\doxysubsection{\texorpdfstring{Hardware}{Hardware}}\label{rgb__led_8h_hardware}
+
+\begin{DoxyItemize}
+\item LED Verde\+: GPIO 27 (PWM mediante LEDC Channel 1, Timer 0)
+\end{DoxyItemize}\hypertarget{time__sync_8h_features}{}\doxysubsection{\texorpdfstring{Características}{Características}}\label{time__sync_8h_features}
+
+\begin{DoxyItemize}
+\item Control PWM de 8 bits (0-\/255 niveles)
+\item Frecuencia\+: 5k\+Hz (adecuada para LEDs sin parpadeo visible)
+\item Interfaz simple con porcentaje (0-\/100\%)
+\item Validación de parámetros y manejo de errores
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{ARCHIVO\+: \doxylink{rgb__led_8c}{rgb\+\_\+led.\+c} }
+
+RESUMEN\+: Implementación del controlador de LED RGB (actualmente solo canal verde). Este módulo gestiona el control PWM del LED RGB mediante el periférico LEDC del ESP32.
+
+Hardware\+:
+\begin{DoxyItemize}
+\item LED Verde\+: GPIO 27 (PWM mediante LEDC Channel 1, Timer 0)
+\end{DoxyItemize}
+
+Características\+:
+\begin{DoxyItemize}
+\item Control PWM de 8 bits (0-\/255 niveles)
+\item Frecuencia\+: 5k\+Hz (adecuada para LEDs sin parpadeo visible)
+\item Interfaz simple con porcentaje (0-\/100\%)
+\item Validación de parámetros y manejo de errores
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{Í\+NDICE DE SECCIONES\+: }
+
+Sección 1\+: INCLUDES se encuentra en las líneas 33 a 40 Sección 2\+: DEFINICIONES Y CONSTANTES se encuentra en las líneas 42 a 50 Sección 3\+: VARIABLES ESTÁ\+TICAS se encuentra en las líneas 52 a 53 Sección 4\+: FUNCIONES DE INICIALIZACIÓN se encuentra en las líneas 55 a 104 \doxysubsection*{Sección 5\+: FUNCIONES DE CONTROL DEL LED se encuentra en las líneas 106 a 145 }
+
+\DoxyHorRuler{0}
+ \doxysubsection*{RESUMEN DE TAREAS, COLAS Y SEMÁ\+FOROS IMPLEMENTADOS\+: }
+
+=== TAREAS (TASKS) ===
+
+Ninguna en este módulo. Las funciones se llaman directamente desde otras tareas.
+
+=== COLAS (QUEUES) ===
+
+Ninguna en este módulo.
+
+=== SEMÁ\+FOROS (MUTEXES) ===
+
+Ninguno en este módulo. El acceso a las funciones es thread-\/safe porque las funciones de LEDC son thread-\/safe.
+
+\DoxyHorRuler{0}
+ 
+
+\doxysubsection{Documentación de «define»}
+\Hypertarget{rgb__led_8c_ae36ab528655b95f5d618f1ddaccf131a}\label{rgb__led_8c_ae36ab528655b95f5d618f1ddaccf131a} 
+\index{rgb\_led.c@{rgb\_led.c}!GPIO\_GREEN@{GPIO\_GREEN}}
+\index{GPIO\_GREEN@{GPIO\_GREEN}!rgb\_led.c@{rgb\_led.c}}
+\doxysubsubsection{\texorpdfstring{GPIO\_GREEN}{GPIO\_GREEN}}
+{\footnotesize\ttfamily \#define GPIO\+\_\+\+GREEN~27}
+
+\Hypertarget{rgb__led_8c_a0f68dbef17231bdfc20c1a7508ac77c7}\label{rgb__led_8c_a0f68dbef17231bdfc20c1a7508ac77c7} 
+\index{rgb\_led.c@{rgb\_led.c}!LEDC\_CHANNEL\_G@{LEDC\_CHANNEL\_G}}
+\index{LEDC\_CHANNEL\_G@{LEDC\_CHANNEL\_G}!rgb\_led.c@{rgb\_led.c}}
+\doxysubsubsection{\texorpdfstring{LEDC\_CHANNEL\_G}{LEDC\_CHANNEL\_G}}
+{\footnotesize\ttfamily \#define LEDC\+\_\+\+CHANNEL\+\_\+G~LEDC\+\_\+\+CHANNEL\+\_\+1}
+
+\Hypertarget{rgb__led_8c_a2ef79fb32dcc151508bf858adee1d8fb}\label{rgb__led_8c_a2ef79fb32dcc151508bf858adee1d8fb} 
+\index{rgb\_led.c@{rgb\_led.c}!LEDC\_DUTY\_RES@{LEDC\_DUTY\_RES}}
+\index{LEDC\_DUTY\_RES@{LEDC\_DUTY\_RES}!rgb\_led.c@{rgb\_led.c}}
+\doxysubsubsection{\texorpdfstring{LEDC\_DUTY\_RES}{LEDC\_DUTY\_RES}}
+{\footnotesize\ttfamily \#define LEDC\+\_\+\+DUTY\+\_\+\+RES~LEDC\+\_\+\+TIMER\+\_\+8\+\_\+\+BIT}
+
+\Hypertarget{rgb__led_8c_a27a7a2401d04400318ae8ff49e36a956}\label{rgb__led_8c_a27a7a2401d04400318ae8ff49e36a956} 
+\index{rgb\_led.c@{rgb\_led.c}!LEDC\_FREQUENCY@{LEDC\_FREQUENCY}}
+\index{LEDC\_FREQUENCY@{LEDC\_FREQUENCY}!rgb\_led.c@{rgb\_led.c}}
+\doxysubsubsection{\texorpdfstring{LEDC\_FREQUENCY}{LEDC\_FREQUENCY}}
+{\footnotesize\ttfamily \#define LEDC\+\_\+\+FREQUENCY~5000}
+
+\Hypertarget{rgb__led_8c_adaeb1cfe90b02710d73c9eb032e05bb6}\label{rgb__led_8c_adaeb1cfe90b02710d73c9eb032e05bb6} 
+\index{rgb\_led.c@{rgb\_led.c}!LEDC\_MODE@{LEDC\_MODE}}
+\index{LEDC\_MODE@{LEDC\_MODE}!rgb\_led.c@{rgb\_led.c}}
+\doxysubsubsection{\texorpdfstring{LEDC\_MODE}{LEDC\_MODE}}
+{\footnotesize\ttfamily \#define LEDC\+\_\+\+MODE~LEDC\+\_\+\+LOW\+\_\+\+SPEED\+\_\+\+MODE}
+
+\Hypertarget{rgb__led_8c_aa0308d9cb1b31fb1995dc8433a16556b}\label{rgb__led_8c_aa0308d9cb1b31fb1995dc8433a16556b} 
+\index{rgb\_led.c@{rgb\_led.c}!LEDC\_TIMER@{LEDC\_TIMER}}
+\index{LEDC\_TIMER@{LEDC\_TIMER}!rgb\_led.c@{rgb\_led.c}}
+\doxysubsubsection{\texorpdfstring{LEDC\_TIMER}{LEDC\_TIMER}}
+{\footnotesize\ttfamily \#define LEDC\+\_\+\+TIMER~LEDC\+\_\+\+TIMER\+\_\+0}
+
+
+
+\doxysubsection{Documentación de funciones}
+\Hypertarget{rgb__led_8c_a3998750ac5327295428745cd6b755701}\label{rgb__led_8c_a3998750ac5327295428745cd6b755701} 
+\index{rgb\_led.c@{rgb\_led.c}!rgb\_led\_init@{rgb\_led\_init}}
+\index{rgb\_led\_init@{rgb\_led\_init}!rgb\_led.c@{rgb\_led.c}}
+\doxysubsubsection{\texorpdfstring{rgb\_led\_init()}{rgb\_led\_init()}}
+{\footnotesize\ttfamily bool rgb\+\_\+led\+\_\+init (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Inicializa el controlador PWM para el LED RGB verde. 
+
+Configura el timer LEDC y el canal PWM para controlar el LED verde. Esta función debe llamarse una vez durante la inicialización del sistema antes de usar cualquier otra función de este módulo.
+
+Proceso de inicialización\+:
+\begin{DoxyEnumerate}
+\item Configura el timer LEDC con resolución de 8 bits y frecuencia de 5k\+Hz
+\item Configura el canal LEDC para el GPIO del LED verde
+\item Inicia el LED con brillo 0\% (apagado)
+\end{DoxyEnumerate}
+
+\begin{DoxyReturn}{Devuelve}
+true si la inicialización fue exitosa, false en caso contrario 
+\end{DoxyReturn}
+\Hypertarget{rgb__led_8c_afa0d2f77515bfca8255a418ee003f399}\label{rgb__led_8c_afa0d2f77515bfca8255a418ee003f399} 
+\index{rgb\_led.c@{rgb\_led.c}!rgb\_set\_green\_percent@{rgb\_set\_green\_percent}}
+\index{rgb\_set\_green\_percent@{rgb\_set\_green\_percent}!rgb\_led.c@{rgb\_led.c}}
+\doxysubsubsection{\texorpdfstring{rgb\_set\_green\_percent()}{rgb\_set\_green\_percent()}}
+{\footnotesize\ttfamily void rgb\+\_\+set\+\_\+green\+\_\+percent (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{percent }\end{DoxyParamCaption})}
+
+
+
+Establece el brillo del LED verde como porcentaje. 
+
+Convierte el porcentaje (0-\/100) a valor PWM (0-\/255) y actualiza el LED. Valores fuera de rango se limitan automáticamente a 0-\/100.
+
+Nota\+: Esta función requiere que \doxylink{rgb__led_8c_a3998750ac5327295428745cd6b755701}{rgb\+\_\+led\+\_\+init()} haya sido llamada previamente. Si no está inicializado, la función no realizará ninguna acción.
+
+
+\begin{DoxyParams}{Parámetros}
+{\em percent} & Porcentaje de brillo (0-\/100). Valores \texorpdfstring{$>$}{>}100 se limitan a 100. \\
+\hline
+\end{DoxyParams}
+
+
+\doxysubsection{Documentación de variables}
+\Hypertarget{rgb__led_8c_a7262dcb04cd70c7f17090d8ff0e935b8}\label{rgb__led_8c_a7262dcb04cd70c7f17090d8ff0e935b8} 
+\index{rgb\_led.c@{rgb\_led.c}!rgb\_led\_initialized@{rgb\_led\_initialized}}
+\index{rgb\_led\_initialized@{rgb\_led\_initialized}!rgb\_led.c@{rgb\_led.c}}
+\doxysubsubsection{\texorpdfstring{rgb\_led\_initialized}{rgb\_led\_initialized}}
+{\footnotesize\ttfamily bool rgb\+\_\+led\+\_\+initialized = false\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{rgb__led_8c_a5a85b9c772bbeb480b209a3e6ea92b4c}\label{rgb__led_8c_a5a85b9c772bbeb480b209a3e6ea92b4c} 
+\index{rgb\_led.c@{rgb\_led.c}!TAG@{TAG}}
+\index{TAG@{TAG}!rgb\_led.c@{rgb\_led.c}}
+\doxysubsubsection{\texorpdfstring{TAG}{TAG}}
+{\footnotesize\ttfamily const char\texorpdfstring{$\ast$}{*} TAG = "{}RGB\+\_\+\+LED"{}\hspace{0.3cm}{\ttfamily [static]}}
+

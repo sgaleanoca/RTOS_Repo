@@ -1,0 +1,28 @@
+\doxysection{wifi\+\_\+app.\+h}
+\hypertarget{wifi__app_8h_source}{}\label{wifi__app_8h_source}\index{main/wifi\_app.h@{main/wifi\_app.h}}
+\mbox{\hyperlink{wifi__app_8h}{Ir a la documentación de este archivo.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#include\ <stdbool.h>}}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \textcolor{comment}{//\ =====\ CONFIGURACIÓN\ DE\ WIFI\ SOFTAP\ =====}}
+\DoxyCodeLine{00058\ \textcolor{comment}{//\ Credenciales\ de\ la\ red\ WiFi\ que\ crea\ el\ ESP32}}
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#define\ ESP\_WIFI\_SSID\ \ \ \ \ \ "{}ESP32\_Server"{}\ \ }\textcolor{comment}{//\ Nombre\ de\ la\ red\ WiFi\ (SSID)}}
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#define\ ESP\_WIFI\_PASS\ \ \ \ \ \ "{}12345678"{}\ \ \ \ \ \ }\textcolor{comment}{//\ Contraseña\ de\ la\ red\ (mínimo\ 8\ caracteres\ para\ WPA2)}}
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\#define\ ESP\_WIFI\_CHANNEL\ \ \ 1\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{//\ Canal\ WiFi\ (rango:\ 1-\/13)}}
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\#define\ MAX\_STA\_CONN\ \ \ \ \ \ \ 4\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{//\ Máximo\ número\ de\ dispositivos\ que\ pueden\ conectarse\ simultáneamente}}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \textcolor{comment}{//\ =====\ CONFIGURACIÓN\ DE\ WIFI\ STATION\ (STA)\ =====}}
+\DoxyCodeLine{00065\ \textcolor{comment}{//\ Credenciales\ de\ la\ red\ WiFi\ a\ la\ que\ se\ conectará\ el\ ESP32\ para\ tener\ Internet}}
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\#define\ WIFI\_STA\_SSID\ \ \ \ \ \ "{}Mondongo"{}\ \ \ \ \ \ \ }\textcolor{comment}{//\ Nombre\ de\ la\ red\ WiFi\ a\ la\ que\ conectarse}}
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\#define\ WIFI\_STA\_PASS\ \ \ \ \ \ "{}huevos12"{}\ \ \ \ \ \ }\textcolor{comment}{//\ Contraseña\ de\ la\ red\ WiFi}}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\#define\ WIFI\_MAX\_RETRY\ \ \ \ \ 5\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{//\ Número\ máximo\ de\ intentos\ de\ conexión}}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \textcolor{comment}{//\ =====\ PROTOTIPOS\ DE\ FUNCIONES\ =====}}
+\DoxyCodeLine{00083\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{wifi__app_8h_a4a2bc421f17a5713e35165034943cea3}{wifi\_init\_softap}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00089\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{wifi__app_8h_ac2e99f68c3fb924e301871f4388ccc51}{wifi\_is\_connected}}(\textcolor{keywordtype}{void});}
+
+\end{DoxyCode}

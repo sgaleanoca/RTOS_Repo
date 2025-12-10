@@ -1,0 +1,961 @@
+\doxysection{Referencia del archivo main/web\+\_\+server.c}
+\hypertarget{web__server_8c}{}\label{web__server_8c}\index{main/web\_server.c@{main/web\_server.c}}
+
+
+Implementación del servidor web HTTP del ESP32.  
+
+
+{\ttfamily \#include "{}web\+\_\+server.\+h"{}}\newline
+{\ttfamily \#include "{}rgb\+\_\+led.\+h"{}}\newline
+{\ttfamily \#include "{}ntc\+\_\+sensor.\+h"{}}\newline
+{\ttfamily \#include "{}registros.\+h"{}}\newline
+{\ttfamily \#include "{}time\+\_\+sync.\+h"{}}\newline
+{\ttfamily \#include "{}terminal\+\_\+commands.\+h"{}}\newline
+{\ttfamily \#include "{}fan\+\_\+control.\+h"{}}\newline
+{\ttfamily \#include "{}pir\+\_\+driver.\+h"{}}\newline
+{\ttfamily \#include $<$esp\+\_\+http\+\_\+server.\+h$>$}\newline
+{\ttfamily \#include $<$esp\+\_\+spiffs.\+h$>$}\newline
+{\ttfamily \#include $<$esp\+\_\+log.\+h$>$}\newline
+{\ttfamily \#include $<$c\+JSON.\+h$>$}\newline
+{\ttfamily \#include "{}freertos/\+Free\+RTOS.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/task.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/queue.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/semphr.\+h"{}}\newline
+{\ttfamily \#include "{}lwip/inet.\+h"{}}\newline
+{\ttfamily \#include "{}lwip/sockets.\+h"{}}\newline
+{\ttfamily \#include $<$sys/stat.\+h$>$}\newline
+{\ttfamily \#include $<$string.\+h$>$}\newline
+{\ttfamily \#include $<$stdlib.\+h$>$}\newline
+{\ttfamily \#include $<$stdbool.\+h$>$}\newline
+{\ttfamily \#include $<$stdint.\+h$>$}\newline
+{\ttfamily \#include $<$inttypes.\+h$>$}\newline
+{\ttfamily \#include $<$errno.\+h$>$}\newline
+{\ttfamily \#include $<$math.\+h$>$}\newline
+\doxysubsubsection*{Estructuras de datos}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structsession__t}{session\+\_\+t}}
+\item 
+struct \mbox{\hyperlink{structwebserver__context__t}{webserver\+\_\+context\+\_\+t}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{defines}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{web__server_8c_ad3ef68d2292999ee3beb635427a515ef}{MAX\+\_\+\+SESSIONS}}~5
+\item 
+\#define \mbox{\hyperlink{web__server_8c_a1c981f7a638e3167fc162fc2a3096ed8}{SESSION\+\_\+\+TIMEOUT\+\_\+\+MS}}~(3 \texorpdfstring{$\ast$}{*} 60 \texorpdfstring{$\ast$}{*} 1000)
+\item 
+\#define \mbox{\hyperlink{web__server_8c_ae965b7fd189c0675cbe3deedfe55f16a}{VALID\+\_\+\+USER}}~"{}root"{}
+\item 
+\#define \mbox{\hyperlink{web__server_8c_af0e290e5d32657dfeb00958b5fdc36ab}{VALID\+\_\+\+PASS}}~"{}matrix123"{}
+\item 
+\#define \mbox{\hyperlink{web__server_8c_a7da9a37526ced91948ea6f1f1db4f728}{GPIO\+\_\+\+QUEUE\+\_\+\+SIZE}}~10
+\item 
+\#define \mbox{\hyperlink{web__server_8c_a4cb5d01364488d8de93626ed6856ee90}{CMD\+\_\+\+RESPONSE\+\_\+\+TIMEOUT\+\_\+\+MS}}~500
+\item 
+\#define \mbox{\hyperlink{web__server_8c_ac3cd6a960183fe34bcf89fe6b21981f3}{CMD\+\_\+\+RESPONSE\+\_\+\+MAX\+\_\+\+ATTEMPTS}}~10
+\item 
+\#define \mbox{\hyperlink{web__server_8c_a317a7ca74048facc3b37ba872d1b2113}{CHECK\+\_\+\+ESP\+\_\+\+OK}}(err,  msg)
+\item 
+\#define \mbox{\hyperlink{web__server_8c_a70218c4b02faf0484109c409b4fcb46f}{CHECK\+\_\+\+AUTH}}(ctx,  req)
+\item 
+\#define \mbox{\hyperlink{web__server_8c_aa63a54a34774e9b394682299a1ac3a11}{SEND\+\_\+\+JSON\+\_\+\+RESPONSE\+\_\+\+STR}}(req,  json\+\_\+str)
+\item 
+\#define \mbox{\hyperlink{web__server_8c_ae3ec4e13dbb36b8917d0e1fcc5929212}{SEND\+\_\+\+JSON\+\_\+\+RESPONSE}}(req,  json\+\_\+buf)
+\item 
+\#define \mbox{\hyperlink{web__server_8c_a3cc1dceb6f8dea47e7ab194d39843778}{REDIRECT}}(req,  location)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Funciones}
+\begin{DoxyCompactItemize}
+\item 
+static int64\+\_\+t \mbox{\hyperlink{web__server_8c_a3d91bca995f2145eb1e0f2160f74b9df}{get\+\_\+time\+\_\+ms}} (void)
+\begin{DoxyCompactList}\small\item\em Obtiene el tiempo actual en milisegundos desde el inicio del sistema. \end{DoxyCompactList}\item 
+static void \mbox{\hyperlink{web__server_8c_a929dbcece458521d50fcce90ae729a40}{gpio\+\_\+command\+\_\+task\+\_\+wrapper}} (void \texorpdfstring{$\ast$}{*}pv\+Parameters)
+\begin{DoxyCompactList}\small\item\em Wrapper para la tarea de procesamiento de comandos Esta función adapta el contexto del servidor web al contexto de terminal y llama a la función del módulo terminal\+\_\+commands. \end{DoxyCompactList}\item 
+static void \mbox{\hyperlink{web__server_8c_adb51a10bebe5f79367de54eadb696aa2}{session\+\_\+management\+\_\+task}} (void \texorpdfstring{$\ast$}{*}pv\+Parameters)
+\begin{DoxyCompactList}\small\item\em Tarea que verifica periódicamente las sesiones y expira las inactivas Apaga los LEDs cuando una sesión expira por timeout. \end{DoxyCompactList}\item 
+static void \mbox{\hyperlink{web__server_8c_aae0069cd484a6b1e79334e3b47ccebf4}{get\+\_\+client\+\_\+ip}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req, char \texorpdfstring{$\ast$}{*}ip\+\_\+str, size\+\_\+t len)
+\begin{DoxyCompactList}\small\item\em Obtiene la dirección IP del cliente desde la request HTTP. \end{DoxyCompactList}\item 
+static \mbox{\hyperlink{structsession__t}{session\+\_\+t}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{web__server_8c_aca492419b5ee5aec19939afb2c5c1d78}{find\+\_\+or\+\_\+create\+\_\+session}} (\mbox{\hyperlink{structwebserver__context__t}{webserver\+\_\+context\+\_\+t}} \texorpdfstring{$\ast$}{*}ctx, const char \texorpdfstring{$\ast$}{*}ip)
+\begin{DoxyCompactList}\small\item\em Busca una sesión existente o crea una nueva para una IP. \end{DoxyCompactList}\item 
+static bool \mbox{\hyperlink{web__server_8c_afbccb6cf5681523fa75cccbc9e1d647c}{is\+\_\+authenticated}} (\mbox{\hyperlink{structwebserver__context__t}{webserver\+\_\+context\+\_\+t}} \texorpdfstring{$\ast$}{*}ctx, httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Verifica si el cliente está autenticado y actualiza la última actividad. \end{DoxyCompactList}\item 
+esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_ad0d56581fc5acc453c49c8db3178fe4b}{send\+\_\+file\+\_\+from\+\_\+spiffs}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req, const char \texorpdfstring{$\ast$}{*}filepath, const char \texorpdfstring{$\ast$}{*}type)
+\begin{DoxyCompactList}\small\item\em Sirve un archivo estático desde SPIFFS al cliente HTTP Lee el archivo en chunks y lo envía de forma eficiente. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_ad8bb541f65016944ecd059dc8e08f531}{root\+\_\+get\+\_\+handler}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Handler para GET / (raíz) Si el usuario está autenticado, redirige al dashboard Si no, muestra la página de login. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_a2e506a56c9f12268455d95e53d8f3e8f}{dashboard\+\_\+get\+\_\+handler}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Handler para GET /dashboard Requiere autenticación, redirige a login si no está autenticado. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_a3127c701538ab1bbe40c3c08baffdeb8}{terminal\+\_\+get\+\_\+handler}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Handler para GET /terminal Requiere autenticación, redirige a login si no está autenticado. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_a12214b08c5ffdd17a607a663e0ad2280}{slider\+\_\+get\+\_\+handler}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Handler para GET /slider Requiere autenticación, redirige a login si no está autenticado. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_a87fb71f709007f2dab5a5e0f72be6e60}{style\+\_\+get\+\_\+handler}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Handler para GET /style.css Sirve el archivo CSS desde SPIFFS. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_a2c44e0d14f4658f99a0ee54dd180ca65}{script\+\_\+get\+\_\+handler}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Handler para GET /script.js Sirve el archivo Java\+Script desde SPIFFS. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_aaa6d8bd6d7a11fd94beecffb280569bb}{favicon\+\_\+get\+\_\+handler}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Handler para GET /favicon.ico Responde con 204 No Content para evitar errores 404. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_a69825c7b8aba67db79da44e35494538c}{registros\+\_\+get\+\_\+handler}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Handler para GET /registros Devuelve todos los registros almacenados en formato JSON desde SPIFFS Utiliza la función \doxylink{registros_8c_acb983bd3894be47c2e021b7b3ce9a302}{leer\+\_\+registros\+\_\+json()} del módulo \doxylink{registros_8c}{registros.\+c} Respuesta\+: Array JSON con todos los registros \mbox{[}\{"{}dia"{}\+: "{}..."{}, "{}hora"{}\+: "{}..."{}, "{}velocidad"{}\+: ...\}, ...\mbox{]} Requiere autenticación. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_ae2176735ed336f4929fa49f3274e51a3}{registros\+\_\+post\+\_\+handler}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Handler para POST /registros Agrega un nuevo registro al archivo registros.\+json en SPIFFS Utiliza la función \doxylink{registros_8c_ade58386010b0b7549a41ecb872175d09}{agregar\+\_\+registro()} del módulo \doxylink{registros_8c}{registros.\+c} Body esperado\+: \{"{}dia"{}\+: "{}lunes"{}, "{}hora"{}\+: "{}14\+:30"{}, "{}velocidad"{}\+: 50\} El registro se guarda de forma persistente en /spiffs/registros.json Requiere autenticación. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_aaf4450b0d909a8a677fd99a3cf9e1f47}{temperature\+\_\+get\+\_\+handler}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Handler para GET /temperature Devuelve la temperatura actual en formato JSON Respuesta\+: \{"{}temperature"{}\+: 25.\+5\} o \{"{}error"{}\+: "{}\+No data available"{}\} Requiere autenticación. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_a49a3249d251077f59e0d78dab78bfa7f}{fan\+\_\+mode\+\_\+post\+\_\+handler}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Handler para POST /fan/mode Establece el modo de operación del ventilador Body esperado\+: \{"{}mode"{}\+: "{}manual"{}\} o \{"{}mode"{}\+: "{}off"{}\} o \{"{}mode"{}\+: "{}temperature"{}\} Requiere autenticación. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_a481982fe6c65cd7265f183684ca6f4d0}{fan\+\_\+manual\+\_\+post\+\_\+handler}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Handler para POST /fan/manual Establece el porcentaje de velocidad en modo manual Body esperado\+: \{"{}percent"{}\+: 50\} (0-\/100) Requiere autenticación. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_aac440b2a906c47c1e6c1cff4b4c0d5a9}{fan\+\_\+status\+\_\+get\+\_\+handler}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Handler para GET /fan/status Devuelve el estado actual del ventilador en formato JSON Respuesta\+: \{"{}mode"{}\+: "{}manual"{}, "{}percent"{}\+: 50\} Requiere autenticación. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_af8bc0e45173c88eb29e76fcb3cec2e9c}{pir\+\_\+status\+\_\+get\+\_\+handler}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Handler para GET /pir/status Devuelve el estado actual del sensor PIR en formato JSON Respuesta\+: \{"{}motion"{}\+: true\} o \{"{}motion"{}\+: false\} Requiere autenticación. \end{DoxyCompactList}\item 
+static void \mbox{\hyperlink{web__server_8c_a1e44dbe5e0b652eeacaad2aff82350bf}{url\+\_\+decode}} (char \texorpdfstring{$\ast$}{*}str)
+\begin{DoxyCompactList}\small\item\em Decodifica una cadena URL-\/encoded (convierte \%20 y + a espacios) \end{DoxyCompactList}\item 
+static void \mbox{\hyperlink{web__server_8c_a4344332a604a42a679cb0a4a8f5d3e7c}{str\+\_\+to\+\_\+lower}} (char \texorpdfstring{$\ast$}{*}str)
+\begin{DoxyCompactList}\small\item\em Convierte una cadena a minúsculas (modifica in-\/place) \end{DoxyCompactList}\item 
+static bool \mbox{\hyperlink{web__server_8c_a790894ceecc57ec5ec8d165f8868e8f7}{extract\+\_\+form\+\_\+param}} (const char \texorpdfstring{$\ast$}{*}content, const char \texorpdfstring{$\ast$}{*}param\+\_\+name, char \texorpdfstring{$\ast$}{*}output, size\+\_\+t output\+\_\+size)
+\begin{DoxyCompactList}\small\item\em Extrae un parámetro de una cadena form-\/urlencoded. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_a3d1307e45a265c4282073f7beaf0aa0b}{cmd\+\_\+get\+\_\+handler}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Handler para GET /cmd?c=comando Procesa comandos desde la terminal web Envía el comando a la cola y espera la respuesta Requiere autenticación. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_a76099315f3151bc5f0e123613b378ea3}{login\+\_\+post\+\_\+handler}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Handler para POST /login Valida credenciales y crea una sesión autenticada Parámetros\+: user=xxx\&pass=yyy (form-\/urlencoded) \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_aefdc44f753bf0f6a10827ef61c93e747}{logout\+\_\+get\+\_\+handler}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Handler para GET /logout Cierra la sesión del usuario y apaga los LEDs. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_aae53411c33bad1183098a90a3dc9a8d8}{fan\+\_\+diagnostic\+\_\+get\+\_\+handler}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Handler para GET /fan/diagnostic Endpoint de diagnóstico que muestra el estado completo del sistema de registros Útil para depurar problemas con el modo SCHEDULE Requiere autenticación. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_aaf9b26d85f074def3642906fc116c487}{time\+\_\+set\+\_\+post\+\_\+handler}} (httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}req)
+\begin{DoxyCompactList}\small\item\em Handler para POST /time/set Establece la hora manualmente Body esperado\+: \{"{}year"{}\+: 2024, "{}month"{}\+: 12, "{}day"{}\+: 9, "{}hour"{}\+: 14, "{}minute"{}\+: 30, "{}second"{}\+: 0\} Requiere autenticación. \end{DoxyCompactList}\item 
+static int \mbox{\hyperlink{web__server_8c_ae77e5fe0a932508da534990881b25d68}{verify\+\_\+spiffs\+\_\+files}} (void)
+\begin{DoxyCompactList}\small\item\em Verifica que todos los archivos necesarios estén presentes en SPIFFS. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_aa4e913cbd85af40b24ebe8579bdba5c5}{init\+\_\+spiffs}} (void)
+\begin{DoxyCompactList}\small\item\em Inicializa y monta el sistema de archivos SPIFFS. \end{DoxyCompactList}\item 
+static esp\+\_\+err\+\_\+t \mbox{\hyperlink{web__server_8c_a57be95fc8a026d992424809ccdb386ca}{register\+\_\+http\+\_\+routes}} (\mbox{\hyperlink{structwebserver__context__t}{webserver\+\_\+context\+\_\+t}} \texorpdfstring{$\ast$}{*}ctx)
+\begin{DoxyCompactList}\small\item\em Registra todas las rutas HTTP del servidor web. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{web__server_8c_a440992a6db6af61fb71e65ddf68e71b0}{start\+\_\+webserver}} (void)
+\begin{DoxyCompactList}\small\item\em Función principal que inicia el servidor web. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+static const char \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{web__server_8c_a5a85b9c772bbeb480b209a3e6ea92b4c}{TAG}} = "{}WEB\+\_\+\+SERVER"{}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Descripción detallada}
+Implementación del servidor web HTTP del ESP32. 
+
+\begin{DoxyAuthor}{Autor}
+Proyecto Final RTOS 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Fecha}
+2024
+\end{DoxyDate}
+Implementación del servidor web HTTP del ESP32. Este módulo proporciona\+:\hypertarget{web__server_8c_spiffs}{}\doxysubsubsection{\texorpdfstring{Sistema de archivos SPIFFS}{Sistema de archivos SPIFFS}}\label{web__server_8c_spiffs}
+
+\begin{DoxyItemize}
+\item Monta partición SPIFFS para servir archivos estáticos (HTML, CSS, JS)
+\item Verifica que todos los archivos necesarios estén presentes
+\end{DoxyItemize}\hypertarget{web__server_8c_server}{}\doxysubsubsection{\texorpdfstring{Servidor HTTP con múltiples rutas}{Servidor HTTP con múltiples rutas}}\label{web__server_8c_server}
+
+\begin{DoxyItemize}
+\item Páginas web\+: login, dashboard, terminal, slider
+\item API REST\+: /cmd (comandos), /temperature (datos JSON), /registros (gestión de registros)
+\item Autenticación\+: /login, /logout
+\end{DoxyItemize}\hypertarget{web__server_8h_auth}{}\doxysubsubsection{\texorpdfstring{Sistema de autenticación y sesiones}{Sistema de autenticación y sesiones}}\label{web__server_8h_auth}
+
+\begin{DoxyItemize}
+\item Login con usuario/contraseña (root/matrix123)
+\item Gestión de sesiones basada en IP
+\item Timeout automático después de 3 minutos de inactividad
+\end{DoxyItemize}\hypertarget{web__server_8c_commands}{}\doxysubsubsection{\texorpdfstring{Procesamiento de comandos}{Procesamiento de comandos}}\label{web__server_8c_commands}
+
+\begin{DoxyItemize}
+\item Sistema de colas para comandos GPIO (thread-\/safe)
+\item Tarea dedicada para procesar comandos
+\item Soporte para comandos\+: led on/off/\texorpdfstring{$<$}{<}0-\/100\texorpdfstring{$>$}{>}, status, help, clear
+\end{DoxyItemize}\hypertarget{web__server_8c_temperature}{}\doxysubsubsection{\texorpdfstring{Gestión de temperatura}{Gestión de temperatura}}\label{web__server_8c_temperature}
+
+\begin{DoxyItemize}
+\item Endpoint JSON para obtener temperatura actual
+\item Datos actualizados desde la tarea de lectura del sensor
+\end{DoxyItemize}\hypertarget{web__server_8c_registros}{}\doxysubsubsection{\texorpdfstring{Gestión de registros de horarios}{Gestión de registros de horarios}}\label{web__server_8c_registros}
+
+\begin{DoxyItemize}
+\item Endpoints HTTP para guardar y leer registros (/registros)
+\item Utiliza el módulo \doxylink{registros_8c}{registros.\+c} para almacenamiento persistente en SPIFFS
+\item Los registros se guardan en /spiffs/registros.json
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{ARCHIVO\+: \doxylink{web__server_8c}{web\+\_\+server.\+c} }
+
+RESUMEN\+: Implementación del servidor web HTTP del ESP32. Este módulo proporciona\+:
+
+
+\begin{DoxyEnumerate}
+\item Sistema de archivos SPIFFS\+:
+\begin{DoxyItemize}
+\item Monta partición SPIFFS para servir archivos estáticos (HTML, CSS, JS)
+\item Verifica que todos los archivos necesarios estén presentes
+\end{DoxyItemize}
+\item Servidor HTTP con múltiples rutas\+:
+\begin{DoxyItemize}
+\item Páginas web\+: login, dashboard, terminal, slider
+\item API REST\+: /cmd (comandos), /temperature (datos JSON), /registros (gestión de registros)
+\item Autenticación\+: /login, /logout
+\end{DoxyItemize}
+\item Sistema de autenticación y sesiones\+:
+\begin{DoxyItemize}
+\item Login con usuario/contraseña (root/matrix123)
+\item Gestión de sesiones basada en IP
+\item Timeout automático después de 3 minutos de inactividad
+\end{DoxyItemize}
+\item Procesamiento de comandos\+:
+\begin{DoxyItemize}
+\item Sistema de colas para comandos GPIO (thread-\/safe)
+\item Tarea dedicada para procesar comandos
+\item Soporte para comandos\+: led on/off/\texorpdfstring{$<$}{<}0-\/100\texorpdfstring{$>$}{>}, status, help, clear
+\end{DoxyItemize}
+\item Gestión de temperatura\+:
+\begin{DoxyItemize}
+\item Endpoint JSON para obtener temperatura actual
+\item Datos actualizados desde la tarea de lectura del sensor
+\end{DoxyItemize}
+\item Gestión de registros de horarios\+:
+\begin{DoxyItemize}
+\item Endpoints HTTP para guardar y leer registros (/registros)
+\item Utiliza el módulo \doxylink{registros_8c}{registros.\+c} para almacenamiento persistente en SPIFFS
+\item Los registros se guardan en /spiffs/registros.json
+\end{DoxyItemize}
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{Í\+NDICE DE SECCIONES\+: }
+
+Sección 1\+: INCLUDES se encuentra en las líneas 34 a 62 Sección 2\+: DEFINICIONES Y CONSTANTES se encuentra en las líneas 64 a 76 Sección 3\+: ESTRUCTURAS DE DATOS se encuentra en las líneas 78 a 103 Sección 4\+: UTILIDADES GENERALES se encuentra en las líneas 105 a 112 Sección 5\+: TAREA DE PROCESAMIENTO DE COMANDOS se encuentra en las líneas 114 a 188 Sección 6\+: TAREA DE GESTIÓN DE SESIONES se encuentra en las líneas 190 a 218 Sección 7\+: FUNCIONES DE GESTIÓN DE SESIONES se encuentra en las líneas 220 a 318 Sección 8\+: UTILIDADES DE ARCHIVOS se encuentra en las líneas 323 a 358 Sección 9\+: HANDLERS HTTP se encuentra en las líneas 360 a 769 Sección 10\+: INICIALIZACIÓN DE SPIFFS se encuentra en las líneas 771 a 869 Sección 11\+: REGISTRO DE RUTAS HTTP se encuentra en las líneas 871 a 928 \doxysubsection*{Sección 12\+: INICIALIZACIÓN DEL SERVIDOR se encuentra en las líneas 930 a 1010 }
+
+\DoxyHorRuler{0}
+ \doxysubsection*{RESUMEN DE TAREAS, COLAS Y SEMÁ\+FOROS IMPLEMENTADOS\+: }
+
+=== TAREAS (TASKS) ===
+
+
+\begin{DoxyEnumerate}
+\item gpio\+\_\+command\+\_\+task\+\_\+wrapper (Sección 5)
+\begin{DoxyItemize}
+\item Nombre\+: "{}gpio\+\_\+cmd\+\_\+task"{}
+\item Stack\+: 4096 bytes
+\item Prioridad\+: 5 (alta)
+\item Función\+: Wrapper que adapta el contexto del servidor web y llama a \doxylink{terminal__commands_8c_a6d843cea44bc0cb6d8e1932816bc4322}{terminal\+\_\+command\+\_\+task()} del módulo \doxylink{terminal__commands_8c}{terminal\+\_\+commands.\+c}
+\item Propósito\+: Procesar comandos de la terminal web de forma asíncrona
+\item Estado\+: Loop infinito, bloquea esperando comandos de la cola
+\end{DoxyItemize}
+\item session\+\_\+management\+\_\+task (Sección 6)
+\begin{DoxyItemize}
+\item Nombre\+: "{}session\+\_\+mgmt"{}
+\item Stack\+: 2048 bytes
+\item Prioridad\+: 3 (media)
+\item Función\+: Verifica periódicamente las sesiones y expira las inactivas
+\item Propósito\+: Gestión automática del ciclo de vida de sesiones
+\item Estado\+: Loop infinito, verifica cada 2 segundos
+\item Acciones\+: Expira sesiones inactivas \texorpdfstring{$>$}{>} 3 minutos, apaga LEDs automáticamente
+\end{DoxyItemize}
+\end{DoxyEnumerate}
+
+=== COLAS (QUEUES) ===
+
+
+\begin{DoxyEnumerate}
+\item gpio\+\_\+command\+\_\+queue
+\begin{DoxyItemize}
+\item Tipo\+: Queue\+Handle\+\_\+t (Free\+RTOS queue)
+\item Tamaño\+: GPIO\+\_\+\+QUEUE\+\_\+\+SIZE (10 elementos)
+\item Elemento\+: \doxylink{structgpio__command__t}{gpio\+\_\+command\+\_\+t} (estructura con ID, comando y respuesta)
+\item Dirección\+: Handler HTTP → Tarea de procesamiento
+\item Uso\+: El handler HTTP /cmd envía comandos aquí
+\item Operaciones\+: x\+Queue\+Send() desde handler, x\+Queue\+Receive() desde tarea
+\item Thread-\/safe\+: Sí, permite comunicación segura entre tareas
+\end{DoxyItemize}
+\item gpio\+\_\+response\+\_\+queue
+\begin{DoxyItemize}
+\item Tipo\+: Queue\+Handle\+\_\+t (Free\+RTOS queue)
+\item Tamaño\+: GPIO\+\_\+\+QUEUE\+\_\+\+SIZE (10 elementos)
+\item Elemento\+: \doxylink{structgpio__command__t}{gpio\+\_\+command\+\_\+t} (mismo comando con respuesta generada)
+\item Dirección\+: Tarea de procesamiento → Handler HTTP
+\item Uso\+: La tarea terminal\+\_\+command\+\_\+task envía respuestas aquí
+\item Operaciones\+: x\+Queue\+Send() desde tarea, x\+Queue\+Receive() desde handler
+\item Thread-\/safe\+: Sí, permite comunicación asíncrona entre tareas
+\end{DoxyItemize}
+\end{DoxyEnumerate}
+
+=== SEMÁ\+FOROS (MUTEXES) ===
+
+
+\begin{DoxyEnumerate}
+\item session\+\_\+mutex
+\begin{DoxyItemize}
+\item Tipo\+: Semaphore\+Handle\+\_\+t (Free\+RTOS mutex)
+\item Protege\+: Array ctx-\/\texorpdfstring{$>$}{>}sessions\mbox{[}\mbox{]} (MAX\+\_\+\+SESSIONS = 5)
+\item Uso\+: Protege acceso concurrente a sesiones de múltiples requests HTTP
+\item Operaciones\+: x\+Semaphore\+Take() antes de leer/escribir, x\+Semaphore\+Give() después
+\item Timeout\+: Variable (100ms en verificaciones, port\+MAX\+\_\+\+DELAY en creación)
+\item Funciones que lo usan\+:
+\begin{DoxyItemize}
+\item \doxylink{web__server_8c_aca492419b5ee5aec19939afb2c5c1d78}{find\+\_\+or\+\_\+create\+\_\+session()} -\/ Crear/buscar sesiones
+\item \doxylink{web__server_8c_afbccb6cf5681523fa75cccbc9e1d647c}{is\+\_\+authenticated()} -\/ Verificar autenticación
+\item \doxylink{web__server_8c_adb51a10bebe5f79367de54eadb696aa2}{session\+\_\+management\+\_\+task()} -\/ Expirar sesiones inactivas
+\end{DoxyItemize}
+\end{DoxyItemize}
+\item command\+\_\+id\+\_\+mutex
+\begin{DoxyItemize}
+\item Tipo\+: Semaphore\+Handle\+\_\+t (Free\+RTOS mutex)
+\item Protege\+: ctx-\/\texorpdfstring{$>$}{>}command\+\_\+id\+\_\+counter (contador de IDs únicos)
+\item Uso\+: Garantiza generación atómica de IDs únicos para comandos
+\item Operaciones\+: x\+Semaphore\+Take() antes de incrementar, x\+Semaphore\+Give() después
+\item Timeout\+: port\+MAX\+\_\+\+DELAY (espera indefinidamente)
+\item Funciones que lo usan\+:
+\begin{DoxyItemize}
+\item \doxylink{web__server_8c_a3d1307e45a265c4282073f7beaf0aa0b}{cmd\+\_\+get\+\_\+handler()} -\/ Genera ID único para cada comando
+\end{DoxyItemize}
+\item Propósito\+: Permite emparejar comandos-\/respuestas cuando hay múltiples comandos simultáneos
+\end{DoxyItemize}
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{FLUJO DE COMUNICACIÓN\+: }
+
+Cliente Web → Handler HTTP (/cmd) ↓ \mbox{[}x\+Queue\+Send\mbox{]} gpio\+\_\+command\+\_\+queue Tarea\+: terminal\+\_\+command\+\_\+task ↓ \mbox{[}\doxylink{terminal__commands_8c_a6c2c567b2888c28a52c142cd226fa8b9}{process\+\_\+terminal\+\_\+command()}\mbox{]} ↓ \mbox{[}x\+Queue\+Send\mbox{]} gpio\+\_\+response\+\_\+queue Handler HTTP (/cmd) ↓ \mbox{[}x\+Queue\+Receive\mbox{]} Cliente Web ← Respuesta
+
+\DoxyHorRuler{0}
+ 
+
+\doxysubsection{Documentación de «define»}
+\Hypertarget{web__server_8c_a70218c4b02faf0484109c409b4fcb46f}\label{web__server_8c_a70218c4b02faf0484109c409b4fcb46f} 
+\index{web\_server.c@{web\_server.c}!CHECK\_AUTH@{CHECK\_AUTH}}
+\index{CHECK\_AUTH@{CHECK\_AUTH}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{CHECK\_AUTH}{CHECK\_AUTH}}
+{\footnotesize\ttfamily \#define CHECK\+\_\+\+AUTH(\begin{DoxyParamCaption}\item[{}]{ctx,  }\item[{}]{req }\end{DoxyParamCaption})}
+
+{\bfseries Valor\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{do}\ \{\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ if\ (!\mbox{\hyperlink{web__server_8c_afbccb6cf5681523fa75cccbc9e1d647c}{is\_authenticated}}((ctx),\ (req)))\ \{\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ httpd\_resp\_set\_status((req),\ \textcolor{stringliteral}{"{}401\ Unauthorized"{}});\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ httpd\_resp\_send((req),\ \textcolor{stringliteral}{"{}Unauthorized"{}},\ HTTPD\_RESP\_USE\_STRLEN);\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ESP\_OK;\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ \}\ \(\backslash\)}
+\DoxyCodeLine{\}\ \textcolor{keywordflow}{while}(0)}
+
+\end{DoxyCode}
+\Hypertarget{web__server_8c_a317a7ca74048facc3b37ba872d1b2113}\label{web__server_8c_a317a7ca74048facc3b37ba872d1b2113} 
+\index{web\_server.c@{web\_server.c}!CHECK\_ESP\_OK@{CHECK\_ESP\_OK}}
+\index{CHECK\_ESP\_OK@{CHECK\_ESP\_OK}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{CHECK\_ESP\_OK}{CHECK\_ESP\_OK}}
+{\footnotesize\ttfamily \#define CHECK\+\_\+\+ESP\+\_\+\+OK(\begin{DoxyParamCaption}\item[{}]{err,  }\item[{}]{msg }\end{DoxyParamCaption})}
+
+{\bfseries Valor\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{do}\ \{\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ if\ ((err)\ !=\ ESP\_OK)\ \{\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ESP\_LOGE(\mbox{\hyperlink{web__server_8c_a5a85b9c772bbeb480b209a3e6ea92b4c}{TAG}},\ \textcolor{stringliteral}{"{}\%s:\ \%s\ (0x\%x)"{}},\ (msg),\ esp\_err\_to\_name(err),\ (err));\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ESP\_FAIL;\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ \}\ \(\backslash\)}
+\DoxyCodeLine{\}\ \textcolor{keywordflow}{while}(0)}
+
+\end{DoxyCode}
+\Hypertarget{web__server_8c_ac3cd6a960183fe34bcf89fe6b21981f3}\label{web__server_8c_ac3cd6a960183fe34bcf89fe6b21981f3} 
+\index{web\_server.c@{web\_server.c}!CMD\_RESPONSE\_MAX\_ATTEMPTS@{CMD\_RESPONSE\_MAX\_ATTEMPTS}}
+\index{CMD\_RESPONSE\_MAX\_ATTEMPTS@{CMD\_RESPONSE\_MAX\_ATTEMPTS}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{CMD\_RESPONSE\_MAX\_ATTEMPTS}{CMD\_RESPONSE\_MAX\_ATTEMPTS}}
+{\footnotesize\ttfamily \#define CMD\+\_\+\+RESPONSE\+\_\+\+MAX\+\_\+\+ATTEMPTS~10}
+
+\Hypertarget{web__server_8c_a4cb5d01364488d8de93626ed6856ee90}\label{web__server_8c_a4cb5d01364488d8de93626ed6856ee90} 
+\index{web\_server.c@{web\_server.c}!CMD\_RESPONSE\_TIMEOUT\_MS@{CMD\_RESPONSE\_TIMEOUT\_MS}}
+\index{CMD\_RESPONSE\_TIMEOUT\_MS@{CMD\_RESPONSE\_TIMEOUT\_MS}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{CMD\_RESPONSE\_TIMEOUT\_MS}{CMD\_RESPONSE\_TIMEOUT\_MS}}
+{\footnotesize\ttfamily \#define CMD\+\_\+\+RESPONSE\+\_\+\+TIMEOUT\+\_\+\+MS~500}
+
+\Hypertarget{web__server_8c_a7da9a37526ced91948ea6f1f1db4f728}\label{web__server_8c_a7da9a37526ced91948ea6f1f1db4f728} 
+\index{web\_server.c@{web\_server.c}!GPIO\_QUEUE\_SIZE@{GPIO\_QUEUE\_SIZE}}
+\index{GPIO\_QUEUE\_SIZE@{GPIO\_QUEUE\_SIZE}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{GPIO\_QUEUE\_SIZE}{GPIO\_QUEUE\_SIZE}}
+{\footnotesize\ttfamily \#define GPIO\+\_\+\+QUEUE\+\_\+\+SIZE~10}
+
+\Hypertarget{web__server_8c_ad3ef68d2292999ee3beb635427a515ef}\label{web__server_8c_ad3ef68d2292999ee3beb635427a515ef} 
+\index{web\_server.c@{web\_server.c}!MAX\_SESSIONS@{MAX\_SESSIONS}}
+\index{MAX\_SESSIONS@{MAX\_SESSIONS}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{MAX\_SESSIONS}{MAX\_SESSIONS}}
+{\footnotesize\ttfamily \#define MAX\+\_\+\+SESSIONS~5}
+
+\Hypertarget{web__server_8c_a3cc1dceb6f8dea47e7ab194d39843778}\label{web__server_8c_a3cc1dceb6f8dea47e7ab194d39843778} 
+\index{web\_server.c@{web\_server.c}!REDIRECT@{REDIRECT}}
+\index{REDIRECT@{REDIRECT}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{REDIRECT}{REDIRECT}}
+{\footnotesize\ttfamily \#define REDIRECT(\begin{DoxyParamCaption}\item[{}]{req,  }\item[{}]{location }\end{DoxyParamCaption})}
+
+{\bfseries Valor\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{do}\ \{\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ httpd\_resp\_set\_hdr((req),\ \textcolor{stringliteral}{"{}Location"{}},\ (location));\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ httpd\_resp\_set\_status((req),\ \textcolor{stringliteral}{"{}302\ Found"{}});\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ httpd\_resp\_send((req),\ NULL,\ 0);\ \(\backslash\)}
+\DoxyCodeLine{\}\ \textcolor{keywordflow}{while}(0)}
+
+\end{DoxyCode}
+\Hypertarget{web__server_8c_ae3ec4e13dbb36b8917d0e1fcc5929212}\label{web__server_8c_ae3ec4e13dbb36b8917d0e1fcc5929212} 
+\index{web\_server.c@{web\_server.c}!SEND\_JSON\_RESPONSE@{SEND\_JSON\_RESPONSE}}
+\index{SEND\_JSON\_RESPONSE@{SEND\_JSON\_RESPONSE}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{SEND\_JSON\_RESPONSE}{SEND\_JSON\_RESPONSE}}
+{\footnotesize\ttfamily \#define SEND\+\_\+\+JSON\+\_\+\+RESPONSE(\begin{DoxyParamCaption}\item[{}]{req,  }\item[{}]{json\+\_\+buf }\end{DoxyParamCaption})}
+
+{\bfseries Valor\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{do}\ \{\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ httpd\_resp\_set\_type((req),\ \textcolor{stringliteral}{"{}application/json"{}});\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ httpd\_resp\_set\_hdr((req),\ \textcolor{stringliteral}{"{}Cache-\/Control"{}},\ \textcolor{stringliteral}{"{}no-\/cache,\ no-\/store,\ must-\/revalidate"{}});\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ httpd\_resp\_set\_hdr((req),\ \textcolor{stringliteral}{"{}Pragma"{}},\ \textcolor{stringliteral}{"{}no-\/cache"{}});\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ httpd\_resp\_set\_hdr((req),\ \textcolor{stringliteral}{"{}Expires"{}},\ \textcolor{stringliteral}{"{}0"{}});\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ httpd\_resp\_send((req),\ (json\_buf),\ strlen((json\_buf)));\ \(\backslash\)}
+\DoxyCodeLine{\}\ \textcolor{keywordflow}{while}(0)}
+
+\end{DoxyCode}
+\Hypertarget{web__server_8c_aa63a54a34774e9b394682299a1ac3a11}\label{web__server_8c_aa63a54a34774e9b394682299a1ac3a11} 
+\index{web\_server.c@{web\_server.c}!SEND\_JSON\_RESPONSE\_STR@{SEND\_JSON\_RESPONSE\_STR}}
+\index{SEND\_JSON\_RESPONSE\_STR@{SEND\_JSON\_RESPONSE\_STR}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{SEND\_JSON\_RESPONSE\_STR}{SEND\_JSON\_RESPONSE\_STR}}
+{\footnotesize\ttfamily \#define SEND\+\_\+\+JSON\+\_\+\+RESPONSE\+\_\+\+STR(\begin{DoxyParamCaption}\item[{}]{req,  }\item[{}]{json\+\_\+str }\end{DoxyParamCaption})}
+
+{\bfseries Valor\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{do}\ \{\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ httpd\_resp\_set\_type((req),\ \textcolor{stringliteral}{"{}application/json"{}});\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ httpd\_resp\_set\_hdr((req),\ \textcolor{stringliteral}{"{}Cache-\/Control"{}},\ \textcolor{stringliteral}{"{}no-\/cache,\ no-\/store,\ must-\/revalidate"{}});\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ httpd\_resp\_set\_hdr((req),\ \textcolor{stringliteral}{"{}Pragma"{}},\ \textcolor{stringliteral}{"{}no-\/cache"{}});\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ httpd\_resp\_set\_hdr((req),\ \textcolor{stringliteral}{"{}Expires"{}},\ \textcolor{stringliteral}{"{}0"{}});\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ httpd\_resp\_sendstr((req),\ (json\_str));\ \(\backslash\)}
+\DoxyCodeLine{\}\ \textcolor{keywordflow}{while}(0)}
+
+\end{DoxyCode}
+\Hypertarget{web__server_8c_a1c981f7a638e3167fc162fc2a3096ed8}\label{web__server_8c_a1c981f7a638e3167fc162fc2a3096ed8} 
+\index{web\_server.c@{web\_server.c}!SESSION\_TIMEOUT\_MS@{SESSION\_TIMEOUT\_MS}}
+\index{SESSION\_TIMEOUT\_MS@{SESSION\_TIMEOUT\_MS}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{SESSION\_TIMEOUT\_MS}{SESSION\_TIMEOUT\_MS}}
+{\footnotesize\ttfamily \#define SESSION\+\_\+\+TIMEOUT\+\_\+\+MS~(3 \texorpdfstring{$\ast$}{*} 60 \texorpdfstring{$\ast$}{*} 1000)}
+
+\Hypertarget{web__server_8c_af0e290e5d32657dfeb00958b5fdc36ab}\label{web__server_8c_af0e290e5d32657dfeb00958b5fdc36ab} 
+\index{web\_server.c@{web\_server.c}!VALID\_PASS@{VALID\_PASS}}
+\index{VALID\_PASS@{VALID\_PASS}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{VALID\_PASS}{VALID\_PASS}}
+{\footnotesize\ttfamily \#define VALID\+\_\+\+PASS~"{}matrix123"{}}
+
+\Hypertarget{web__server_8c_ae965b7fd189c0675cbe3deedfe55f16a}\label{web__server_8c_ae965b7fd189c0675cbe3deedfe55f16a} 
+\index{web\_server.c@{web\_server.c}!VALID\_USER@{VALID\_USER}}
+\index{VALID\_USER@{VALID\_USER}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{VALID\_USER}{VALID\_USER}}
+{\footnotesize\ttfamily \#define VALID\+\_\+\+USER~"{}root"{}}
+
+
+
+\doxysubsection{Documentación de funciones}
+\Hypertarget{web__server_8c_a3d1307e45a265c4282073f7beaf0aa0b}\label{web__server_8c_a3d1307e45a265c4282073f7beaf0aa0b} 
+\index{web\_server.c@{web\_server.c}!cmd\_get\_handler@{cmd\_get\_handler}}
+\index{cmd\_get\_handler@{cmd\_get\_handler}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{cmd\_get\_handler()}{cmd\_get\_handler()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t cmd\+\_\+get\+\_\+handler (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Handler para GET /cmd?c=comando Procesa comandos desde la terminal web Envía el comando a la cola y espera la respuesta Requiere autenticación. 
+
+\Hypertarget{web__server_8c_a2e506a56c9f12268455d95e53d8f3e8f}\label{web__server_8c_a2e506a56c9f12268455d95e53d8f3e8f} 
+\index{web\_server.c@{web\_server.c}!dashboard\_get\_handler@{dashboard\_get\_handler}}
+\index{dashboard\_get\_handler@{dashboard\_get\_handler}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{dashboard\_get\_handler()}{dashboard\_get\_handler()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t dashboard\+\_\+get\+\_\+handler (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Handler para GET /dashboard Requiere autenticación, redirige a login si no está autenticado. 
+
+\Hypertarget{web__server_8c_a790894ceecc57ec5ec8d165f8868e8f7}\label{web__server_8c_a790894ceecc57ec5ec8d165f8868e8f7} 
+\index{web\_server.c@{web\_server.c}!extract\_form\_param@{extract\_form\_param}}
+\index{extract\_form\_param@{extract\_form\_param}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{extract\_form\_param()}{extract\_form\_param()}}
+{\footnotesize\ttfamily static bool extract\+\_\+form\+\_\+param (\begin{DoxyParamCaption}\item[{const char \texorpdfstring{$\ast$}{*}}]{content,  }\item[{const char \texorpdfstring{$\ast$}{*}}]{param\+\_\+name,  }\item[{char \texorpdfstring{$\ast$}{*}}]{output,  }\item[{size\+\_\+t}]{output\+\_\+size }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Extrae un parámetro de una cadena form-\/urlencoded. 
+
+
+\begin{DoxyParams}{Parámetros}
+{\em content} & Cadena con los parámetros (ej\+: "{}user=root\&pass=matrix123"{}) \\
+\hline
+{\em param\+\_\+name} & Nombre del parámetro a extraer (ej\+: "{}user"{}) \\
+\hline
+{\em output} & Buffer donde se almacenará el valor \\
+\hline
+{\em output\+\_\+size} & Tamaño del buffer \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Devuelve}
+true si se encontró el parámetro, false en caso contrario 
+\end{DoxyReturn}
+\Hypertarget{web__server_8c_aae53411c33bad1183098a90a3dc9a8d8}\label{web__server_8c_aae53411c33bad1183098a90a3dc9a8d8} 
+\index{web\_server.c@{web\_server.c}!fan\_diagnostic\_get\_handler@{fan\_diagnostic\_get\_handler}}
+\index{fan\_diagnostic\_get\_handler@{fan\_diagnostic\_get\_handler}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{fan\_diagnostic\_get\_handler()}{fan\_diagnostic\_get\_handler()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t fan\+\_\+diagnostic\+\_\+get\+\_\+handler (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Handler para GET /fan/diagnostic Endpoint de diagnóstico que muestra el estado completo del sistema de registros Útil para depurar problemas con el modo SCHEDULE Requiere autenticación. 
+
+\Hypertarget{web__server_8c_a481982fe6c65cd7265f183684ca6f4d0}\label{web__server_8c_a481982fe6c65cd7265f183684ca6f4d0} 
+\index{web\_server.c@{web\_server.c}!fan\_manual\_post\_handler@{fan\_manual\_post\_handler}}
+\index{fan\_manual\_post\_handler@{fan\_manual\_post\_handler}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{fan\_manual\_post\_handler()}{fan\_manual\_post\_handler()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t fan\+\_\+manual\+\_\+post\+\_\+handler (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Handler para POST /fan/manual Establece el porcentaje de velocidad en modo manual Body esperado\+: \{"{}percent"{}\+: 50\} (0-\/100) Requiere autenticación. 
+
+\Hypertarget{web__server_8c_a49a3249d251077f59e0d78dab78bfa7f}\label{web__server_8c_a49a3249d251077f59e0d78dab78bfa7f} 
+\index{web\_server.c@{web\_server.c}!fan\_mode\_post\_handler@{fan\_mode\_post\_handler}}
+\index{fan\_mode\_post\_handler@{fan\_mode\_post\_handler}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{fan\_mode\_post\_handler()}{fan\_mode\_post\_handler()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t fan\+\_\+mode\+\_\+post\+\_\+handler (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Handler para POST /fan/mode Establece el modo de operación del ventilador Body esperado\+: \{"{}mode"{}\+: "{}manual"{}\} o \{"{}mode"{}\+: "{}off"{}\} o \{"{}mode"{}\+: "{}temperature"{}\} Requiere autenticación. 
+
+\Hypertarget{web__server_8c_aac440b2a906c47c1e6c1cff4b4c0d5a9}\label{web__server_8c_aac440b2a906c47c1e6c1cff4b4c0d5a9} 
+\index{web\_server.c@{web\_server.c}!fan\_status\_get\_handler@{fan\_status\_get\_handler}}
+\index{fan\_status\_get\_handler@{fan\_status\_get\_handler}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{fan\_status\_get\_handler()}{fan\_status\_get\_handler()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t fan\+\_\+status\+\_\+get\+\_\+handler (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Handler para GET /fan/status Devuelve el estado actual del ventilador en formato JSON Respuesta\+: \{"{}mode"{}\+: "{}manual"{}, "{}percent"{}\+: 50\} Requiere autenticación. 
+
+\Hypertarget{web__server_8c_aaa6d8bd6d7a11fd94beecffb280569bb}\label{web__server_8c_aaa6d8bd6d7a11fd94beecffb280569bb} 
+\index{web\_server.c@{web\_server.c}!favicon\_get\_handler@{favicon\_get\_handler}}
+\index{favicon\_get\_handler@{favicon\_get\_handler}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{favicon\_get\_handler()}{favicon\_get\_handler()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t favicon\+\_\+get\+\_\+handler (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Handler para GET /favicon.ico Responde con 204 No Content para evitar errores 404. 
+
+\Hypertarget{web__server_8c_aca492419b5ee5aec19939afb2c5c1d78}\label{web__server_8c_aca492419b5ee5aec19939afb2c5c1d78} 
+\index{web\_server.c@{web\_server.c}!find\_or\_create\_session@{find\_or\_create\_session}}
+\index{find\_or\_create\_session@{find\_or\_create\_session}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{find\_or\_create\_session()}{find\_or\_create\_session()}}
+{\footnotesize\ttfamily static \mbox{\hyperlink{structsession__t}{session\+\_\+t}} \texorpdfstring{$\ast$}{*} find\+\_\+or\+\_\+create\+\_\+session (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structwebserver__context__t}{webserver\+\_\+context\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{ctx,  }\item[{const char \texorpdfstring{$\ast$}{*}}]{ip }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Busca una sesión existente o crea una nueva para una IP. 
+
+
+\begin{DoxyParams}{Parámetros}
+{\em ctx} & Contexto del servidor web \\
+\hline
+{\em ip} & Dirección IP del cliente \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Devuelve}
+Puntero a la sesión o NULL si no hay slots disponibles
+\end{DoxyReturn}
+===== USO DE SEMÁ\+FORO (MUTEX) ===== Esta función accede al array ctx-\/\texorpdfstring{$>$}{>}sessions\mbox{[}\mbox{]} que es compartido entre\+:
+\begin{DoxyItemize}
+\item Múltiples handlers HTTP (pueden ejecutarse simultáneamente)
+\item La tarea session\+\_\+management\+\_\+task (verifica timeouts periódicamente)
+\end{DoxyItemize}
+
+El mutex session\+\_\+mutex garantiza acceso exclusivo\+:
+\begin{DoxyItemize}
+\item x\+Semaphore\+Take() adquiere el mutex (port\+MAX\+\_\+\+DELAY = espera indefinidamente)
+\item Solo una tarea puede acceder a sessions\mbox{[}\mbox{]} a la vez
+\item x\+Semaphore\+Give() libera el mutex al finalizar
+\end{DoxyItemize}
+
+Sin el mutex, habría race conditions\+:
+\begin{DoxyItemize}
+\item Dos handlers HTTP podrían crear sesiones duplicadas
+\item La tarea de gestión podría expirar una sesión mientras se está usando
+\item Corrupción de datos en el array de sesiones 
+\end{DoxyItemize}\Hypertarget{web__server_8c_aae0069cd484a6b1e79334e3b47ccebf4}\label{web__server_8c_aae0069cd484a6b1e79334e3b47ccebf4} 
+\index{web\_server.c@{web\_server.c}!get\_client\_ip@{get\_client\_ip}}
+\index{get\_client\_ip@{get\_client\_ip}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{get\_client\_ip()}{get\_client\_ip()}}
+{\footnotesize\ttfamily static void get\+\_\+client\+\_\+ip (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req,  }\item[{char \texorpdfstring{$\ast$}{*}}]{ip\+\_\+str,  }\item[{size\+\_\+t}]{len }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Obtiene la dirección IP del cliente desde la request HTTP. 
+
+
+\begin{DoxyParams}{Parámetros}
+{\em req} & Request HTTP \\
+\hline
+{\em ip\+\_\+str} & Buffer donde se almacenará la IP \\
+\hline
+{\em len} & Tamaño del buffer \\
+\hline
+\end{DoxyParams}
+\Hypertarget{web__server_8c_a3d91bca995f2145eb1e0f2160f74b9df}\label{web__server_8c_a3d91bca995f2145eb1e0f2160f74b9df} 
+\index{web\_server.c@{web\_server.c}!get\_time\_ms@{get\_time\_ms}}
+\index{get\_time\_ms@{get\_time\_ms}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{get\_time\_ms()}{get\_time\_ms()}}
+{\footnotesize\ttfamily static int64\+\_\+t get\+\_\+time\+\_\+ms (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Obtiene el tiempo actual en milisegundos desde el inicio del sistema. 
+
+\begin{DoxyReturn}{Devuelve}
+Tiempo en milisegundos 
+\end{DoxyReturn}
+\Hypertarget{web__server_8c_a929dbcece458521d50fcce90ae729a40}\label{web__server_8c_a929dbcece458521d50fcce90ae729a40} 
+\index{web\_server.c@{web\_server.c}!gpio\_command\_task\_wrapper@{gpio\_command\_task\_wrapper}}
+\index{gpio\_command\_task\_wrapper@{gpio\_command\_task\_wrapper}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{gpio\_command\_task\_wrapper()}{gpio\_command\_task\_wrapper()}}
+{\footnotesize\ttfamily static void gpio\+\_\+command\+\_\+task\+\_\+wrapper (\begin{DoxyParamCaption}\item[{void \texorpdfstring{$\ast$}{*}}]{pv\+Parameters }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Wrapper para la tarea de procesamiento de comandos Esta función adapta el contexto del servidor web al contexto de terminal y llama a la función del módulo terminal\+\_\+commands. 
+
+===== EXPLICACIÓN DE LA TAREA ===== Esta función crea un wrapper que adapta el contexto del servidor web al formato esperado por \doxylink{terminal__commands_8c_a6d843cea44bc0cb6d8e1932816bc4322}{terminal\+\_\+command\+\_\+task()}. La tarea real se ejecuta en \doxylink{terminal__commands_8c}{terminal\+\_\+commands.\+c}, pero este wrapper permite mantener la modularidad del código.
+
+La tarea real (terminal\+\_\+command\+\_\+task) se ejecuta en un loop infinito\+:
+\begin{DoxyEnumerate}
+\item Espera comandos de gpio\+\_\+command\+\_\+queue (bloqueante, port\+MAX\+\_\+\+DELAY)
+\item Procesa el comando usando \doxylink{terminal__commands_8c_a6c2c567b2888c28a52c142cd226fa8b9}{process\+\_\+terminal\+\_\+command()}
+\item Envía la respuesta a gpio\+\_\+response\+\_\+queue
+\end{DoxyEnumerate}
+
+Esta arquitectura permite que el handler HTTP no se bloquee esperando el procesamiento del comando, mejorando la capacidad de respuesta del servidor. \Hypertarget{web__server_8c_aa4e913cbd85af40b24ebe8579bdba5c5}\label{web__server_8c_aa4e913cbd85af40b24ebe8579bdba5c5} 
+\index{web\_server.c@{web\_server.c}!init\_spiffs@{init\_spiffs}}
+\index{init\_spiffs@{init\_spiffs}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{init\_spiffs()}{init\_spiffs()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t init\+\_\+spiffs (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Inicializa y monta el sistema de archivos SPIFFS. 
+
+\begin{DoxyReturn}{Devuelve}
+ESP\+\_\+\+OK si éxito, ESP\+\_\+\+FAIL si error 
+\end{DoxyReturn}
+\Hypertarget{web__server_8c_afbccb6cf5681523fa75cccbc9e1d647c}\label{web__server_8c_afbccb6cf5681523fa75cccbc9e1d647c} 
+\index{web\_server.c@{web\_server.c}!is\_authenticated@{is\_authenticated}}
+\index{is\_authenticated@{is\_authenticated}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{is\_authenticated()}{is\_authenticated()}}
+{\footnotesize\ttfamily static bool is\+\_\+authenticated (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structwebserver__context__t}{webserver\+\_\+context\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{ctx,  }\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Verifica si el cliente está autenticado y actualiza la última actividad. 
+
+
+\begin{DoxyParams}{Parámetros}
+{\em ctx} & Contexto del servidor web \\
+\hline
+{\em req} & Request HTTP \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Devuelve}
+true si está autenticado, false en caso contrario
+\end{DoxyReturn}
+===== USO DE SEMÁ\+FORO (MUTEX) ===== Esta función lee y modifica session-\/\texorpdfstring{$>$}{>}authenticated y session-\/\texorpdfstring{$>$}{>}last\+\_\+activity que son compartidos con\+:
+\begin{DoxyItemize}
+\item Otros handlers HTTP (múltiples requests simultáneos)
+\item La tarea session\+\_\+management\+\_\+task (expira sesiones)
+\end{DoxyItemize}
+
+El mutex session\+\_\+mutex protege estas operaciones\+:
+\begin{DoxyItemize}
+\item Lectura de session-\/\texorpdfstring{$>$}{>}authenticated (verificar estado)
+\item Escritura de session-\/\texorpdfstring{$>$}{>}last\+\_\+activity (actualizar timestamp)
+\item Escritura de session-\/\texorpdfstring{$>$}{>}authenticated (expirar sesión si timeout)
+\end{DoxyItemize}
+
+Timeout de 100ms\+: si el mutex está ocupado, espera máximo 100ms Si no se puede adquirir, retorna false (sesión no autenticada por seguridad) \Hypertarget{web__server_8c_a76099315f3151bc5f0e123613b378ea3}\label{web__server_8c_a76099315f3151bc5f0e123613b378ea3} 
+\index{web\_server.c@{web\_server.c}!login\_post\_handler@{login\_post\_handler}}
+\index{login\_post\_handler@{login\_post\_handler}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{login\_post\_handler()}{login\_post\_handler()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t login\+\_\+post\+\_\+handler (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Handler para POST /login Valida credenciales y crea una sesión autenticada Parámetros\+: user=xxx\&pass=yyy (form-\/urlencoded) 
+
+\Hypertarget{web__server_8c_aefdc44f753bf0f6a10827ef61c93e747}\label{web__server_8c_aefdc44f753bf0f6a10827ef61c93e747} 
+\index{web\_server.c@{web\_server.c}!logout\_get\_handler@{logout\_get\_handler}}
+\index{logout\_get\_handler@{logout\_get\_handler}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{logout\_get\_handler()}{logout\_get\_handler()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t logout\+\_\+get\+\_\+handler (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Handler para GET /logout Cierra la sesión del usuario y apaga los LEDs. 
+
+\Hypertarget{web__server_8c_af8bc0e45173c88eb29e76fcb3cec2e9c}\label{web__server_8c_af8bc0e45173c88eb29e76fcb3cec2e9c} 
+\index{web\_server.c@{web\_server.c}!pir\_status\_get\_handler@{pir\_status\_get\_handler}}
+\index{pir\_status\_get\_handler@{pir\_status\_get\_handler}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{pir\_status\_get\_handler()}{pir\_status\_get\_handler()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t pir\+\_\+status\+\_\+get\+\_\+handler (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Handler para GET /pir/status Devuelve el estado actual del sensor PIR en formato JSON Respuesta\+: \{"{}motion"{}\+: true\} o \{"{}motion"{}\+: false\} Requiere autenticación. 
+
+\Hypertarget{web__server_8c_a57be95fc8a026d992424809ccdb386ca}\label{web__server_8c_a57be95fc8a026d992424809ccdb386ca} 
+\index{web\_server.c@{web\_server.c}!register\_http\_routes@{register\_http\_routes}}
+\index{register\_http\_routes@{register\_http\_routes}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{register\_http\_routes()}{register\_http\_routes()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t register\+\_\+http\+\_\+routes (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structwebserver__context__t}{webserver\+\_\+context\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{ctx }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Registra todas las rutas HTTP del servidor web. 
+
+
+\begin{DoxyParams}{Parámetros}
+{\em ctx} & Contexto del servidor web \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Devuelve}
+ESP\+\_\+\+OK si todas las rutas se registraron correctamente, ESP\+\_\+\+FAIL en caso contrario 
+\end{DoxyReturn}
+\Hypertarget{web__server_8c_a69825c7b8aba67db79da44e35494538c}\label{web__server_8c_a69825c7b8aba67db79da44e35494538c} 
+\index{web\_server.c@{web\_server.c}!registros\_get\_handler@{registros\_get\_handler}}
+\index{registros\_get\_handler@{registros\_get\_handler}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{registros\_get\_handler()}{registros\_get\_handler()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t registros\+\_\+get\+\_\+handler (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Handler para GET /registros Devuelve todos los registros almacenados en formato JSON desde SPIFFS Utiliza la función \doxylink{registros_8c_acb983bd3894be47c2e021b7b3ce9a302}{leer\+\_\+registros\+\_\+json()} del módulo \doxylink{registros_8c}{registros.\+c} Respuesta\+: Array JSON con todos los registros \mbox{[}\{"{}dia"{}\+: "{}..."{}, "{}hora"{}\+: "{}..."{}, "{}velocidad"{}\+: ...\}, ...\mbox{]} Requiere autenticación. 
+
+\Hypertarget{web__server_8c_ae2176735ed336f4929fa49f3274e51a3}\label{web__server_8c_ae2176735ed336f4929fa49f3274e51a3} 
+\index{web\_server.c@{web\_server.c}!registros\_post\_handler@{registros\_post\_handler}}
+\index{registros\_post\_handler@{registros\_post\_handler}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{registros\_post\_handler()}{registros\_post\_handler()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t registros\+\_\+post\+\_\+handler (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Handler para POST /registros Agrega un nuevo registro al archivo registros.\+json en SPIFFS Utiliza la función \doxylink{registros_8c_ade58386010b0b7549a41ecb872175d09}{agregar\+\_\+registro()} del módulo \doxylink{registros_8c}{registros.\+c} Body esperado\+: \{"{}dia"{}\+: "{}lunes"{}, "{}hora"{}\+: "{}14\+:30"{}, "{}velocidad"{}\+: 50\} El registro se guarda de forma persistente en /spiffs/registros.json Requiere autenticación. 
+
+\Hypertarget{web__server_8c_ad8bb541f65016944ecd059dc8e08f531}\label{web__server_8c_ad8bb541f65016944ecd059dc8e08f531} 
+\index{web\_server.c@{web\_server.c}!root\_get\_handler@{root\_get\_handler}}
+\index{root\_get\_handler@{root\_get\_handler}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{root\_get\_handler()}{root\_get\_handler()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t root\+\_\+get\+\_\+handler (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Handler para GET / (raíz) Si el usuario está autenticado, redirige al dashboard Si no, muestra la página de login. 
+
+\Hypertarget{web__server_8c_a2c44e0d14f4658f99a0ee54dd180ca65}\label{web__server_8c_a2c44e0d14f4658f99a0ee54dd180ca65} 
+\index{web\_server.c@{web\_server.c}!script\_get\_handler@{script\_get\_handler}}
+\index{script\_get\_handler@{script\_get\_handler}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{script\_get\_handler()}{script\_get\_handler()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t script\+\_\+get\+\_\+handler (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Handler para GET /script.js Sirve el archivo Java\+Script desde SPIFFS. 
+
+\Hypertarget{web__server_8c_ad0d56581fc5acc453c49c8db3178fe4b}\label{web__server_8c_ad0d56581fc5acc453c49c8db3178fe4b} 
+\index{web\_server.c@{web\_server.c}!send\_file\_from\_spiffs@{send\_file\_from\_spiffs}}
+\index{send\_file\_from\_spiffs@{send\_file\_from\_spiffs}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{send\_file\_from\_spiffs()}{send\_file\_from\_spiffs()}}
+{\footnotesize\ttfamily esp\+\_\+err\+\_\+t send\+\_\+file\+\_\+from\+\_\+spiffs (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req,  }\item[{const char \texorpdfstring{$\ast$}{*}}]{filepath,  }\item[{const char \texorpdfstring{$\ast$}{*}}]{type }\end{DoxyParamCaption})}
+
+
+
+Sirve un archivo estático desde SPIFFS al cliente HTTP Lee el archivo en chunks y lo envía de forma eficiente. 
+
+
+\begin{DoxyParams}{Parámetros}
+{\em req} & Request HTTP \\
+\hline
+{\em filepath} & Ruta del archivo en SPIFFS (ej\+: "{}/spiffs/index.\+html"{}) \\
+\hline
+{\em type} & Content-\/\+Type HTTP (ej\+: "{}text/html"{}, "{}text/css"{}) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Devuelve}
+ESP\+\_\+\+OK si éxito, ESP\+\_\+\+FAIL si error 
+\end{DoxyReturn}
+\Hypertarget{web__server_8c_adb51a10bebe5f79367de54eadb696aa2}\label{web__server_8c_adb51a10bebe5f79367de54eadb696aa2} 
+\index{web\_server.c@{web\_server.c}!session\_management\_task@{session\_management\_task}}
+\index{session\_management\_task@{session\_management\_task}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{session\_management\_task()}{session\_management\_task()}}
+{\footnotesize\ttfamily static void session\+\_\+management\+\_\+task (\begin{DoxyParamCaption}\item[{void \texorpdfstring{$\ast$}{*}}]{pv\+Parameters }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Tarea que verifica periódicamente las sesiones y expira las inactivas Apaga los LEDs cuando una sesión expira por timeout. 
+
+===== EXPLICACIÓN DE LA TAREA ===== Esta es una tarea de Free\+RTOS que se ejecuta de forma independiente en segundo plano para gestionar el ciclo de vida de las sesiones.
+
+Funcionamiento\+:
+\begin{DoxyEnumerate}
+\item Se ejecuta en un loop infinito (while(1))
+\item Espera 2 segundos entre cada verificación (v\+Task\+Delay)
+\item Obtiene el tiempo actual y compara con last\+\_\+activity de cada sesión
+\item Si una sesión está inactiva más de SESSION\+\_\+\+TIMEOUT\+\_\+\+MS (3 minutos)\+:
+\begin{DoxyItemize}
+\item Marca la sesión como no autenticada
+\item Apaga los LEDs por seguridad
+\item Registra el evento en el log
+\end{DoxyItemize}
+\end{DoxyEnumerate}
+
+Uso del semáforo (mutex)\+:
+\begin{DoxyItemize}
+\item session\+\_\+mutex protege el acceso al array ctx-\/\texorpdfstring{$>$}{>}sessions\mbox{[}\mbox{]}
+\item x\+Semaphore\+Take() adquiere el mutex antes de leer/escribir
+\item x\+Semaphore\+Give() libera el mutex después de la operación
+\item Timeout de 100ms para evitar bloqueo indefinido si hay problemas
+\end{DoxyItemize}
+
+Prioridad\+: 3 (configurada en \doxylink{web__server_8c_a440992a6db6af61fb71e65ddf68e71b0}{start\+\_\+webserver()}) Stack\+: 2048 bytes
+
+Esta tarea es crítica para la seguridad del sistema, ya que\+:
+\begin{DoxyItemize}
+\item Previene sesiones huérfanas que consuman recursos
+\item Apaga los LEDs automáticamente cuando el usuario se desconecta
+\item Libera slots de sesión para nuevos usuarios 
+\end{DoxyItemize}\Hypertarget{web__server_8c_a12214b08c5ffdd17a607a663e0ad2280}\label{web__server_8c_a12214b08c5ffdd17a607a663e0ad2280} 
+\index{web\_server.c@{web\_server.c}!slider\_get\_handler@{slider\_get\_handler}}
+\index{slider\_get\_handler@{slider\_get\_handler}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{slider\_get\_handler()}{slider\_get\_handler()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t slider\+\_\+get\+\_\+handler (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Handler para GET /slider Requiere autenticación, redirige a login si no está autenticado. 
+
+\Hypertarget{web__server_8c_a440992a6db6af61fb71e65ddf68e71b0}\label{web__server_8c_a440992a6db6af61fb71e65ddf68e71b0} 
+\index{web\_server.c@{web\_server.c}!start\_webserver@{start\_webserver}}
+\index{start\_webserver@{start\_webserver}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{start\_webserver()}{start\_webserver()}}
+{\footnotesize\ttfamily void start\+\_\+webserver (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Función principal que inicia el servidor web. 
+
+Inicia el servidor web HTTP.
+
+Proceso de inicialización\+:
+\begin{DoxyEnumerate}
+\item Crea estructura de contexto para encapsular el estado (sin variables globales)
+\item Crea mutex y colas para comandos y sesiones
+\item Crea tareas para procesamiento de comandos y gestión de sesiones (pasa contexto)
+\item Monta el sistema de archivos SPIFFS
+\item Verifica que todos los archivos necesarios estén presentes
+\item Configura e inicia el servidor HTTP
+\item Registra todas las rutas y handlers (pasa contexto a través de user\+\_\+ctx) 
+\end{DoxyEnumerate}\Hypertarget{web__server_8c_a4344332a604a42a679cb0a4a8f5d3e7c}\label{web__server_8c_a4344332a604a42a679cb0a4a8f5d3e7c} 
+\index{web\_server.c@{web\_server.c}!str\_to\_lower@{str\_to\_lower}}
+\index{str\_to\_lower@{str\_to\_lower}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{str\_to\_lower()}{str\_to\_lower()}}
+{\footnotesize\ttfamily static void str\+\_\+to\+\_\+lower (\begin{DoxyParamCaption}\item[{char \texorpdfstring{$\ast$}{*}}]{str }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Convierte una cadena a minúsculas (modifica in-\/place) 
+
+
+\begin{DoxyParams}{Parámetros}
+{\em str} & Cadena a convertir \\
+\hline
+\end{DoxyParams}
+\Hypertarget{web__server_8c_a87fb71f709007f2dab5a5e0f72be6e60}\label{web__server_8c_a87fb71f709007f2dab5a5e0f72be6e60} 
+\index{web\_server.c@{web\_server.c}!style\_get\_handler@{style\_get\_handler}}
+\index{style\_get\_handler@{style\_get\_handler}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{style\_get\_handler()}{style\_get\_handler()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t style\+\_\+get\+\_\+handler (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Handler para GET /style.css Sirve el archivo CSS desde SPIFFS. 
+
+\Hypertarget{web__server_8c_aaf4450b0d909a8a677fd99a3cf9e1f47}\label{web__server_8c_aaf4450b0d909a8a677fd99a3cf9e1f47} 
+\index{web\_server.c@{web\_server.c}!temperature\_get\_handler@{temperature\_get\_handler}}
+\index{temperature\_get\_handler@{temperature\_get\_handler}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{temperature\_get\_handler()}{temperature\_get\_handler()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t temperature\+\_\+get\+\_\+handler (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Handler para GET /temperature Devuelve la temperatura actual en formato JSON Respuesta\+: \{"{}temperature"{}\+: 25.\+5\} o \{"{}error"{}\+: "{}\+No data available"{}\} Requiere autenticación. 
+
+\Hypertarget{web__server_8c_a3127c701538ab1bbe40c3c08baffdeb8}\label{web__server_8c_a3127c701538ab1bbe40c3c08baffdeb8} 
+\index{web\_server.c@{web\_server.c}!terminal\_get\_handler@{terminal\_get\_handler}}
+\index{terminal\_get\_handler@{terminal\_get\_handler}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{terminal\_get\_handler()}{terminal\_get\_handler()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t terminal\+\_\+get\+\_\+handler (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Handler para GET /terminal Requiere autenticación, redirige a login si no está autenticado. 
+
+\Hypertarget{web__server_8c_aaf9b26d85f074def3642906fc116c487}\label{web__server_8c_aaf9b26d85f074def3642906fc116c487} 
+\index{web\_server.c@{web\_server.c}!time\_set\_post\_handler@{time\_set\_post\_handler}}
+\index{time\_set\_post\_handler@{time\_set\_post\_handler}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{time\_set\_post\_handler()}{time\_set\_post\_handler()}}
+{\footnotesize\ttfamily static esp\+\_\+err\+\_\+t time\+\_\+set\+\_\+post\+\_\+handler (\begin{DoxyParamCaption}\item[{httpd\+\_\+req\+\_\+t \texorpdfstring{$\ast$}{*}}]{req }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Handler para POST /time/set Establece la hora manualmente Body esperado\+: \{"{}year"{}\+: 2024, "{}month"{}\+: 12, "{}day"{}\+: 9, "{}hour"{}\+: 14, "{}minute"{}\+: 30, "{}second"{}\+: 0\} Requiere autenticación. 
+
+\Hypertarget{web__server_8c_a1e44dbe5e0b652eeacaad2aff82350bf}\label{web__server_8c_a1e44dbe5e0b652eeacaad2aff82350bf} 
+\index{web\_server.c@{web\_server.c}!url\_decode@{url\_decode}}
+\index{url\_decode@{url\_decode}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{url\_decode()}{url\_decode()}}
+{\footnotesize\ttfamily static void url\+\_\+decode (\begin{DoxyParamCaption}\item[{char \texorpdfstring{$\ast$}{*}}]{str }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Decodifica una cadena URL-\/encoded (convierte \%20 y + a espacios) 
+
+
+\begin{DoxyParams}{Parámetros}
+{\em str} & Cadena a decodificar (se modifica in-\/place) \\
+\hline
+\end{DoxyParams}
+\Hypertarget{web__server_8c_ae77e5fe0a932508da534990881b25d68}\label{web__server_8c_ae77e5fe0a932508da534990881b25d68} 
+\index{web\_server.c@{web\_server.c}!verify\_spiffs\_files@{verify\_spiffs\_files}}
+\index{verify\_spiffs\_files@{verify\_spiffs\_files}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{verify\_spiffs\_files()}{verify\_spiffs\_files()}}
+{\footnotesize\ttfamily static int verify\+\_\+spiffs\+\_\+files (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Verifica que todos los archivos necesarios estén presentes en SPIFFS. 
+
+\begin{DoxyReturn}{Devuelve}
+Número de archivos encontrados 
+\end{DoxyReturn}
+
+
+\doxysubsection{Documentación de variables}
+\Hypertarget{web__server_8c_a5a85b9c772bbeb480b209a3e6ea92b4c}\label{web__server_8c_a5a85b9c772bbeb480b209a3e6ea92b4c} 
+\index{web\_server.c@{web\_server.c}!TAG@{TAG}}
+\index{TAG@{TAG}!web\_server.c@{web\_server.c}}
+\doxysubsubsection{\texorpdfstring{TAG}{TAG}}
+{\footnotesize\ttfamily const char\texorpdfstring{$\ast$}{*} TAG = "{}WEB\+\_\+\+SERVER"{}\hspace{0.3cm}{\ttfamily [static]}}
+

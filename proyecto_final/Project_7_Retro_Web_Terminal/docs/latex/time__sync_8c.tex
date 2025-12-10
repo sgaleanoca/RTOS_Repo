@@ -1,0 +1,277 @@
+\doxysection{Referencia del archivo main/time\+\_\+sync.c}
+\hypertarget{time__sync_8c}{}\label{time__sync_8c}\index{main/time\_sync.c@{main/time\_sync.c}}
+
+
+Implementación de la sincronización de tiempo mediante SNTP.  
+
+
+{\ttfamily \#include "{}time\+\_\+sync.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+log.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+netif\+\_\+sntp.\+h"{}}\newline
+{\ttfamily \#include "{}lwip/apps/sntp.\+h"{}}\newline
+{\ttfamily \#include "{}nvs.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+system.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+timer.\+h"{}}\newline
+{\ttfamily \#include $<$time.\+h$>$}\newline
+{\ttfamily \#include $<$string.\+h$>$}\newline
+{\ttfamily \#include $<$sys/time.\+h$>$}\newline
+\doxysubsubsection*{Funciones}
+\begin{DoxyCompactItemize}
+\item 
+static void \mbox{\hyperlink{time__sync_8c_aa46ac4f07b5a34c6897963a6eedf1440}{guardar\+\_\+hora\+\_\+en\+\_\+nvs}} (time\+\_\+t timestamp)
+\begin{DoxyCompactList}\small\item\em Guarda la hora actual en NVS para restaurarla después de un reinicio. \end{DoxyCompactList}\item 
+static bool \mbox{\hyperlink{time__sync_8c_a3e11a3ca3c1447a494959632dd2ad336}{cargar\+\_\+hora\+\_\+desde\+\_\+nvs}} (void)
+\begin{DoxyCompactList}\small\item\em Carga la hora guardada en NVS y la restaura ajustada por el tiempo transcurrido. \end{DoxyCompactList}\item 
+static void \mbox{\hyperlink{time__sync_8c_ab128118d92811b95c5c90b623197de68}{sntp\+\_\+sync\+\_\+time\+\_\+cb}} (struct timeval \texorpdfstring{$\ast$}{*}tv)
+\begin{DoxyCompactList}\small\item\em Callback que se ejecuta cuando SNTP sincroniza la hora. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{time__sync_8c_abcc7941866a530a5e1112a7b038f4278}{time\+\_\+sync\+\_\+init}} (void)
+\begin{DoxyCompactList}\small\item\em Inicializa el servicio SNTP para sincronizar la hora del sistema Configura servidores NTP y espera a que la hora se sincronice. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{time__sync_8c_ae3dd675660b57518a66e42fc1388d321}{hora\+\_\+sincronizada}} (void)
+\begin{DoxyCompactList}\small\item\em Verifica si la hora del sistema está sincronizada. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{time__sync_8c_a012f1f8e74faccb6e87d9f756bc35d24}{obtener\+\_\+dia\+\_\+actual}} (char \texorpdfstring{$\ast$}{*}dia\+\_\+buffer, size\+\_\+t buffer\+\_\+size)
+\begin{DoxyCompactList}\small\item\em Obtiene el día de la semana actual en español. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{time__sync_8c_ad29433d08e62d34e13dcad6e9f42e9cf}{obtener\+\_\+hora\+\_\+actual}} (char \texorpdfstring{$\ast$}{*}hora\+\_\+buffer, size\+\_\+t buffer\+\_\+size)
+\begin{DoxyCompactList}\small\item\em Obtiene la hora actual en formato HH\+:MM. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{time__sync_8c_ae6074d3ae73046463f7ee3f619880ba4}{establecer\+\_\+hora\+\_\+manual}} (int year, int month, int day, int hour, int minute, int second)
+\begin{DoxyCompactList}\small\item\em Establece la hora manualmente (útil cuando SNTP no puede sincronizar) Útil cuando el ESP32 está en modo Soft\+AP sin conexión a Internet. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+static const char \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{time__sync_8c_a5a85b9c772bbeb480b209a3e6ea92b4c}{TAG}} = "{}TIME\+\_\+\+SYNC"{}
+\item 
+static const char \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{time__sync_8c_aec97d4afb8dc4cc5ecaf5ca042665c5e}{NVS\+\_\+\+NAMESPACE}} = "{}time\+\_\+sync"{}
+\item 
+static const char \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{time__sync_8c_a7930d7eb63905f214473776a0461ca31}{NVS\+\_\+\+KEY\+\_\+\+TIME}} = "{}saved\+\_\+time"{}
+\item 
+static bool \mbox{\hyperlink{time__sync_8c_a71b2a9aa29bfa8b44c6ca829911a24c0}{sntp\+\_\+initialized}} = false
+\item 
+static bool \mbox{\hyperlink{time__sync_8c_af833b67b3ae9804347e263aecbc92b84}{time\+\_\+synced}} = false
+\item 
+static const char \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{time__sync_8c_a22ab882b4b3c60c94c2ae0fa8b634db0}{dias\+\_\+semana}} \mbox{[}$\,$\mbox{]}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Descripción detallada}
+Implementación de la sincronización de tiempo mediante SNTP. 
+
+\begin{DoxyAuthor}{Autor}
+Proyecto Final RTOS 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Fecha}
+2024
+\end{DoxyDate}
+Implementación de la sincronización de tiempo usando SNTP (Simple Network Time Protocol). Este módulo permite obtener la hora y fecha actual del sistema, necesaria para el sistema de horarios del ventilador.\hypertarget{wifi__app_8c_functionality}{}\doxysubsection{\texorpdfstring{Funcionalidades}{Funcionalidades}}\label{wifi__app_8c_functionality}
+
+\begin{DoxyItemize}
+\item Sincronización automática con servidores NTP (co.\+pool.\+ntp.\+org)
+\item Configuración de zona horaria para Colombia (UTC-\/5)
+\item Persistencia de hora en NVS para restaurar después de reinicio
+\item Establecimiento manual de hora cuando SNTP no está disponible
+\item Obtención de día de la semana y hora actual en formato español
+\end{DoxyItemize}\hypertarget{time__sync_8h_features}{}\doxysubsection{\texorpdfstring{Características}{Características}}\label{time__sync_8h_features}
+
+\begin{DoxyItemize}
+\item Restauración automática de hora desde NVS al reiniciar
+\item Fallback a hora manual si SNTP no puede sincronizar
+\item Soporte para zona horaria de Colombia (COT5)
+\item Validación de sincronización antes de usar funciones de tiempo
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{ARCHIVO\+: \doxylink{time__sync_8c}{time\+\_\+sync.\+c} }
+
+RESUMEN\+: Implementación de la sincronización de tiempo usando SNTP (Simple Network Time Protocol). Este módulo permite obtener la hora y fecha actual del sistema, necesaria para el sistema de horarios del ventilador.
+
+Funcionalidades\+:
+\begin{DoxyItemize}
+\item Sincronización automática con servidores NTP (co.\+pool.\+ntp.\+org)
+\item Configuración de zona horaria para Colombia (UTC-\/5)
+\item Persistencia de hora en NVS para restaurar después de reinicio
+\item Establecimiento manual de hora cuando SNTP no está disponible
+\item Obtención de día de la semana y hora actual en formato español
+\end{DoxyItemize}
+
+Características\+:
+\begin{DoxyItemize}
+\item Restauración automática de hora desde NVS al reiniciar
+\item Fallback a hora manual si SNTP no puede sincronizar
+\item Soporte para zona horaria de Colombia (COT5)
+\item Validación de sincronización antes de usar funciones de tiempo
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{Í\+NDICE DE SECCIONES\+: }
+
+Sección 1\+: INCLUDES se encuentra en las líneas 24 a 36 Sección 2\+: DEFINICIONES Y CONSTANTES se encuentra en las líneas 38 a 48 Sección 3\+: FUNCIONES INTERNAS se encuentra en las líneas 50 a 158 \doxysubsection*{Sección 4\+: FUNCIONES PÚ\+BLICAS se encuentra en las líneas 160 a 337 }
+
+\DoxyHorRuler{0}
+ \doxysubsection*{RESUMEN DE TAREAS, COLAS Y SEMÁ\+FOROS IMPLEMENTADOS\+: }
+
+=== TAREAS (TASKS) ===
+
+Ninguna en este módulo. SNTP funciona mediante callbacks y eventos.
+
+=== COLAS (QUEUES) ===
+
+Ninguna en este módulo.
+
+=== SEMÁ\+FOROS (MUTEXES) ===
+
+Ninguno en este módulo. Las funciones de tiempo de C estándar son thread-\/safe.
+
+\DoxyHorRuler{0}
+ 
+
+\doxysubsection{Documentación de funciones}
+\Hypertarget{time__sync_8c_a3e11a3ca3c1447a494959632dd2ad336}\label{time__sync_8c_a3e11a3ca3c1447a494959632dd2ad336} 
+\index{time\_sync.c@{time\_sync.c}!cargar\_hora\_desde\_nvs@{cargar\_hora\_desde\_nvs}}
+\index{cargar\_hora\_desde\_nvs@{cargar\_hora\_desde\_nvs}!time\_sync.c@{time\_sync.c}}
+\doxysubsubsection{\texorpdfstring{cargar\_hora\_desde\_nvs()}{cargar\_hora\_desde\_nvs()}}
+{\footnotesize\ttfamily static bool cargar\+\_\+hora\+\_\+desde\+\_\+nvs (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Carga la hora guardada en NVS y la restaura ajustada por el tiempo transcurrido. 
+
+\begin{DoxyReturn}{Devuelve}
+true si se restauró la hora, false si no había hora guardada 
+\end{DoxyReturn}
+\Hypertarget{time__sync_8c_ae6074d3ae73046463f7ee3f619880ba4}\label{time__sync_8c_ae6074d3ae73046463f7ee3f619880ba4} 
+\index{time\_sync.c@{time\_sync.c}!establecer\_hora\_manual@{establecer\_hora\_manual}}
+\index{establecer\_hora\_manual@{establecer\_hora\_manual}!time\_sync.c@{time\_sync.c}}
+\doxysubsubsection{\texorpdfstring{establecer\_hora\_manual()}{establecer\_hora\_manual()}}
+{\footnotesize\ttfamily bool establecer\+\_\+hora\+\_\+manual (\begin{DoxyParamCaption}\item[{int}]{year,  }\item[{int}]{month,  }\item[{int}]{day,  }\item[{int}]{hour,  }\item[{int}]{minute,  }\item[{int}]{second }\end{DoxyParamCaption})}
+
+
+
+Establece la hora manualmente (útil cuando SNTP no puede sincronizar) Útil cuando el ESP32 está en modo Soft\+AP sin conexión a Internet. 
+
+Establece la hora manualmente (útil cuando SNTP no puede sincronizar) \Hypertarget{time__sync_8c_aa46ac4f07b5a34c6897963a6eedf1440}\label{time__sync_8c_aa46ac4f07b5a34c6897963a6eedf1440} 
+\index{time\_sync.c@{time\_sync.c}!guardar\_hora\_en\_nvs@{guardar\_hora\_en\_nvs}}
+\index{guardar\_hora\_en\_nvs@{guardar\_hora\_en\_nvs}!time\_sync.c@{time\_sync.c}}
+\doxysubsubsection{\texorpdfstring{guardar\_hora\_en\_nvs()}{guardar\_hora\_en\_nvs()}}
+{\footnotesize\ttfamily static void guardar\+\_\+hora\+\_\+en\+\_\+nvs (\begin{DoxyParamCaption}\item[{time\+\_\+t}]{timestamp }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Guarda la hora actual en NVS para restaurarla después de un reinicio. 
+
+\Hypertarget{time__sync_8c_ae3dd675660b57518a66e42fc1388d321}\label{time__sync_8c_ae3dd675660b57518a66e42fc1388d321} 
+\index{time\_sync.c@{time\_sync.c}!hora\_sincronizada@{hora\_sincronizada}}
+\index{hora\_sincronizada@{hora\_sincronizada}!time\_sync.c@{time\_sync.c}}
+\doxysubsubsection{\texorpdfstring{hora\_sincronizada()}{hora\_sincronizada()}}
+{\footnotesize\ttfamily bool hora\+\_\+sincronizada (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Verifica si la hora del sistema está sincronizada. 
+
+\begin{DoxyReturn}{Devuelve}
+true si está sincronizada, false en caso contrario 
+\end{DoxyReturn}
+\Hypertarget{time__sync_8c_a012f1f8e74faccb6e87d9f756bc35d24}\label{time__sync_8c_a012f1f8e74faccb6e87d9f756bc35d24} 
+\index{time\_sync.c@{time\_sync.c}!obtener\_dia\_actual@{obtener\_dia\_actual}}
+\index{obtener\_dia\_actual@{obtener\_dia\_actual}!time\_sync.c@{time\_sync.c}}
+\doxysubsubsection{\texorpdfstring{obtener\_dia\_actual()}{obtener\_dia\_actual()}}
+{\footnotesize\ttfamily bool obtener\+\_\+dia\+\_\+actual (\begin{DoxyParamCaption}\item[{char \texorpdfstring{$\ast$}{*}}]{dia\+\_\+buffer,  }\item[{size\+\_\+t}]{buffer\+\_\+size }\end{DoxyParamCaption})}
+
+
+
+Obtiene el día de la semana actual en español. 
+
+
+\begin{DoxyParams}{Parámetros}
+{\em dia\+\_\+buffer} & Buffer donde se almacenará el día (ej\+: "{}lunes"{}, "{}martes"{}) \\
+\hline
+{\em buffer\+\_\+size} & Tamaño del buffer \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Devuelve}
+true si éxito, false si la hora no está sincronizada 
+\end{DoxyReturn}
+\Hypertarget{time__sync_8c_ad29433d08e62d34e13dcad6e9f42e9cf}\label{time__sync_8c_ad29433d08e62d34e13dcad6e9f42e9cf} 
+\index{time\_sync.c@{time\_sync.c}!obtener\_hora\_actual@{obtener\_hora\_actual}}
+\index{obtener\_hora\_actual@{obtener\_hora\_actual}!time\_sync.c@{time\_sync.c}}
+\doxysubsubsection{\texorpdfstring{obtener\_hora\_actual()}{obtener\_hora\_actual()}}
+{\footnotesize\ttfamily bool obtener\+\_\+hora\+\_\+actual (\begin{DoxyParamCaption}\item[{char \texorpdfstring{$\ast$}{*}}]{hora\+\_\+buffer,  }\item[{size\+\_\+t}]{buffer\+\_\+size }\end{DoxyParamCaption})}
+
+
+
+Obtiene la hora actual en formato HH\+:MM. 
+
+
+\begin{DoxyParams}{Parámetros}
+{\em hora\+\_\+buffer} & Buffer donde se almacenará la hora (ej\+: "{}14\+:30"{}) \\
+\hline
+{\em buffer\+\_\+size} & Tamaño del buffer \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Devuelve}
+true si éxito, false si la hora no está sincronizada 
+\end{DoxyReturn}
+\Hypertarget{time__sync_8c_ab128118d92811b95c5c90b623197de68}\label{time__sync_8c_ab128118d92811b95c5c90b623197de68} 
+\index{time\_sync.c@{time\_sync.c}!sntp\_sync\_time\_cb@{sntp\_sync\_time\_cb}}
+\index{sntp\_sync\_time\_cb@{sntp\_sync\_time\_cb}!time\_sync.c@{time\_sync.c}}
+\doxysubsubsection{\texorpdfstring{sntp\_sync\_time\_cb()}{sntp\_sync\_time\_cb()}}
+{\footnotesize\ttfamily static void sntp\+\_\+sync\+\_\+time\+\_\+cb (\begin{DoxyParamCaption}\item[{struct timeval \texorpdfstring{$\ast$}{*}}]{tv }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Callback que se ejecuta cuando SNTP sincroniza la hora. 
+
+\Hypertarget{time__sync_8c_abcc7941866a530a5e1112a7b038f4278}\label{time__sync_8c_abcc7941866a530a5e1112a7b038f4278} 
+\index{time\_sync.c@{time\_sync.c}!time\_sync\_init@{time\_sync\_init}}
+\index{time\_sync\_init@{time\_sync\_init}!time\_sync.c@{time\_sync.c}}
+\doxysubsubsection{\texorpdfstring{time\_sync\_init()}{time\_sync\_init()}}
+{\footnotesize\ttfamily void time\+\_\+sync\+\_\+init (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Inicializa el servicio SNTP para sincronizar la hora del sistema Configura servidores NTP y espera a que la hora se sincronice. 
+
+Inicializa el servicio SNTP para sincronizar la hora del sistema Debe llamarse después de que Wi\+Fi esté conectado. 
+
+\doxysubsection{Documentación de variables}
+\Hypertarget{time__sync_8c_a22ab882b4b3c60c94c2ae0fa8b634db0}\label{time__sync_8c_a22ab882b4b3c60c94c2ae0fa8b634db0} 
+\index{time\_sync.c@{time\_sync.c}!dias\_semana@{dias\_semana}}
+\index{dias\_semana@{dias\_semana}!time\_sync.c@{time\_sync.c}}
+\doxysubsubsection{\texorpdfstring{dias\_semana}{dias\_semana}}
+{\footnotesize\ttfamily const char\texorpdfstring{$\ast$}{*} dias\+\_\+semana\mbox{[}$\,$\mbox{]}\hspace{0.3cm}{\ttfamily [static]}}
+
+{\bfseries Valor inicial\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{=\ \{}
+\DoxyCodeLine{\ \ \ \ \textcolor{stringliteral}{"{}domingo"{}},\ \textcolor{stringliteral}{"{}lunes"{}},\ \textcolor{stringliteral}{"{}martes"{}},\ \textcolor{stringliteral}{"{}miercoles"{}},\ \textcolor{stringliteral}{"{}jueves"{}},\ \textcolor{stringliteral}{"{}viernes"{}},\ \textcolor{stringliteral}{"{}sabado"{}}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\Hypertarget{time__sync_8c_a7930d7eb63905f214473776a0461ca31}\label{time__sync_8c_a7930d7eb63905f214473776a0461ca31} 
+\index{time\_sync.c@{time\_sync.c}!NVS\_KEY\_TIME@{NVS\_KEY\_TIME}}
+\index{NVS\_KEY\_TIME@{NVS\_KEY\_TIME}!time\_sync.c@{time\_sync.c}}
+\doxysubsubsection{\texorpdfstring{NVS\_KEY\_TIME}{NVS\_KEY\_TIME}}
+{\footnotesize\ttfamily const char\texorpdfstring{$\ast$}{*} NVS\+\_\+\+KEY\+\_\+\+TIME = "{}saved\+\_\+time"{}\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{time__sync_8c_aec97d4afb8dc4cc5ecaf5ca042665c5e}\label{time__sync_8c_aec97d4afb8dc4cc5ecaf5ca042665c5e} 
+\index{time\_sync.c@{time\_sync.c}!NVS\_NAMESPACE@{NVS\_NAMESPACE}}
+\index{NVS\_NAMESPACE@{NVS\_NAMESPACE}!time\_sync.c@{time\_sync.c}}
+\doxysubsubsection{\texorpdfstring{NVS\_NAMESPACE}{NVS\_NAMESPACE}}
+{\footnotesize\ttfamily const char\texorpdfstring{$\ast$}{*} NVS\+\_\+\+NAMESPACE = "{}time\+\_\+sync"{}\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{time__sync_8c_a71b2a9aa29bfa8b44c6ca829911a24c0}\label{time__sync_8c_a71b2a9aa29bfa8b44c6ca829911a24c0} 
+\index{time\_sync.c@{time\_sync.c}!sntp\_initialized@{sntp\_initialized}}
+\index{sntp\_initialized@{sntp\_initialized}!time\_sync.c@{time\_sync.c}}
+\doxysubsubsection{\texorpdfstring{sntp\_initialized}{sntp\_initialized}}
+{\footnotesize\ttfamily bool sntp\+\_\+initialized = false\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{time__sync_8c_a5a85b9c772bbeb480b209a3e6ea92b4c}\label{time__sync_8c_a5a85b9c772bbeb480b209a3e6ea92b4c} 
+\index{time\_sync.c@{time\_sync.c}!TAG@{TAG}}
+\index{TAG@{TAG}!time\_sync.c@{time\_sync.c}}
+\doxysubsubsection{\texorpdfstring{TAG}{TAG}}
+{\footnotesize\ttfamily const char\texorpdfstring{$\ast$}{*} TAG = "{}TIME\+\_\+\+SYNC"{}\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{time__sync_8c_af833b67b3ae9804347e263aecbc92b84}\label{time__sync_8c_af833b67b3ae9804347e263aecbc92b84} 
+\index{time\_sync.c@{time\_sync.c}!time\_synced@{time\_synced}}
+\index{time\_synced@{time\_synced}!time\_sync.c@{time\_sync.c}}
+\doxysubsubsection{\texorpdfstring{time\_synced}{time\_synced}}
+{\footnotesize\ttfamily bool time\+\_\+synced = false\hspace{0.3cm}{\ttfamily [static]}}
+

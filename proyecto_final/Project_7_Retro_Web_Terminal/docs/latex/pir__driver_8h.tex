@@ -1,0 +1,197 @@
+\doxysection{Referencia del archivo main/pir\+\_\+driver.h}
+\hypertarget{pir__driver_8h}{}\label{pir__driver_8h}\index{main/pir\_driver.h@{main/pir\_driver.h}}
+
+
+Driver para sensor PIR (Passive Infrared Sensor)  
+
+
+{\ttfamily \#include $<$stdint.\+h$>$}\newline
+{\ttfamily \#include $<$stdbool.\+h$>$}\newline
+{\ttfamily \#include "{}driver/gpio.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/\+Free\+RTOS.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/queue.\+h"{}}\newline
+\doxysubsubsection*{Estructuras de datos}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structpir__event__t}{pir\+\_\+event\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Estructura de evento del sensor PIR. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{defines}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{pir__driver_8h_a28df7b217b616a98e3370f156aaeef61}{PIR\+\_\+\+GPIO\+\_\+\+PIN}}~12
+\begin{DoxyCompactList}\small\item\em Pin GPIO donde está conectado el sensor PIR Cambia este valor según tu conexión física. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Funciones}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{pir__driver_8h_a0eeed3cd7f30d6213009385f03ad018a}{pir\+\_\+init}} (gpio\+\_\+num\+\_\+t pir\+\_\+gpio, Queue\+Handle\+\_\+t pir\+\_\+queue)
+\begin{DoxyCompactList}\small\item\em Inicializa el driver del sensor PIR. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{pir__driver_8h_a81ffd3f243f99fd46341ee96793e6310}{pir\+\_\+is\+\_\+motion\+\_\+active}} (void)
+\begin{DoxyCompactList}\small\item\em Lee el estado actual del sensor PIR. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Descripción detallada}
+Driver para sensor PIR (Passive Infrared Sensor) 
+
+\begin{DoxyAuthor}{Autor}
+Proyecto Final RTOS 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Fecha}
+2024
+\end{DoxyDate}
+Header file para el driver del sensor PIR (Passive Infrared Sensor). Este módulo gestiona la detección de movimiento mediante interrupciones GPIO.\hypertarget{rgb__led_8h_hardware}{}\doxysubsection{\texorpdfstring{Hardware}{Hardware}}\label{rgb__led_8h_hardware}
+
+\begin{DoxyItemize}
+\item Sensor PIR\+: GPIO 12 (configurable mediante PIR\+\_\+\+GPIO\+\_\+\+PIN)
+\item El sensor PIR detecta movimiento mediante cambios en radiación infrarroja
+\end{DoxyItemize}\hypertarget{time__sync_8h_features}{}\doxysubsection{\texorpdfstring{Características}{Características}}\label{time__sync_8h_features}
+
+\begin{DoxyItemize}
+\item Detección de movimiento mediante interrupciones GPIO (flanco de subida/bajada)
+\item Soporte para cola de eventos opcional para notificaciones asíncronas
+\item Lectura síncrona del estado actual del sensor
+\item ISR (Interrupt Service Routine) thread-\/safe usando colas desde ISR
+\item Configuración automática de pull-\/up/pull-\/down (deshabilitados, el módulo PIR ya los tiene)
+\end{DoxyItemize}\hypertarget{wifi__app_8c_usage}{}\doxysubsection{\texorpdfstring{Uso en el sistema}{Uso en el sistema}}\label{wifi__app_8c_usage}
+
+\begin{DoxyItemize}
+\item El ventilador verifica presencia mediante \doxylink{pir__driver_8h_a81ffd3f243f99fd46341ee96793e6310}{pir\+\_\+is\+\_\+motion\+\_\+active()}
+\item En modo MANUAL, el ventilador ignora el PIR
+\item En otros modos, el ventilador solo funciona si hay presencia detectada
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{ARCHIVO\+: \doxylink{pir__driver_8h}{pir\+\_\+driver.\+h} }
+
+RESUMEN\+: Header file para el driver del sensor PIR (Passive Infrared Sensor). Este módulo gestiona la detección de movimiento mediante interrupciones GPIO.
+
+Hardware\+:
+\begin{DoxyItemize}
+\item Sensor PIR\+: GPIO 12 (configurable mediante PIR\+\_\+\+GPIO\+\_\+\+PIN)
+\item El sensor PIR detecta movimiento mediante cambios en radiación infrarroja
+\end{DoxyItemize}
+
+Características\+:
+\begin{DoxyItemize}
+\item Detección de movimiento mediante interrupciones GPIO (flanco de subida/bajada)
+\item Soporte para cola de eventos opcional para notificaciones asíncronas
+\item Lectura síncrona del estado actual del sensor
+\item ISR (Interrupt Service Routine) thread-\/safe usando colas desde ISR
+\item Configuración automática de pull-\/up/pull-\/down (deshabilitados, el módulo PIR ya los tiene)
+\end{DoxyItemize}
+
+Uso en el sistema\+:
+\begin{DoxyItemize}
+\item El ventilador verifica presencia mediante \doxylink{pir__driver_8h_a81ffd3f243f99fd46341ee96793e6310}{pir\+\_\+is\+\_\+motion\+\_\+active()}
+\item En modo MANUAL, el ventilador ignora el PIR
+\item En otros modos, el ventilador solo funciona si hay presencia detectada
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{Í\+NDICE DE SECCIONES\+: }
+
+Sección 1\+: CONFIGURACIÓN DE PIN GPIO se encuentra en las líneas 35 a 40 Sección 2\+: ESTRUCTURAS DE DATOS se encuentra en las líneas 42 a 51 \doxysubsection*{Sección 3\+: PROTOTIPOS DE FUNCIONES se encuentra en las líneas 53 a 94 }
+
+\doxysubsection{Documentación de «define»}
+\Hypertarget{pir__driver_8h_a28df7b217b616a98e3370f156aaeef61}\label{pir__driver_8h_a28df7b217b616a98e3370f156aaeef61} 
+\index{pir\_driver.h@{pir\_driver.h}!PIR\_GPIO\_PIN@{PIR\_GPIO\_PIN}}
+\index{PIR\_GPIO\_PIN@{PIR\_GPIO\_PIN}!pir\_driver.h@{pir\_driver.h}}
+\doxysubsubsection{\texorpdfstring{PIR\_GPIO\_PIN}{PIR\_GPIO\_PIN}}
+{\footnotesize\ttfamily \#define PIR\+\_\+\+GPIO\+\_\+\+PIN~12}
+
+
+
+Pin GPIO donde está conectado el sensor PIR Cambia este valor según tu conexión física. 
+
+
+
+\doxysubsection{Documentación de funciones}
+\Hypertarget{pir__driver_8h_a0eeed3cd7f30d6213009385f03ad018a}\label{pir__driver_8h_a0eeed3cd7f30d6213009385f03ad018a} 
+\index{pir\_driver.h@{pir\_driver.h}!pir\_init@{pir\_init}}
+\index{pir\_init@{pir\_init}!pir\_driver.h@{pir\_driver.h}}
+\doxysubsubsection{\texorpdfstring{pir\_init()}{pir\_init()}}
+{\footnotesize\ttfamily bool pir\+\_\+init (\begin{DoxyParamCaption}\item[{gpio\+\_\+num\+\_\+t}]{pir\+\_\+gpio,  }\item[{Queue\+Handle\+\_\+t}]{pir\+\_\+queue }\end{DoxyParamCaption})}
+
+
+
+Inicializa el driver del sensor PIR. 
+
+Configura el pin GPIO como entrada con interrupciones en ambos flancos (subida y bajada) para detectar cambios en el estado del sensor.
+
+Si se proporciona una cola de eventos, los eventos de movimiento se enviarán automáticamente a través de la cola cuando se detecten cambios. Esto permite procesamiento asíncrono de eventos de movimiento en una tarea separada.
+
+Proceso de inicialización\+:
+\begin{DoxyEnumerate}
+\item Configura el pin GPIO como entrada
+\item Instala el servicio de ISR de GPIO (si no está instalado)
+\item Registra el handler de interrupción para el pin
+\end{DoxyEnumerate}
+
+
+\begin{DoxyParams}{Parámetros}
+{\em pir\+\_\+gpio} & Número del pin GPIO donde está conectado el sensor PIR \\
+\hline
+{\em pir\+\_\+queue} & Cola de eventos donde se enviarán las notificaciones de movimiento. Puede ser NULL si no se necesita notificación asíncrona. La cola debe ser creada previamente con x\+Queue\+Create().\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Devuelve}
+true si la inicialización fue exitosa, false en caso contrario
+\end{DoxyReturn}
+\begin{DoxyNote}{Nota}
+La cola de eventos debe ser creada antes de llamar a esta función. Ejemplo\+: Queue\+Handle\+\_\+t pir\+\_\+queue = x\+Queue\+Create(10, sizeof(pir\+\_\+event\+\_\+t));
+\end{DoxyNote}
+Configura el pin GPIO como entrada con interrupciones en ambos flancos (subida y bajada) para detectar cambios en el estado del sensor.
+
+Si se proporciona una cola de eventos, los eventos de movimiento se enviarán automáticamente a través de la cola cuando se detecten cambios. Esto permite procesamiento asíncrono de eventos de movimiento en una tarea separada.
+
+Proceso de inicialización\+:
+\begin{DoxyEnumerate}
+\item Valida que el pin GPIO sea válido
+\item Configura el pin GPIO como entrada sin pull-\/up/pull-\/down
+\item Configura interrupciones en ambos flancos (GPIO\+\_\+\+INTR\+\_\+\+ANYEDGE)
+\item Instala el servicio de ISR de GPIO (si no está instalado)
+\item Registra el handler de interrupción para el pin
+\end{DoxyEnumerate}
+
+
+\begin{DoxyParams}{Parámetros}
+{\em pir\+\_\+gpio} & Número del pin GPIO donde está conectado el sensor PIR \\
+\hline
+{\em pir\+\_\+queue} & Cola de eventos donde se enviarán las notificaciones de movimiento. Puede ser NULL si no se necesita notificación asíncrona. La cola debe ser creada previamente con x\+Queue\+Create().\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Devuelve}
+true si la inicialización fue exitosa, false en caso contrario
+\end{DoxyReturn}
+\begin{DoxyNote}{Nota}
+La cola de eventos debe ser creada antes de llamar a esta función. Ejemplo\+: Queue\+Handle\+\_\+t pir\+\_\+queue = x\+Queue\+Create(10, sizeof(pir\+\_\+event\+\_\+t));
+
+Muchos módulos PIR ya incluyen electrónica interna (pull-\/up, filtrado), por lo que no se configuran pull-\/up/pull-\/down en el GPIO. 
+\end{DoxyNote}
+\Hypertarget{pir__driver_8h_a81ffd3f243f99fd46341ee96793e6310}\label{pir__driver_8h_a81ffd3f243f99fd46341ee96793e6310} 
+\index{pir\_driver.h@{pir\_driver.h}!pir\_is\_motion\_active@{pir\_is\_motion\_active}}
+\index{pir\_is\_motion\_active@{pir\_is\_motion\_active}!pir\_driver.h@{pir\_driver.h}}
+\doxysubsubsection{\texorpdfstring{pir\_is\_motion\_active()}{pir\_is\_motion\_active()}}
+{\footnotesize\ttfamily bool pir\+\_\+is\+\_\+motion\+\_\+active (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Lee el estado actual del sensor PIR. 
+
+Lee directamente el nivel del pin GPIO para determinar si hay movimiento detectado. Esta función es síncrona y puede ser llamada desde cualquier tarea.
+
+\begin{DoxyReturn}{Devuelve}
+true si hay movimiento detectado (GPIO en nivel alto), false si no hay movimiento (GPIO en nivel bajo)
+\end{DoxyReturn}
+\begin{DoxyNote}{Nota}
+Esta función lee el estado actual del GPIO, no el último evento. Para recibir notificaciones de cambios, usar la cola de eventos en \doxylink{pir__driver_8c_a0eeed3cd7f30d6213009385f03ad018a}{pir\+\_\+init()}.
+\end{DoxyNote}
+Lee directamente el nivel del pin GPIO para determinar si hay movimiento detectado. Esta función es síncrona y puede ser llamada desde cualquier tarea.
+
+\begin{DoxyReturn}{Devuelve}
+true si hay movimiento detectado (GPIO en nivel alto), false si no hay movimiento (GPIO en nivel bajo) o si el driver no está inicializado
+\end{DoxyReturn}
+\begin{DoxyNote}{Nota}
+Esta función lee el estado actual del GPIO, no el último evento. Para recibir notificaciones de cambios, usar la cola de eventos en \doxylink{pir__driver_8c_a0eeed3cd7f30d6213009385f03ad018a}{pir\+\_\+init()}.
+
+Esta función es thread-\/safe porque gpio\+\_\+get\+\_\+level() es thread-\/safe. 
+\end{DoxyNote}

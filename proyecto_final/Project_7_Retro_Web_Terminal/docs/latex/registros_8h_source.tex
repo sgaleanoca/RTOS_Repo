@@ -1,0 +1,26 @@
+\doxysection{registros.\+h}
+\hypertarget{registros_8h_source}{}\label{registros_8h_source}\index{main/registros.h@{main/registros.h}}
+\mbox{\hyperlink{registros_8h}{Ir a la documentación de este archivo.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#ifndef\ REGISTROS\_H}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#define\ REGISTROS\_H}}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\#include\ <stdbool.h>}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00063\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{registros_8h_a08e1ccc606b0ae631b9cbc4f5e694522}{crear\_archivo\_si\_no\_existe}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00072\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{registros_8h_ade58386010b0b7549a41ecb872175d09}{agregar\_registro}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *dia,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *hora,\ \textcolor{keywordtype}{int}\ velocidad);}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00079\ \textcolor{keywordtype}{char}\ *\mbox{\hyperlink{registros_8h_acb983bd3894be47c2e021b7b3ce9a302}{leer\_registros\_json}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00084\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structregistro__activo__t_a46a3d2e97e32d7aa7b866aa1d8c550b5}{velocidad}};\ \ \textcolor{comment}{//\ Velocidad\ del\ ventilador\ (0-\/100)}}
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structregistro__activo__t_a2018fe493f0baac5d60673552215abbd}{activo}};\ \ \ \ \textcolor{comment}{//\ Si\ hay\ un\ registro\ activo\ para\ el\ momento\ actual}}
+\DoxyCodeLine{00087\ \}\ \mbox{\hyperlink{structregistro__activo__t}{registro\_activo\_t}};}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00095\ \mbox{\hyperlink{structregistro__activo__t}{registro\_activo\_t}}\ \mbox{\hyperlink{registros_8h_a7075e2189f78dced2ed46156273352d5}{verificar\_registro\_activo}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *dia\_actual,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *hora\_actual);}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ REGISTROS\_H}}
+
+\end{DoxyCode}

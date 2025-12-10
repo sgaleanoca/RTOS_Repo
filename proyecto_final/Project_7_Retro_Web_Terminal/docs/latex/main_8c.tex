@@ -1,0 +1,177 @@
+\doxysection{Referencia del archivo main/main.c}
+\hypertarget{main_8c}{}\label{main_8c}\index{main/main.c@{main/main.c}}
+
+
+Punto de entrada principal de la aplicación ESP32 -\/ Terminal Web Retro.  
+
+
+{\ttfamily \#include $<$nvs\+\_\+flash.\+h$>$}\newline
+{\ttfamily \#include $<$esp\+\_\+log.\+h$>$}\newline
+{\ttfamily \#include "{}freertos/\+Free\+RTOS.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/task.\+h"{}}\newline
+{\ttfamily \#include "{}fan\+\_\+control.\+h"{}}\newline
+{\ttfamily \#include "{}ntc\+\_\+sensor.\+h"{}}\newline
+{\ttfamily \#include "{}pir\+\_\+driver.\+h"{}}\newline
+{\ttfamily \#include "{}rgb\+\_\+led.\+h"{}}\newline
+{\ttfamily \#include "{}time\+\_\+sync.\+h"{}}\newline
+{\ttfamily \#include "{}web\+\_\+server.\+h"{}}\newline
+{\ttfamily \#include "{}wifi\+\_\+app.\+h"{}}\newline
+\doxysubsubsection*{Funciones}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{main_8c_a630544a7f0a2cc40d8a7fefab7e2fe70}{app\+\_\+main}} (void)
+\begin{DoxyCompactList}\small\item\em Función principal de la aplicación ESP32. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+static const char \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{main_8c_a5a85b9c772bbeb480b209a3e6ea92b4c}{TAG}} = "{}MAIN"{}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Descripción detallada}
+Punto de entrada principal de la aplicación ESP32 -\/ Terminal Web Retro. 
+
+\begin{DoxyAuthor}{Autor}
+Proyecto Final RTOS 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Fecha}
+2024
+\end{DoxyDate}
+Este es el punto de entrada principal de la aplicación ESP32. Se encarga de inicializar todos los componentes del sistema en el orden correcto\+:
+\begin{DoxyItemize}
+\item Sistema de almacenamiento no volátil (NVS) para Wi\+Fi
+\item Controladores de hardware (LED RGB, sensor NTC de temperatura, sensor PIR, ventilador)
+\item Configuración de Wi\+Fi en modo AP+\+STA (Access Point + Station)
+\item Sincronización de tiempo mediante SNTP
+\item Servidor web HTTP para la interfaz de usuario
+\end{DoxyItemize}
+
+El sistema crea una red Wi\+Fi propia a la que los usuarios pueden conectarse y acceder a una terminal web retro para controlar LEDs, ventilador y monitorear temperatura. También se conecta a una red Wi\+Fi externa para tener Internet y sincronizar la hora mediante SNTP.\hypertarget{terminal__commands_8h_architecture}{}\doxysubsection{\texorpdfstring{Arquitectura del sistema}{Arquitectura del sistema}}\label{terminal__commands_8h_architecture}
+
+\begin{DoxyItemize}
+\item Hardware\+: LED RGB (GPIO 27), Sensor NTC (GPIO 32), Sensor PIR (GPIO 12), Ventilador (GPIO 26)
+\item Red\+: Wi\+Fi AP+\+STA (red local + conexión a Internet)
+\item Servidor\+: HTTP con SPIFFS para archivos estáticos
+\item Control\+: Terminal web, API REST, control automático por temperatura y horarios
+\end{DoxyItemize}\hypertarget{main_8c_tasks}{}\doxysubsection{\texorpdfstring{Tareas Free\+RTOS}{Tareas FreeRTOS}}\label{main_8c_tasks}
+Las tareas se crean en los módulos correspondientes\+:
+\begin{DoxyItemize}
+\item \doxylink{ntc__sensor_8c_a69ced77938cafdbf46373f5888295aed}{ntc\+\_\+start\+\_\+reading\+\_\+task()}\+: Tarea de lectura periódica del sensor NTC
+\item \doxylink{fan__control_8c_a66650b863935f2f556256a9523edfe45}{fan\+\_\+start\+\_\+auto\+\_\+temp\+\_\+task()}\+: Tarea de control automático por temperatura
+\item \doxylink{fan__control_8c_a64cd9385f9da4e3d22584fc7e947d3ec}{fan\+\_\+start\+\_\+schedule\+\_\+task()}\+: Tarea de control por horarios (registros)
+\item \doxylink{web__server_8c_a440992a6db6af61fb71e65ddf68e71b0}{start\+\_\+webserver()}\+: Crea tareas de procesamiento de comandos y gestión de sesiones
+\end{DoxyItemize}\hypertarget{main_8c_queues}{}\doxysubsection{\texorpdfstring{Colas Free\+RTOS}{Colas FreeRTOS}}\label{main_8c_queues}
+Las colas se crean en \doxylink{web__server_8c}{web\+\_\+server.\+c}\+:
+\begin{DoxyItemize}
+\item gpio\+\_\+command\+\_\+queue\+: Para comandos desde handler HTTP a tarea de procesamiento
+\item gpio\+\_\+response\+\_\+queue\+: Para respuestas desde tarea de procesamiento a handler HTTP
+\end{DoxyItemize}\hypertarget{main_8c_mutexes}{}\doxysubsection{\texorpdfstring{Semáforos Free\+RTOS}{Semáforos FreeRTOS}}\label{main_8c_mutexes}
+Los semáforos se crean en \doxylink{web__server_8c}{web\+\_\+server.\+c}\+:
+\begin{DoxyItemize}
+\item session\+\_\+mutex\+: Protege acceso a sesiones de usuarios
+\item command\+\_\+id\+\_\+mutex\+: Protege contador de IDs de comandos
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{ARCHIVO\+: \doxylink{main_8c}{main.\+c} }
+
+RESUMEN\+: Este es el punto de entrada principal de la aplicación ESP32. Se encarga de inicializar todos los componentes del sistema en el orden correcto\+:
+\begin{DoxyItemize}
+\item Sistema de almacenamiento no volátil (NVS) para Wi\+Fi
+\item Controladores de hardware (LED RGB, sensor NTC de temperatura, sensor PIR, ventilador)
+\item Configuración de Wi\+Fi en modo AP+\+STA (Access Point + Station)
+\item Sincronización de tiempo mediante SNTP
+\item Servidor web HTTP para la interfaz de usuario
+\end{DoxyItemize}
+
+El sistema crea una red Wi\+Fi propia a la que los usuarios pueden conectarse y acceder a una terminal web retro para controlar LEDs, ventilador y monitorear temperatura. También se conecta a una red Wi\+Fi externa para tener Internet y sincronizar la hora mediante SNTP.
+
+Arquitectura del sistema\+:
+\begin{DoxyItemize}
+\item Hardware\+: LED RGB (GPIO 27), Sensor NTC (GPIO 32), Sensor PIR (GPIO 12), Ventilador (GPIO 26)
+\item Red\+: Wi\+Fi AP+\+STA (red local + conexión a Internet)
+\item Servidor\+: HTTP con SPIFFS para archivos estáticos
+\item Control\+: Terminal web, API REST, control automático por temperatura y horarios
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{Í\+NDICE DE SECCIONES\+: }
+
+Sección 1\+: INCLUDES se encuentra en las líneas 39 a 53 Sección 2\+: DEFINICIONES se encuentra en las líneas 55 a 56 Sección 3\+: FUNCIÓN PRINCIPAL (app\+\_\+main) se encuentra en las líneas 58 a 142
+\begin{DoxyItemize}
+\item Subsección 3.\+1\+: INICIALIZACIÓN DE NVS se encuentra en las líneas 72 a 80
+\item Subsección 3.\+2\+: INICIALIZACIÓN DE HARDWARE se encuentra en las líneas 82 a 106
+\item Subsección 3.\+3\+: INICIALIZACIÓN DE RED se encuentra en las líneas 108 a 131 \doxysubsection*{-\/ Subsección 3.\+4\+: INICIO DEL SERVIDOR WEB se encuentra en las líneas 133 a 141 }
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{RESUMEN DE TAREAS, COLAS Y SEMÁ\+FOROS IMPLEMENTADOS\+: }
+
+=== TAREAS (TASKS) ===
+
+Las tareas se crean en los módulos correspondientes\+:
+\begin{DoxyItemize}
+\item \doxylink{ntc__sensor_8c_a69ced77938cafdbf46373f5888295aed}{ntc\+\_\+start\+\_\+reading\+\_\+task()}\+: Tarea de lectura periódica del sensor NTC
+\item \doxylink{fan__control_8c_a66650b863935f2f556256a9523edfe45}{fan\+\_\+start\+\_\+auto\+\_\+temp\+\_\+task()}\+: Tarea de control automático por temperatura
+\item \doxylink{fan__control_8c_a64cd9385f9da4e3d22584fc7e947d3ec}{fan\+\_\+start\+\_\+schedule\+\_\+task()}\+: Tarea de control por horarios (registros)
+\item \doxylink{web__server_8c_a440992a6db6af61fb71e65ddf68e71b0}{start\+\_\+webserver()}\+: Crea tareas de procesamiento de comandos y gestión de sesiones
+\end{DoxyItemize}
+
+=== COLAS (QUEUES) ===
+
+Las colas se crean en \doxylink{web__server_8c}{web\+\_\+server.\+c}\+:
+\begin{DoxyItemize}
+\item gpio\+\_\+command\+\_\+queue\+: Para comandos desde handler HTTP a tarea de procesamiento
+\item gpio\+\_\+response\+\_\+queue\+: Para respuestas desde tarea de procesamiento a handler HTTP
+\end{DoxyItemize}
+
+=== SEMÁ\+FOROS (MUTEXES) ===
+
+Los semáforos se crean en \doxylink{web__server_8c}{web\+\_\+server.\+c}\+:
+\begin{DoxyItemize}
+\item session\+\_\+mutex\+: Protege acceso a sesiones de usuarios
+\item command\+\_\+id\+\_\+mutex\+: Protege contador de IDs de comandos
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ 
+
+\doxysubsection{Documentación de funciones}
+\Hypertarget{main_8c_a630544a7f0a2cc40d8a7fefab7e2fe70}\label{main_8c_a630544a7f0a2cc40d8a7fefab7e2fe70} 
+\index{main.c@{main.c}!app\_main@{app\_main}}
+\index{app\_main@{app\_main}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{app\_main()}{app\_main()}}
+{\footnotesize\ttfamily void app\+\_\+main (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Función principal de la aplicación ESP32. 
+
+Se ejecuta automáticamente al iniciar el dispositivo. Inicializa todos los componentes del sistema en el orden correcto.
+
+\begin{DoxyNote}{Nota}
+Orden de inicialización\+:
+\begin{DoxyEnumerate}
+\item NVS (almacenamiento no volátil para configuración Wi\+Fi)
+\item Hardware (LED RGB y sensor NTC de temperatura)
+\item Wi\+Fi (configuración como Access Point)
+\item Servidor Web (HTTP con SPIFFS y rutas)
+\end{DoxyEnumerate}
+\end{DoxyNote}
+Función principal de la aplicación ESP32 Se ejecuta automáticamente al iniciar el dispositivo
+
+Orden de inicialización\+:
+\begin{DoxyEnumerate}
+\item NVS (almacenamiento no volátil para configuración Wi\+Fi)
+\item Hardware (LED RGB y sensor NTC de temperatura)
+\item Wi\+Fi (configuración como Access Point)
+\item Servidor Web (HTTP con SPIFFS y rutas) 
+\end{DoxyEnumerate}
+
+\doxysubsection{Documentación de variables}
+\Hypertarget{main_8c_a5a85b9c772bbeb480b209a3e6ea92b4c}\label{main_8c_a5a85b9c772bbeb480b209a3e6ea92b4c} 
+\index{main.c@{main.c}!TAG@{TAG}}
+\index{TAG@{TAG}!main.c@{main.c}}
+\doxysubsubsection{\texorpdfstring{TAG}{TAG}}
+{\footnotesize\ttfamily const char\texorpdfstring{$\ast$}{*} TAG = "{}MAIN"{}\hspace{0.3cm}{\ttfamily [static]}}
+

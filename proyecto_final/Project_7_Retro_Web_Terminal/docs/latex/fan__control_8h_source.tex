@@ -1,0 +1,67 @@
+\doxysection{fan\+\_\+control.\+h}
+\hypertarget{fan__control_8h_source}{}\label{fan__control_8h_source}\index{main/fan\_control.h@{main/fan\_control.h}}
+\mbox{\hyperlink{fan__control_8h}{Ir a la documentación de este archivo.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\#ifndef\ FAN\_CONTROL\_H}}
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\#define\ FAN\_CONTROL\_H}}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\#include\ <stdint.h>}}
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\#include\ <stdbool.h>}}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \textcolor{comment}{//\ =====\ CONFIGURACIÓN\ DE\ PINES\ Y\ PWM\ =====}}
+\DoxyCodeLine{00076\ \textcolor{comment}{//\ Configuración\ del\ hardware\ para\ control\ PWM\ del\ ventilador}}
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\#define\ FAN\_PWM\_PIN\ \ \ \ \ \ \ \ \ 26\ \ \ \ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{//\ Pin\ GPIO\ para\ el\ control\ PWM\ del\ ventilador\ (gate\ del\ MOSFET)}}
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\#define\ FAN\_LEDC\_TIMER\ \ \ \ \ \ LEDC\_TIMER\_1\ \ \ \ }\textcolor{comment}{//\ Timer\ LEDC\ a\ usar\ (diferente\ al\ del\ LED\ RGB)}}
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\#define\ FAN\_LEDC\_CHANNEL\ \ \ \ LEDC\_CHANNEL\_2\ \ \ }\textcolor{comment}{//\ Canal\ LEDC\ para\ el\ ventilador}}
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\#define\ FAN\_DUTY\_RES\ \ \ \ \ \ \ \ LEDC\_TIMER\_8\_BIT\ }\textcolor{comment}{//\ Resolución\ de\ 8\ bits\ (0-\/255)}}
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\#define\ FAN\_FREQUENCY\ \ \ \ \ \ \ (25000)\ \ \ \ \ \ \ \ \ }\textcolor{comment}{//\ Frecuencia\ en\ Hz,\ 25kHz\ es\ común\ para\ motores}}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \textcolor{comment}{//\ =====\ CONFIGURACIÓN\ DE\ TEMPERATURAS\ =====}}
+\DoxyCodeLine{00084\ \textcolor{comment}{//\ Rangos\ de\ temperatura\ para\ control\ automático}}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\#define\ FAN\_TEMP\_MIN\_C\ \ \ \ \ \ 15.0f\ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{//\ Temperatura\ mínima\ para\ ENCENDER\ el\ ventilador\ (0\%\ PWM)}}
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#define\ FAN\_TEMP\_MAX\_C\ \ \ \ \ \ 25.0f\ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{//\ Temperatura\ máxima\ para\ 100\%\ PWM}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\#define\ FAN\_TEMP\_HYSTERESIS\ 1.0f\ \ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{//\ Histéresis\ para\ el\ punto\ de\ apagado\ (opcional)}}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \textcolor{comment}{//\ =====\ ESTRUCTURAS\ DE\ DATOS\ =====}}
+\DoxyCodeLine{00095\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00096\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structfan__schedule__t_aa4e23989b66903bd5bcd3b7c94b10659}{start\_hour}};\ \textcolor{comment}{//\ Hora\ de\ inicio\ (0-\/23)}}
+\DoxyCodeLine{00097\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{structfan__schedule__t_ae3537bc599631f6887fef854e2db4ef5}{end\_hour}};\ \ \ \textcolor{comment}{//\ Hora\ de\ fin\ (0-\/23)}}
+\DoxyCodeLine{00098\ \ \ \ \ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{structfan__schedule__t_a2c89c193d986a4865ba0f7ba97b43608}{min\_temp}};\ \ \ \ \ \textcolor{comment}{//\ Temperatura\ mínima\ para\ encender\ dentro\ del\ horario}}
+\DoxyCodeLine{00099\ \}\ \mbox{\hyperlink{structfan__schedule__t}{fan\_schedule\_t}};}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \textcolor{comment}{//\ =====\ MODOS\ DE\ OPERACIÓN\ =====}}
+\DoxyCodeLine{00105\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00106\ \ \ \ \ \mbox{\hyperlink{fan__control_8h_ad55164305e4bf1becf684ba008d967cbaec360e11a77bae25e08236cacfdaa860}{FAN\_MODE\_OFF}},\ \ \ \ \ \ \ \textcolor{comment}{//\ Apagado\ forzado\ (0\%\ PWM)}}
+\DoxyCodeLine{00107\ \ \ \ \ \mbox{\hyperlink{fan__control_8h_ad55164305e4bf1becf684ba008d967cbabb2b8a3b109c0cac14216bb918f0a1cc}{FAN\_MODE\_MANUAL}},\ \ \ \ \textcolor{comment}{//\ Control\ manual\ por\ porcentaje\ (0-\/100\%),\ ignora\ PIR}}
+\DoxyCodeLine{00108\ \ \ \ \ \mbox{\hyperlink{fan__control_8h_ad55164305e4bf1becf684ba008d967cbaf8243090914baa5832f41d9568853b8f}{FAN\_MODE\_AUTO\_TEMP}},\ \textcolor{comment}{//\ Control\ automático\ por\ temperatura\ (15-\/25°C),\ requiere\ PIR}}
+\DoxyCodeLine{00109\ \ \ \ \ \mbox{\hyperlink{fan__control_8h_ad55164305e4bf1becf684ba008d967cbac9ef3ee686819d2cb026e42e69ca2890}{FAN\_MODE\_SCHEDULE}}\ \ \ \textcolor{comment}{//\ Control\ por\ horario\ usando\ registros\ guardados,\ requiere\ PIR}}
+\DoxyCodeLine{00110\ \}\ \mbox{\hyperlink{fan__control_8h_ad55164305e4bf1becf684ba008d967cb}{fan\_mode\_t}};}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \textcolor{comment}{//\ =====\ PROTOTIPOS\ DE\ FUNCIONES\ =====}}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00126\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{fan__control_8h_a648b7e106efd21e3948d16df84409906}{fan\_init}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00136\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{fan__control_8h_a2f360b83e1c60b9a0a998b4ce2eb5d35}{fan\_set\_mode}}(\mbox{\hyperlink{fan__control_8h_ad55164305e4bf1becf684ba008d967cb}{fan\_mode\_t}}\ mode);}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00143\ \mbox{\hyperlink{fan__control_8h_ad55164305e4bf1becf684ba008d967cb}{fan\_mode\_t}}\ \mbox{\hyperlink{fan__control_8h_a404f2ab7830fcdc38d7d783b6fe2eeab}{fan\_get\_mode}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00153\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{fan__control_8h_a61c3eb30b914513c56f67c5ea6d973a6}{fan\_set\_manual\_percent}}(uint8\_t\ percent);}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00163\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{fan__control_8h_a47f1b478d98fe73822ab8e47330e9012}{fan\_set\_schedule}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{structfan__schedule__t}{fan\_schedule\_t}}\ *schedule);}
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00174\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{fan__control_8h_a853a9d5ce5176c036364f4c324fe4d48}{fan\_update\_auto\_temp}}(\textcolor{keywordtype}{float}\ current\_temp);}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00185\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{fan__control_8h_ae7956a073d2df51a9d58af7b1bb88d2e}{fan\_update\_schedule}}(\textcolor{keywordtype}{float}\ current\_temp,\ uint8\_t\ current\_hour);}
+\DoxyCodeLine{00186\ }
+\DoxyCodeLine{00192\ uint8\_t\ \mbox{\hyperlink{fan__control_8h_ad74d137284b059fdea1c056ead2515c9}{fan\_get\_current\_percent}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00193\ }
+\DoxyCodeLine{00206\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{fan__control_8h_a66650b863935f2f556256a9523edfe45}{fan\_start\_auto\_temp\_task}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00207\ }
+\DoxyCodeLine{00222\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{fan__control_8h_a64cd9385f9da4e3d22584fc7e947d3ec}{fan\_start\_schedule\_task}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00223\ }
+\DoxyCodeLine{00237\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{fan__control_8h_a9d499097e130c35f4e4f0a199e41e6d0}{fan\_update\_from\_registros}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00238\ }
+\DoxyCodeLine{00239\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ FAN\_CONTROL\_H}}
+
+\end{DoxyCode}

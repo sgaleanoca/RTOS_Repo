@@ -1,0 +1,738 @@
+\begin{theindex}
+
+  \item {activo}
+    \subitem {registro\_activo\_t}, \hyperpage{8}
+  \item {adc1\_cali\_handle}
+    \subitem {ntc\_sensor.c}, \hyperpage{33}
+  \item {adc1\_handle}
+    \subitem {ntc\_sensor.c}, \hyperpage{33}
+  \item {adc\_calibration\_init}
+    \subitem {ntc\_sensor.c}, \hyperpage{32}
+  \item {ADC\_MAX\_VALUE}
+    \subitem {ntc\_sensor.c}, \hyperpage{31}
+  \item {ADC\_MIN\_VALUE}
+    \subitem {ntc\_sensor.c}, \hyperpage{31}
+  \item {ADC\_STABILIZATION\_DELAY\_MS}
+    \subitem {ntc\_sensor.c}, \hyperpage{31}
+  \item {ADC\_UNIT}
+    \subitem {ntc\_sensor.h}, \hyperpage{35}
+  \item {agregar\_registro}
+    \subitem {registros.c}, \hyperpage{47}
+    \subitem {registros.h}, \hyperpage{50}
+  \item {app\_main}
+    \subitem {main.c}, \hyperpage{28}
+  \item {authenticated}
+    \subitem {session\_t}, \hyperpage{9}
+
+  \indexspace
+
+  \item {B\_COEFFICIENT}
+    \subitem {ntc\_sensor.h}, \hyperpage{35}
+
+  \indexspace
+
+  \item {calculate\_temp\_percent}
+    \subitem {fan\_control.c}, \hyperpage{15}
+  \item {cargar\_hora\_desde\_nvs}
+    \subitem {time\_sync.c}, \hyperpage{67}
+  \item {CHECK\_AUTH}
+    \subitem {web\_server.c}, \hyperpage{78}
+  \item {CHECK\_ESP\_OK}
+    \subitem {web\_server.c}, \hyperpage{78}
+  \item {cmd\_get\_handler}
+    \subitem {web\_server.c}, \hyperpage{80}
+  \item {CMD\_RESPONSE\_MAX\_ATTEMPTS}
+    \subitem {web\_server.c}, \hyperpage{79}
+  \item {CMD\_RESPONSE\_TIMEOUT\_MS}
+    \subitem {web\_server.c}, \hyperpage{79}
+  \item {command}
+    \subitem {gpio\_command\_t}, \hyperpage{6}
+  \item {command\_id}
+    \subitem {gpio\_command\_t}, \hyperpage{6}
+  \item {command\_id\_counter}
+    \subitem {webserver\_context\_t}, \hyperpage{10}
+  \item {command\_id\_mutex}
+    \subitem {webserver\_context\_t}, \hyperpage{10}
+  \item {crear\_archivo\_si\_no\_existe}
+    \subitem {registros.c}, \hyperpage{47}
+    \subitem {registros.h}, \hyperpage{50}
+  \item {current\_mode}
+    \subitem {fan\_control.c}, \hyperpage{18}
+  \item {current\_ntc\_data}
+    \subitem {ntc\_sensor.c}, \hyperpage{33}
+  \item {current\_pwm\_percent}
+    \subitem {fan\_control.c}, \hyperpage{18}
+
+  \indexspace
+
+  \item {dashboard\_get\_handler}
+    \subitem {web\_server.c}, \hyperpage{80}
+  \item {data\_mutex}
+    \subitem {ntc\_sensor.c}, \hyperpage{33}
+  \item {data\_ready}
+    \subitem {ntc\_sensor.c}, \hyperpage{33}
+  \item {dias\_semana}
+    \subitem {time\_sync.c}, \hyperpage{69}
+
+  \indexspace
+
+  \item {end\_hour}
+    \subitem {fan\_schedule\_t}, \hyperpage{5}
+  \item {ESP\_WIFI\_CHANNEL}
+    \subitem {wifi\_app.h}, \hyperpage{94}
+  \item {ESP\_WIFI\_PASS}
+    \subitem {wifi\_app.h}, \hyperpage{94}
+  \item {ESP\_WIFI\_SSID}
+    \subitem {wifi\_app.h}, \hyperpage{94}
+  \item {establecer\_hora\_manual}
+    \subitem {time\_sync.c}, \hyperpage{67}
+    \subitem {time\_sync.h}, \hyperpage{71}
+  \item {extract\_form\_param}
+    \subitem {web\_server.c}, \hyperpage{80}
+
+  \indexspace
+
+  \item {fan\_auto\_temp\_task}
+    \subitem {fan\_control.c}, \hyperpage{15}
+  \item {FAN\_AUTO\_TEMP\_TASK\_PRIORITY}
+    \subitem {fan\_control.c}, \hyperpage{14}
+  \item {FAN\_AUTO\_TEMP\_TASK\_STACK\_SIZE}
+    \subitem {fan\_control.c}, \hyperpage{14}
+  \item {FAN\_AUTO\_TEMP\_UPDATE\_INTERVAL\_MS}
+    \subitem {fan\_control.c}, \hyperpage{15}
+  \item {fan\_control.c}
+    \subitem {calculate\_temp\_percent}, \hyperpage{15}
+    \subitem {current\_mode}, \hyperpage{18}
+    \subitem {current\_pwm\_percent}, \hyperpage{18}
+    \subitem {fan\_auto\_temp\_task}, \hyperpage{15}
+    \subitem {FAN\_AUTO\_TEMP\_TASK\_PRIORITY}, \hyperpage{14}
+    \subitem {FAN\_AUTO\_TEMP\_TASK\_STACK\_SIZE}, \hyperpage{14}
+    \subitem {FAN\_AUTO\_TEMP\_UPDATE\_INTERVAL\_MS}, \hyperpage{15}
+    \subitem {fan\_get\_current\_percent}, \hyperpage{15}
+    \subitem {fan\_get\_mode}, \hyperpage{15}
+    \subitem {fan\_init}, \hyperpage{16}
+    \subitem {fan\_schedule}, \hyperpage{18}
+    \subitem {fan\_schedule\_task}, \hyperpage{16}
+    \subitem {FAN\_SCHEDULE\_TASK\_PRIORITY}, \hyperpage{15}
+    \subitem {FAN\_SCHEDULE\_TASK\_STACK\_SIZE}, \hyperpage{15}
+    \subitem {FAN\_SCHEDULE\_UPDATE\_INTERVAL\_MS}, \hyperpage{15}
+    \subitem {fan\_set\_manual\_percent}, \hyperpage{16}
+    \subitem {fan\_set\_mode}, \hyperpage{16}
+    \subitem {fan\_set\_schedule}, \hyperpage{16}
+    \subitem {fan\_start\_auto\_temp\_task}, \hyperpage{17}
+    \subitem {fan\_start\_schedule\_task}, \hyperpage{17}
+    \subitem {fan\_update\_auto\_temp}, \hyperpage{17}
+    \subitem {fan\_update\_from\_registros}, \hyperpage{17}
+    \subitem {fan\_update\_schedule}, \hyperpage{17}
+    \subitem {manual\_percent}, \hyperpage{18}
+    \subitem {set\_fan\_pwm}, \hyperpage{18}
+    \subitem {TAG}, \hyperpage{18}
+  \item {fan\_control.h}
+    \subitem {FAN\_DUTY\_RES}, \hyperpage{21}
+    \subitem {FAN\_FREQUENCY}, \hyperpage{21}
+    \subitem {fan\_get\_current\_percent}, \hyperpage{22}
+    \subitem {fan\_get\_mode}, \hyperpage{22}
+    \subitem {fan\_init}, \hyperpage{22}
+    \subitem {FAN\_LEDC\_CHANNEL}, \hyperpage{21}
+    \subitem {FAN\_LEDC\_TIMER}, \hyperpage{21}
+    \subitem {FAN\_MODE\_AUTO\_TEMP}, \hyperpage{21}
+    \subitem {FAN\_MODE\_MANUAL}, \hyperpage{21}
+    \subitem {FAN\_MODE\_OFF}, \hyperpage{21}
+    \subitem {FAN\_MODE\_SCHEDULE}, \hyperpage{21}
+    \subitem {fan\_mode\_t}, \hyperpage{21}
+    \subitem {FAN\_PWM\_PIN}, \hyperpage{21}
+    \subitem {fan\_set\_manual\_percent}, \hyperpage{22}
+    \subitem {fan\_set\_mode}, \hyperpage{22}
+    \subitem {fan\_set\_schedule}, \hyperpage{23}
+    \subitem {fan\_start\_auto\_temp\_task}, \hyperpage{23}
+    \subitem {fan\_start\_schedule\_task}, \hyperpage{23}
+    \subitem {FAN\_TEMP\_HYSTERESIS}, \hyperpage{21}
+    \subitem {FAN\_TEMP\_MAX\_C}, \hyperpage{21}
+    \subitem {FAN\_TEMP\_MIN\_C}, \hyperpage{21}
+    \subitem {fan\_update\_auto\_temp}, \hyperpage{23}
+    \subitem {fan\_update\_from\_registros}, \hyperpage{24}
+    \subitem {fan\_update\_schedule}, \hyperpage{24}
+  \item {fan\_diagnostic\_get\_handler}
+    \subitem {web\_server.c}, \hyperpage{80}
+  \item {FAN\_DUTY\_RES}
+    \subitem {fan\_control.h}, \hyperpage{21}
+  \item {FAN\_FREQUENCY}
+    \subitem {fan\_control.h}, \hyperpage{21}
+  \item {fan\_get\_current\_percent}
+    \subitem {fan\_control.c}, \hyperpage{15}
+    \subitem {fan\_control.h}, \hyperpage{22}
+  \item {fan\_get\_mode}
+    \subitem {fan\_control.c}, \hyperpage{15}
+    \subitem {fan\_control.h}, \hyperpage{22}
+  \item {fan\_init}
+    \subitem {fan\_control.c}, \hyperpage{16}
+    \subitem {fan\_control.h}, \hyperpage{22}
+  \item {FAN\_LEDC\_CHANNEL}
+    \subitem {fan\_control.h}, \hyperpage{21}
+  \item {FAN\_LEDC\_TIMER}
+    \subitem {fan\_control.h}, \hyperpage{21}
+  \item {fan\_manual\_post\_handler}
+    \subitem {web\_server.c}, \hyperpage{80}
+  \item {FAN\_MODE\_AUTO\_TEMP}
+    \subitem {fan\_control.h}, \hyperpage{21}
+  \item {FAN\_MODE\_MANUAL}
+    \subitem {fan\_control.h}, \hyperpage{21}
+  \item {FAN\_MODE\_OFF}
+    \subitem {fan\_control.h}, \hyperpage{21}
+  \item {fan\_mode\_post\_handler}
+    \subitem {web\_server.c}, \hyperpage{81}
+  \item {FAN\_MODE\_SCHEDULE}
+    \subitem {fan\_control.h}, \hyperpage{21}
+  \item {fan\_mode\_t}
+    \subitem {fan\_control.h}, \hyperpage{21}
+  \item {FAN\_PWM\_PIN}
+    \subitem {fan\_control.h}, \hyperpage{21}
+  \item {fan\_schedule}
+    \subitem {fan\_control.c}, \hyperpage{18}
+  \item {fan\_schedule\_t}, \hyperpage{5}
+    \subitem {end\_hour}, \hyperpage{5}
+    \subitem {min\_temp}, \hyperpage{5}
+    \subitem {start\_hour}, \hyperpage{5}
+  \item {fan\_schedule\_task}
+    \subitem {fan\_control.c}, \hyperpage{16}
+  \item {FAN\_SCHEDULE\_TASK\_PRIORITY}
+    \subitem {fan\_control.c}, \hyperpage{15}
+  \item {FAN\_SCHEDULE\_TASK\_STACK\_SIZE}
+    \subitem {fan\_control.c}, \hyperpage{15}
+  \item {FAN\_SCHEDULE\_UPDATE\_INTERVAL\_MS}
+    \subitem {fan\_control.c}, \hyperpage{15}
+  \item {fan\_set\_manual\_percent}
+    \subitem {fan\_control.c}, \hyperpage{16}
+    \subitem {fan\_control.h}, \hyperpage{22}
+  \item {fan\_set\_mode}
+    \subitem {fan\_control.c}, \hyperpage{16}
+    \subitem {fan\_control.h}, \hyperpage{22}
+  \item {fan\_set\_schedule}
+    \subitem {fan\_control.c}, \hyperpage{16}
+    \subitem {fan\_control.h}, \hyperpage{23}
+  \item {fan\_start\_auto\_temp\_task}
+    \subitem {fan\_control.c}, \hyperpage{17}
+    \subitem {fan\_control.h}, \hyperpage{23}
+  \item {fan\_start\_schedule\_task}
+    \subitem {fan\_control.c}, \hyperpage{17}
+    \subitem {fan\_control.h}, \hyperpage{23}
+  \item {fan\_status\_get\_handler}
+    \subitem {web\_server.c}, \hyperpage{81}
+  \item {FAN\_TEMP\_HYSTERESIS}
+    \subitem {fan\_control.h}, \hyperpage{21}
+  \item {FAN\_TEMP\_MAX\_C}
+    \subitem {fan\_control.h}, \hyperpage{21}
+  \item {FAN\_TEMP\_MIN\_C}
+    \subitem {fan\_control.h}, \hyperpage{21}
+  \item {fan\_update\_auto\_temp}
+    \subitem {fan\_control.c}, \hyperpage{17}
+    \subitem {fan\_control.h}, \hyperpage{23}
+  \item {fan\_update\_from\_registros}
+    \subitem {fan\_control.c}, \hyperpage{17}
+    \subitem {fan\_control.h}, \hyperpage{24}
+  \item {fan\_update\_schedule}
+    \subitem {fan\_control.c}, \hyperpage{17}
+    \subitem {fan\_control.h}, \hyperpage{24}
+  \item {favicon\_get\_handler}
+    \subitem {web\_server.c}, \hyperpage{81}
+  \item {find\_or\_create\_session}
+    \subitem {web\_server.c}, \hyperpage{81}
+  \item {front/script.js}, \hyperpage{11}
+
+  \indexspace
+
+  \item {get\_client\_ip}
+    \subitem {web\_server.c}, \hyperpage{81}
+  \item {get\_time\_ms}
+    \subitem {registros.c}, \hyperpage{47}
+    \subitem {web\_server.c}, \hyperpage{82}
+  \item {gpio\_command\_queue}
+    \subitem {terminal\_context\_t}, \hyperpage{9}
+    \subitem {webserver\_context\_t}, \hyperpage{10}
+  \item {gpio\_command\_t}, \hyperpage{6}
+    \subitem {command}, \hyperpage{6}
+    \subitem {command\_id}, \hyperpage{6}
+    \subitem {response}, \hyperpage{6}
+  \item {gpio\_command\_task\_wrapper}
+    \subitem {web\_server.c}, \hyperpage{82}
+  \item {GPIO\_GREEN}
+    \subitem {rgb\_led.c}, \hyperpage{53}
+  \item {GPIO\_QUEUE\_SIZE}
+    \subitem {web\_server.c}, \hyperpage{79}
+  \item {gpio\_response\_queue}
+    \subitem {terminal\_context\_t}, \hyperpage{9}
+    \subitem {webserver\_context\_t}, \hyperpage{10}
+  \item {guardar\_hora\_en\_nvs}
+    \subitem {time\_sync.c}, \hyperpage{67}
+
+  \indexspace
+
+  \item {hora\_sincronizada}
+    \subitem {time\_sync.c}, \hyperpage{67}
+    \subitem {time\_sync.h}, \hyperpage{71}
+
+  \indexspace
+
+  \item {init\_spiffs}
+    \subitem {web\_server.c}, \hyperpage{82}
+  \item {ip}
+    \subitem {session\_t}, \hyperpage{9}
+  \item {is\_authenticated}
+    \subitem {web\_server.c}, \hyperpage{82}
+
+  \indexspace
+
+  \item {last\_activity}
+    \subitem {session\_t}, \hyperpage{9}
+  \item {LEDC\_CHANNEL\_G}
+    \subitem {rgb\_led.c}, \hyperpage{53}
+  \item {LEDC\_DUTY\_RES}
+    \subitem {rgb\_led.c}, \hyperpage{53}
+  \item {LEDC\_FREQUENCY}
+    \subitem {rgb\_led.c}, \hyperpage{53}
+  \item {LEDC\_MODE}
+    \subitem {rgb\_led.c}, \hyperpage{53}
+  \item {LEDC\_TIMER}
+    \subitem {rgb\_led.c}, \hyperpage{53}
+  \item {leer\_registros\_json}
+    \subitem {registros.c}, \hyperpage{47}
+    \subitem {registros.h}, \hyperpage{50}
+  \item {login\_post\_handler}
+    \subitem {web\_server.c}, \hyperpage{83}
+  \item {logout\_get\_handler}
+    \subitem {web\_server.c}, \hyperpage{83}
+
+  \indexspace
+
+  \item {main.c}
+    \subitem {app\_main}, \hyperpage{28}
+    \subitem {TAG}, \hyperpage{28}
+  \item {main/fan\_control.c}, \hyperpage{11}
+  \item {main/fan\_control.h}, \hyperpage{18}, \hyperpage{24}
+  \item {main/main.c}, \hyperpage{25}
+  \item {main/ntc\_sensor.c}, \hyperpage{28}
+  \item {main/ntc\_sensor.h}, \hyperpage{34}, \hyperpage{36}
+  \item {main/pir\_driver.c}, \hyperpage{37}
+  \item {main/pir\_driver.h}, \hyperpage{41}, \hyperpage{44}
+  \item {main/registros.c}, \hyperpage{45}
+  \item {main/registros.h}, \hyperpage{48}, \hyperpage{51}
+  \item {main/rgb\_led.c}, \hyperpage{51}
+  \item {main/rgb\_led.h}, \hyperpage{54}, \hyperpage{56}
+  \item {main/terminal\_commands.c}, \hyperpage{57}
+  \item {main/terminal\_commands.h}, \hyperpage{60}, \hyperpage{64}
+  \item {main/time\_sync.c}, \hyperpage{65}
+  \item {main/time\_sync.h}, \hyperpage{70}, \hyperpage{72}
+  \item {main/web\_server.c}, \hyperpage{73}
+  \item {main/web\_server.h}, \hyperpage{86}, \hyperpage{89}
+  \item {main/wifi\_app.c}, \hyperpage{89}
+  \item {main/wifi\_app.h}, \hyperpage{92}, \hyperpage{95}
+  \item {manual\_percent}
+    \subitem {fan\_control.c}, \hyperpage{18}
+  \item {MAX\_SESSIONS}
+    \subitem {web\_server.c}, \hyperpage{79}
+  \item {MAX\_STA\_CONN}
+    \subitem {wifi\_app.h}, \hyperpage{94}
+  \item {min\_temp}
+    \subitem {fan\_schedule\_t}, \hyperpage{5}
+  \item {motion}
+    \subitem {pir\_event\_t}, \hyperpage{8}
+
+  \indexspace
+
+  \item {NOMINAL\_RESISTANCE}
+    \subitem {ntc\_sensor.h}, \hyperpage{35}
+  \item {NOMINAL\_TEMPERATURE}
+    \subitem {ntc\_sensor.h}, \hyperpage{35}
+  \item {normalizar\_dia}
+    \subitem {registros.c}, \hyperpage{48}
+  \item {ntc\_data\_t}, \hyperpage{6}
+    \subitem {raw\_adc\_value}, \hyperpage{7}
+    \subitem {resistance}, \hyperpage{7}
+    \subitem {temperature\_c}, \hyperpage{7}
+  \item {ntc\_get\_current\_temperature}
+    \subitem {ntc\_sensor.c}, \hyperpage{32}
+    \subitem {ntc\_sensor.h}, \hyperpage{36}
+  \item {NTC\_PIN}
+    \subitem {ntc\_sensor.h}, \hyperpage{35}
+  \item {ntc\_read\_temperature}
+    \subitem {ntc\_sensor.c}, \hyperpage{32}
+    \subitem {ntc\_sensor.h}, \hyperpage{36}
+  \item {ntc\_reading\_task}
+    \subitem {ntc\_sensor.c}, \hyperpage{32}
+  \item {ntc\_sensor.c}
+    \subitem {adc1\_cali\_handle}, \hyperpage{33}
+    \subitem {adc1\_handle}, \hyperpage{33}
+    \subitem {adc\_calibration\_init}, \hyperpage{32}
+    \subitem {ADC\_MAX\_VALUE}, \hyperpage{31}
+    \subitem {ADC\_MIN\_VALUE}, \hyperpage{31}
+    \subitem {ADC\_STABILIZATION\_DELAY\_MS}, \hyperpage{31}
+    \subitem {current\_ntc\_data}, \hyperpage{33}
+    \subitem {data\_mutex}, \hyperpage{33}
+    \subitem {data\_ready}, \hyperpage{33}
+    \subitem {ntc\_get\_current\_temperature}, \hyperpage{32}
+    \subitem {ntc\_read\_temperature}, \hyperpage{32}
+    \subitem {ntc\_reading\_task}, \hyperpage{32}
+    \subitem {ntc\_sensor\_init}, \hyperpage{33}
+    \subitem {ntc\_start\_reading\_task}, \hyperpage{33}
+    \subitem {NTC\_TASK\_PRIORITY}, \hyperpage{31}
+    \subitem {NTC\_TASK\_STACK\_SIZE}, \hyperpage{31}
+    \subitem {RESISTANCE\_MAX\_OHMS}, \hyperpage{31}
+    \subitem {SENSOR\_READ\_INTERVAL\_MS}, \hyperpage{32}
+    \subitem {TAG}, \hyperpage{33}
+    \subitem {TEMP\_ERROR\_VALUE}, \hyperpage{32}
+  \item {ntc\_sensor.h}
+    \subitem {ADC\_UNIT}, \hyperpage{35}
+    \subitem {B\_COEFFICIENT}, \hyperpage{35}
+    \subitem {NOMINAL\_RESISTANCE}, \hyperpage{35}
+    \subitem {NOMINAL\_TEMPERATURE}, \hyperpage{35}
+    \subitem {ntc\_get\_current\_temperature}, \hyperpage{36}
+    \subitem {NTC\_PIN}, \hyperpage{35}
+    \subitem {ntc\_read\_temperature}, \hyperpage{36}
+    \subitem {ntc\_sensor\_init}, \hyperpage{36}
+    \subitem {ntc\_start\_reading\_task}, \hyperpage{36}
+    \subitem {SERIES\_RESISTOR}, \hyperpage{35}
+  \item {ntc\_sensor\_init}
+    \subitem {ntc\_sensor.c}, \hyperpage{33}
+    \subitem {ntc\_sensor.h}, \hyperpage{36}
+  \item {ntc\_start\_reading\_task}
+    \subitem {ntc\_sensor.c}, \hyperpage{33}
+    \subitem {ntc\_sensor.h}, \hyperpage{36}
+  \item {NTC\_TASK\_PRIORITY}
+    \subitem {ntc\_sensor.c}, \hyperpage{31}
+  \item {NTC\_TASK\_STACK\_SIZE}
+    \subitem {ntc\_sensor.c}, \hyperpage{31}
+  \item {NVS\_KEY\_TIME}
+    \subitem {time\_sync.c}, \hyperpage{69}
+  \item {NVS\_NAMESPACE}
+    \subitem {time\_sync.c}, \hyperpage{69}
+
+  \indexspace
+
+  \item {obtener\_dia\_actual}
+    \subitem {time\_sync.c}, \hyperpage{67}
+    \subitem {time\_sync.h}, \hyperpage{72}
+  \item {obtener\_hora\_actual}
+    \subitem {time\_sync.c}, \hyperpage{69}
+    \subitem {time\_sync.h}, \hyperpage{72}
+
+  \indexspace
+
+  \item {pir\_driver.c}
+    \subitem {pir\_init}, \hyperpage{39}
+    \subitem {pir\_is\_motion\_active}, \hyperpage{40}
+    \subitem {pir\_isr\_handler}, \hyperpage{40}
+    \subitem {s\_pir\_evt\_queue}, \hyperpage{41}
+    \subitem {s\_pir\_gpio}, \hyperpage{41}
+    \subitem {s\_pir\_initialized}, \hyperpage{41}
+    \subitem {TAG}, \hyperpage{41}
+  \item {pir\_driver.h}
+    \subitem {PIR\_GPIO\_PIN}, \hyperpage{43}
+    \subitem {pir\_init}, \hyperpage{43}
+    \subitem {pir\_is\_motion\_active}, \hyperpage{44}
+  \item {pir\_event\_t}, \hyperpage{7}
+    \subitem {motion}, \hyperpage{8}
+  \item {PIR\_GPIO\_PIN}
+    \subitem {pir\_driver.h}, \hyperpage{43}
+  \item {pir\_init}
+    \subitem {pir\_driver.c}, \hyperpage{39}
+    \subitem {pir\_driver.h}, \hyperpage{43}
+  \item {pir\_is\_motion\_active}
+    \subitem {pir\_driver.c}, \hyperpage{40}
+    \subitem {pir\_driver.h}, \hyperpage{44}
+  \item {pir\_isr\_handler}
+    \subitem {pir\_driver.c}, \hyperpage{40}
+  \item {pir\_status\_get\_handler}
+    \subitem {web\_server.c}, \hyperpage{83}
+  \item {process\_terminal\_command}
+    \subitem {terminal\_commands.c}, \hyperpage{59}
+    \subitem {terminal\_commands.h}, \hyperpage{62}
+
+  \indexspace
+
+  \item {raw\_adc\_value}
+    \subitem {ntc\_data\_t}, \hyperpage{7}
+  \item {REDIRECT}
+    \subitem {web\_server.c}, \hyperpage{79}
+  \item {register\_http\_routes}
+    \subitem {web\_server.c}, \hyperpage{83}
+  \item {registro\_activo\_t}, \hyperpage{8}
+    \subitem {activo}, \hyperpage{8}
+    \subitem {velocidad}, \hyperpage{8}
+  \item {registros.c}
+    \subitem {agregar\_registro}, \hyperpage{47}
+    \subitem {crear\_archivo\_si\_no\_existe}, \hyperpage{47}
+    \subitem {get\_time\_ms}, \hyperpage{47}
+    \subitem {leer\_registros\_json}, \hyperpage{47}
+    \subitem {normalizar\_dia}, \hyperpage{48}
+    \subitem {TAG}, \hyperpage{48}
+    \subitem {verificar\_registro\_activo}, \hyperpage{48}
+  \item {registros.h}
+    \subitem {agregar\_registro}, \hyperpage{50}
+    \subitem {crear\_archivo\_si\_no\_existe}, \hyperpage{50}
+    \subitem {leer\_registros\_json}, \hyperpage{50}
+    \subitem {verificar\_registro\_activo}, \hyperpage{51}
+  \item {registros\_get\_handler}
+    \subitem {web\_server.c}, \hyperpage{83}
+  \item {registros\_post\_handler}
+    \subitem {web\_server.c}, \hyperpage{84}
+  \item {resistance}
+    \subitem {ntc\_data\_t}, \hyperpage{7}
+  \item {RESISTANCE\_MAX\_OHMS}
+    \subitem {ntc\_sensor.c}, \hyperpage{31}
+  \item {response}
+    \subitem {gpio\_command\_t}, \hyperpage{6}
+  \item {rgb\_led.c}
+    \subitem {GPIO\_GREEN}, \hyperpage{53}
+    \subitem {LEDC\_CHANNEL\_G}, \hyperpage{53}
+    \subitem {LEDC\_DUTY\_RES}, \hyperpage{53}
+    \subitem {LEDC\_FREQUENCY}, \hyperpage{53}
+    \subitem {LEDC\_MODE}, \hyperpage{53}
+    \subitem {LEDC\_TIMER}, \hyperpage{53}
+    \subitem {rgb\_led\_init}, \hyperpage{54}
+    \subitem {rgb\_led\_initialized}, \hyperpage{54}
+    \subitem {rgb\_set\_green\_percent}, \hyperpage{54}
+    \subitem {TAG}, \hyperpage{54}
+  \item {rgb\_led.h}
+    \subitem {rgb\_led\_init}, \hyperpage{55}
+    \subitem {rgb\_set\_green\_percent}, \hyperpage{56}
+  \item {rgb\_led\_init}
+    \subitem {rgb\_led.c}, \hyperpage{54}
+    \subitem {rgb\_led.h}, \hyperpage{55}
+  \item {rgb\_led\_initialized}
+    \subitem {rgb\_led.c}, \hyperpage{54}
+  \item {rgb\_set\_green\_percent}
+    \subitem {rgb\_led.c}, \hyperpage{54}
+    \subitem {rgb\_led.h}, \hyperpage{56}
+  \item {root\_get\_handler}
+    \subitem {web\_server.c}, \hyperpage{84}
+
+  \indexspace
+
+  \item {s\_pir\_evt\_queue}
+    \subitem {pir\_driver.c}, \hyperpage{41}
+  \item {s\_pir\_gpio}
+    \subitem {pir\_driver.c}, \hyperpage{41}
+  \item {s\_pir\_initialized}
+    \subitem {pir\_driver.c}, \hyperpage{41}
+  \item {s\_retry\_num}
+    \subitem {wifi\_app.c}, \hyperpage{92}
+  \item {script\_get\_handler}
+    \subitem {web\_server.c}, \hyperpage{84}
+  \item {send\_file\_from\_spiffs}
+    \subitem {web\_server.c}, \hyperpage{84}
+  \item {SEND\_JSON\_RESPONSE}
+    \subitem {web\_server.c}, \hyperpage{79}
+  \item {SEND\_JSON\_RESPONSE\_STR}
+    \subitem {web\_server.c}, \hyperpage{79}
+  \item {SENSOR\_READ\_INTERVAL\_MS}
+    \subitem {ntc\_sensor.c}, \hyperpage{32}
+  \item {SERIES\_RESISTOR}
+    \subitem {ntc\_sensor.h}, \hyperpage{35}
+  \item {server}
+    \subitem {webserver\_context\_t}, \hyperpage{10}
+  \item {session\_management\_task}
+    \subitem {web\_server.c}, \hyperpage{84}
+  \item {session\_mutex}
+    \subitem {webserver\_context\_t}, \hyperpage{10}
+  \item {session\_t}, \hyperpage{9}
+    \subitem {authenticated}, \hyperpage{9}
+    \subitem {ip}, \hyperpage{9}
+    \subitem {last\_activity}, \hyperpage{9}
+  \item {SESSION\_TIMEOUT\_MS}
+    \subitem {web\_server.c}, \hyperpage{79}
+  \item {sessions}
+    \subitem {webserver\_context\_t}, \hyperpage{10}
+  \item {set\_fan\_pwm}
+    \subitem {fan\_control.c}, \hyperpage{18}
+  \item {slider\_get\_handler}
+    \subitem {web\_server.c}, \hyperpage{85}
+  \item {sntp\_initialized}
+    \subitem {time\_sync.c}, \hyperpage{69}
+  \item {sntp\_sync\_time\_cb}
+    \subitem {time\_sync.c}, \hyperpage{69}
+  \item {start\_hour}
+    \subitem {fan\_schedule\_t}, \hyperpage{5}
+  \item {start\_webserver}
+    \subitem {web\_server.c}, \hyperpage{85}
+    \subitem {web\_server.h}, \hyperpage{89}
+  \item {str\_to\_lower}
+    \subitem {web\_server.c}, \hyperpage{85}
+  \item {style\_get\_handler}
+    \subitem {web\_server.c}, \hyperpage{86}
+
+  \indexspace
+
+  \item {TAG}
+    \subitem {fan\_control.c}, \hyperpage{18}
+    \subitem {main.c}, \hyperpage{28}
+    \subitem {ntc\_sensor.c}, \hyperpage{33}
+    \subitem {pir\_driver.c}, \hyperpage{41}
+    \subitem {registros.c}, \hyperpage{48}
+    \subitem {rgb\_led.c}, \hyperpage{54}
+    \subitem {terminal\_commands.c}, \hyperpage{60}
+    \subitem {time\_sync.c}, \hyperpage{70}
+    \subitem {web\_server.c}, \hyperpage{86}
+    \subitem {wifi\_app.c}, \hyperpage{92}
+  \item {TEMP\_ERROR\_VALUE}
+    \subitem {ntc\_sensor.c}, \hyperpage{32}
+  \item {temperature\_c}
+    \subitem {ntc\_data\_t}, \hyperpage{7}
+  \item {temperature\_get\_handler}
+    \subitem {web\_server.c}, \hyperpage{86}
+  \item {terminal\_command\_task}
+    \subitem {terminal\_commands.c}, \hyperpage{59}
+    \subitem {terminal\_commands.h}, \hyperpage{63}
+  \item {terminal\_commands.c}
+    \subitem {process\_terminal\_command}, \hyperpage{59}
+    \subitem {TAG}, \hyperpage{60}
+    \subitem {terminal\_command\_task}, \hyperpage{59}
+  \item {terminal\_commands.h}
+    \subitem {process\_terminal\_command}, \hyperpage{62}
+    \subitem {terminal\_command\_task}, \hyperpage{63}
+  \item {terminal\_context\_t}, \hyperpage{9}
+    \subitem {gpio\_command\_queue}, \hyperpage{9}
+    \subitem {gpio\_response\_queue}, \hyperpage{9}
+  \item {terminal\_get\_handler}
+    \subitem {web\_server.c}, \hyperpage{86}
+  \item {time\_set\_post\_handler}
+    \subitem {web\_server.c}, \hyperpage{86}
+  \item {time\_sync.c}
+    \subitem {cargar\_hora\_desde\_nvs}, \hyperpage{67}
+    \subitem {dias\_semana}, \hyperpage{69}
+    \subitem {establecer\_hora\_manual}, \hyperpage{67}
+    \subitem {guardar\_hora\_en\_nvs}, \hyperpage{67}
+    \subitem {hora\_sincronizada}, \hyperpage{67}
+    \subitem {NVS\_KEY\_TIME}, \hyperpage{69}
+    \subitem {NVS\_NAMESPACE}, \hyperpage{69}
+    \subitem {obtener\_dia\_actual}, \hyperpage{67}
+    \subitem {obtener\_hora\_actual}, \hyperpage{69}
+    \subitem {sntp\_initialized}, \hyperpage{69}
+    \subitem {sntp\_sync\_time\_cb}, \hyperpage{69}
+    \subitem {TAG}, \hyperpage{70}
+    \subitem {time\_sync\_init}, \hyperpage{69}
+    \subitem {time\_synced}, \hyperpage{70}
+  \item {time\_sync.h}
+    \subitem {establecer\_hora\_manual}, \hyperpage{71}
+    \subitem {hora\_sincronizada}, \hyperpage{71}
+    \subitem {obtener\_dia\_actual}, \hyperpage{72}
+    \subitem {obtener\_hora\_actual}, \hyperpage{72}
+    \subitem {time\_sync\_init}, \hyperpage{72}
+  \item {time\_sync\_init}
+    \subitem {time\_sync.c}, \hyperpage{69}
+    \subitem {time\_sync.h}, \hyperpage{72}
+  \item {time\_synced}
+    \subitem {time\_sync.c}, \hyperpage{70}
+
+  \indexspace
+
+  \item {url\_decode}
+    \subitem {web\_server.c}, \hyperpage{86}
+
+  \indexspace
+
+  \item {VALID\_PASS}
+    \subitem {web\_server.c}, \hyperpage{80}
+  \item {VALID\_USER}
+    \subitem {web\_server.c}, \hyperpage{80}
+  \item {velocidad}
+    \subitem {registro\_activo\_t}, \hyperpage{8}
+  \item {verificar\_registro\_activo}
+    \subitem {registros.c}, \hyperpage{48}
+    \subitem {registros.h}, \hyperpage{51}
+  \item {verify\_spiffs\_files}
+    \subitem {web\_server.c}, \hyperpage{86}
+
+  \indexspace
+
+  \item {web\_server.c}
+    \subitem {CHECK\_AUTH}, \hyperpage{78}
+    \subitem {CHECK\_ESP\_OK}, \hyperpage{78}
+    \subitem {cmd\_get\_handler}, \hyperpage{80}
+    \subitem {CMD\_RESPONSE\_MAX\_ATTEMPTS}, \hyperpage{79}
+    \subitem {CMD\_RESPONSE\_TIMEOUT\_MS}, \hyperpage{79}
+    \subitem {dashboard\_get\_handler}, \hyperpage{80}
+    \subitem {extract\_form\_param}, \hyperpage{80}
+    \subitem {fan\_diagnostic\_get\_handler}, \hyperpage{80}
+    \subitem {fan\_manual\_post\_handler}, \hyperpage{80}
+    \subitem {fan\_mode\_post\_handler}, \hyperpage{81}
+    \subitem {fan\_status\_get\_handler}, \hyperpage{81}
+    \subitem {favicon\_get\_handler}, \hyperpage{81}
+    \subitem {find\_or\_create\_session}, \hyperpage{81}
+    \subitem {get\_client\_ip}, \hyperpage{81}
+    \subitem {get\_time\_ms}, \hyperpage{82}
+    \subitem {gpio\_command\_task\_wrapper}, \hyperpage{82}
+    \subitem {GPIO\_QUEUE\_SIZE}, \hyperpage{79}
+    \subitem {init\_spiffs}, \hyperpage{82}
+    \subitem {is\_authenticated}, \hyperpage{82}
+    \subitem {login\_post\_handler}, \hyperpage{83}
+    \subitem {logout\_get\_handler}, \hyperpage{83}
+    \subitem {MAX\_SESSIONS}, \hyperpage{79}
+    \subitem {pir\_status\_get\_handler}, \hyperpage{83}
+    \subitem {REDIRECT}, \hyperpage{79}
+    \subitem {register\_http\_routes}, \hyperpage{83}
+    \subitem {registros\_get\_handler}, \hyperpage{83}
+    \subitem {registros\_post\_handler}, \hyperpage{84}
+    \subitem {root\_get\_handler}, \hyperpage{84}
+    \subitem {script\_get\_handler}, \hyperpage{84}
+    \subitem {send\_file\_from\_spiffs}, \hyperpage{84}
+    \subitem {SEND\_JSON\_RESPONSE}, \hyperpage{79}
+    \subitem {SEND\_JSON\_RESPONSE\_STR}, \hyperpage{79}
+    \subitem {session\_management\_task}, \hyperpage{84}
+    \subitem {SESSION\_TIMEOUT\_MS}, \hyperpage{79}
+    \subitem {slider\_get\_handler}, \hyperpage{85}
+    \subitem {start\_webserver}, \hyperpage{85}
+    \subitem {str\_to\_lower}, \hyperpage{85}
+    \subitem {style\_get\_handler}, \hyperpage{86}
+    \subitem {TAG}, \hyperpage{86}
+    \subitem {temperature\_get\_handler}, \hyperpage{86}
+    \subitem {terminal\_get\_handler}, \hyperpage{86}
+    \subitem {time\_set\_post\_handler}, \hyperpage{86}
+    \subitem {url\_decode}, \hyperpage{86}
+    \subitem {VALID\_PASS}, \hyperpage{80}
+    \subitem {VALID\_USER}, \hyperpage{80}
+    \subitem {verify\_spiffs\_files}, \hyperpage{86}
+  \item {web\_server.h}
+    \subitem {start\_webserver}, \hyperpage{89}
+  \item {webserver\_context\_t}, \hyperpage{10}
+    \subitem {command\_id\_counter}, \hyperpage{10}
+    \subitem {command\_id\_mutex}, \hyperpage{10}
+    \subitem {gpio\_command\_queue}, \hyperpage{10}
+    \subitem {gpio\_response\_queue}, \hyperpage{10}
+    \subitem {server}, \hyperpage{10}
+    \subitem {session\_mutex}, \hyperpage{10}
+    \subitem {sessions}, \hyperpage{10}
+  \item {wifi\_app.c}
+    \subitem {s\_retry\_num}, \hyperpage{92}
+    \subitem {TAG}, \hyperpage{92}
+    \subitem {wifi\_connected}, \hyperpage{92}
+    \subitem {wifi\_event\_handler}, \hyperpage{91}
+    \subitem {wifi\_init\_softap}, \hyperpage{91}
+    \subitem {wifi\_is\_connected}, \hyperpage{92}
+  \item {wifi\_app.h}
+    \subitem {ESP\_WIFI\_CHANNEL}, \hyperpage{94}
+    \subitem {ESP\_WIFI\_PASS}, \hyperpage{94}
+    \subitem {ESP\_WIFI\_SSID}, \hyperpage{94}
+    \subitem {MAX\_STA\_CONN}, \hyperpage{94}
+    \subitem {wifi\_init\_softap}, \hyperpage{94}
+    \subitem {wifi\_is\_connected}, \hyperpage{95}
+    \subitem {WIFI\_MAX\_RETRY}, \hyperpage{94}
+    \subitem {WIFI\_STA\_PASS}, \hyperpage{94}
+    \subitem {WIFI\_STA\_SSID}, \hyperpage{94}
+  \item {wifi\_connected}
+    \subitem {wifi\_app.c}, \hyperpage{92}
+  \item {wifi\_event\_handler}
+    \subitem {wifi\_app.c}, \hyperpage{91}
+  \item {wifi\_init\_softap}
+    \subitem {wifi\_app.c}, \hyperpage{91}
+    \subitem {wifi\_app.h}, \hyperpage{94}
+  \item {wifi\_is\_connected}
+    \subitem {wifi\_app.c}, \hyperpage{92}
+    \subitem {wifi\_app.h}, \hyperpage{95}
+  \item {WIFI\_MAX\_RETRY}
+    \subitem {wifi\_app.h}, \hyperpage{94}
+  \item {WIFI\_STA\_PASS}
+    \subitem {wifi\_app.h}, \hyperpage{94}
+  \item {WIFI\_STA\_SSID}
+    \subitem {wifi\_app.h}, \hyperpage{94}
+
+\end{theindex}

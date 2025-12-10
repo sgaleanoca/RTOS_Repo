@@ -1,0 +1,413 @@
+\doxysection{Referencia del archivo main/fan\+\_\+control.h}
+\hypertarget{fan__control_8h}{}\label{fan__control_8h}\index{main/fan\_control.h@{main/fan\_control.h}}
+
+
+Controlador de ventilador mediante PWM para ESP32.  
+
+
+{\ttfamily \#include $<$stdint.\+h$>$}\newline
+{\ttfamily \#include $<$stdbool.\+h$>$}\newline
+\doxysubsubsection*{Estructuras de datos}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structfan__schedule__t}{fan\+\_\+schedule\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Estructura para el modo programado (legacy, actualmente se usan registros) \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{defines}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{fan__control_8h_a2166de7a6d9d6a4bc0338cbd69df123a}{FAN\+\_\+\+PWM\+\_\+\+PIN}}~26
+\item 
+\#define \mbox{\hyperlink{fan__control_8h_a6d7c64ea572ed7b5017ba20a105b96f7}{FAN\+\_\+\+LEDC\+\_\+\+TIMER}}~LEDC\+\_\+\+TIMER\+\_\+1
+\item 
+\#define \mbox{\hyperlink{fan__control_8h_a766b42db8a2d0d9abd70125498bf8059}{FAN\+\_\+\+LEDC\+\_\+\+CHANNEL}}~LEDC\+\_\+\+CHANNEL\+\_\+2
+\item 
+\#define \mbox{\hyperlink{fan__control_8h_ae9e8086029e3725ec9047acc54b3bab1}{FAN\+\_\+\+DUTY\+\_\+\+RES}}~LEDC\+\_\+\+TIMER\+\_\+8\+\_\+\+BIT
+\item 
+\#define \mbox{\hyperlink{fan__control_8h_a7eebbfda848ba8d746cbeb9ce7bfe56a}{FAN\+\_\+\+FREQUENCY}}~(25000)
+\item 
+\#define \mbox{\hyperlink{fan__control_8h_aeeb7b1922e4fa623e95098769dacd17a}{FAN\+\_\+\+TEMP\+\_\+\+MIN\+\_\+C}}~15.\+0f
+\item 
+\#define \mbox{\hyperlink{fan__control_8h_a08d99f68c2aa728cf155a5878a3da5c6}{FAN\+\_\+\+TEMP\+\_\+\+MAX\+\_\+C}}~25.\+0f
+\item 
+\#define \mbox{\hyperlink{fan__control_8h_a6a956a648d79cbbd71a93dc307e5691b}{FAN\+\_\+\+TEMP\+\_\+\+HYSTERESIS}}~1.\+0f
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Enumeraciones}
+\begin{DoxyCompactItemize}
+\item 
+enum \mbox{\hyperlink{fan__control_8h_ad55164305e4bf1becf684ba008d967cb}{fan\+\_\+mode\+\_\+t}} \{ \mbox{\hyperlink{fan__control_8h_ad55164305e4bf1becf684ba008d967cbaec360e11a77bae25e08236cacfdaa860}{FAN\+\_\+\+MODE\+\_\+\+OFF}}
+, \mbox{\hyperlink{fan__control_8h_ad55164305e4bf1becf684ba008d967cbabb2b8a3b109c0cac14216bb918f0a1cc}{FAN\+\_\+\+MODE\+\_\+\+MANUAL}}
+, \mbox{\hyperlink{fan__control_8h_ad55164305e4bf1becf684ba008d967cbaf8243090914baa5832f41d9568853b8f}{FAN\+\_\+\+MODE\+\_\+\+AUTO\+\_\+\+TEMP}}
+, \mbox{\hyperlink{fan__control_8h_ad55164305e4bf1becf684ba008d967cbac9ef3ee686819d2cb026e42e69ca2890}{FAN\+\_\+\+MODE\+\_\+\+SCHEDULE}}
+ \}
+\begin{DoxyCompactList}\small\item\em Modos de operación del ventilador. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Funciones}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{fan__control_8h_a648b7e106efd21e3948d16df84409906}{fan\+\_\+init}} (void)
+\begin{DoxyCompactList}\small\item\em Inicializa el PWM para el control del ventilador. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{fan__control_8h_a2f360b83e1c60b9a0a998b4ce2eb5d35}{fan\+\_\+set\+\_\+mode}} (\mbox{\hyperlink{fan__control_8h_ad55164305e4bf1becf684ba008d967cb}{fan\+\_\+mode\+\_\+t}} mode)
+\begin{DoxyCompactList}\small\item\em Establece el modo de operación del ventilador. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{fan__control_8h_ad55164305e4bf1becf684ba008d967cb}{fan\+\_\+mode\+\_\+t}} \mbox{\hyperlink{fan__control_8h_a404f2ab7830fcdc38d7d783b6fe2eeab}{fan\+\_\+get\+\_\+mode}} (void)
+\begin{DoxyCompactList}\small\item\em Obtiene el modo de operación actual. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{fan__control_8h_a61c3eb30b914513c56f67c5ea6d973a6}{fan\+\_\+set\+\_\+manual\+\_\+percent}} (uint8\+\_\+t percent)
+\begin{DoxyCompactList}\small\item\em Establece el porcentaje de velocidad en modo manual. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{fan__control_8h_a47f1b478d98fe73822ab8e47330e9012}{fan\+\_\+set\+\_\+schedule}} (const \mbox{\hyperlink{structfan__schedule__t}{fan\+\_\+schedule\+\_\+t}} \texorpdfstring{$\ast$}{*}schedule)
+\begin{DoxyCompactList}\small\item\em Establece la configuración para el modo programado (legacy) \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{fan__control_8h_a853a9d5ce5176c036364f4c324fe4d48}{fan\+\_\+update\+\_\+auto\+\_\+temp}} (float current\+\_\+temp)
+\begin{DoxyCompactList}\small\item\em Actualiza la velocidad del ventilador en modo automático por temperatura. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{fan__control_8h_ae7956a073d2df51a9d58af7b1bb88d2e}{fan\+\_\+update\+\_\+schedule}} (float current\+\_\+temp, uint8\+\_\+t current\+\_\+hour)
+\begin{DoxyCompactList}\small\item\em Actualiza la velocidad del ventilador en modo programado (legacy) \end{DoxyCompactList}\item 
+uint8\+\_\+t \mbox{\hyperlink{fan__control_8h_ad74d137284b059fdea1c056ead2515c9}{fan\+\_\+get\+\_\+current\+\_\+percent}} (void)
+\begin{DoxyCompactList}\small\item\em Obtiene el porcentaje de velocidad PWM actual. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{fan__control_8h_a66650b863935f2f556256a9523edfe45}{fan\+\_\+start\+\_\+auto\+\_\+temp\+\_\+task}} (void)
+\begin{DoxyCompactList}\small\item\em Inicia la tarea de control automático por temperatura. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{fan__control_8h_a64cd9385f9da4e3d22584fc7e947d3ec}{fan\+\_\+start\+\_\+schedule\+\_\+task}} (void)
+\begin{DoxyCompactList}\small\item\em Inicia la tarea de control por horarios (registros) \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{fan__control_8h_a9d499097e130c35f4e4f0a199e41e6d0}{fan\+\_\+update\+\_\+from\+\_\+registros}} (void)
+\begin{DoxyCompactList}\small\item\em Actualiza el ventilador basado en registros activos. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Descripción detallada}
+Controlador de ventilador mediante PWM para ESP32. 
+
+\begin{DoxyAuthor}{Autor}
+Proyecto Final RTOS 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Fecha}
+2024
+\end{DoxyDate}
+Header file para el módulo de control del ventilador mediante PWM. Este módulo gestiona el control de velocidad del ventilador en diferentes modos de operación\+: OFF, MANUAL, AUTO\+\_\+\+TEMP (automático por temperatura) y SCHEDULE (control por horarios basado en registros).\hypertarget{rgb__led_8h_hardware}{}\doxysubsection{\texorpdfstring{Hardware}{Hardware}}\label{rgb__led_8h_hardware}
+
+\begin{DoxyItemize}
+\item Ventilador\+: Controlado mediante PWM en GPIO 26 (LEDC Channel 2, Timer 1)
+\item Sensor PIR\+: El ventilador solo funciona si detecta presencia (excepto modo MANUAL)
+\item Sensor NTC\+: Utilizado para control automático por temperatura
+\end{DoxyItemize}\hypertarget{time__sync_8h_features}{}\doxysubsection{\texorpdfstring{Características}{Características}}\label{time__sync_8h_features}
+
+\begin{DoxyItemize}
+\item Control PWM de 8 bits (0-\/255 niveles)
+\item Frecuencia\+: 25k\+Hz (adecuada para motores)
+\item Múltiples modos de operación con tareas independientes
+\item Integración con sistema de registros para control por horarios
+\item Verificación de presencia mediante sensor PIR (excepto modo MANUAL)
+\end{DoxyItemize}\hypertarget{fan__control_8h_modes}{}\doxysubsection{\texorpdfstring{Modos de operación}{Modos de operación}}\label{fan__control_8h_modes}
+
+\begin{DoxyItemize}
+\item FAN\+\_\+\+MODE\+\_\+\+OFF\+: Ventilador apagado (0\% PWM)
+\item FAN\+\_\+\+MODE\+\_\+\+MANUAL\+: Control manual por porcentaje (0-\/100\%), ignora PIR
+\item FAN\+\_\+\+MODE\+\_\+\+AUTO\+\_\+\+TEMP\+: Control automático basado en temperatura (15-\/25°C)
+\item FAN\+\_\+\+MODE\+\_\+\+SCHEDULE\+: Control por horarios usando registros guardados
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{ARCHIVO\+: \doxylink{fan__control_8h}{fan\+\_\+control.\+h} }
+
+RESUMEN\+: Header file para el módulo de control del ventilador mediante PWM. Este módulo gestiona el control de velocidad del ventilador en diferentes modos de operación\+: OFF, MANUAL, AUTO\+\_\+\+TEMP (automático por temperatura) y SCHEDULE (control por horarios basado en registros).
+
+Hardware\+:
+\begin{DoxyItemize}
+\item Ventilador\+: Controlado mediante PWM en GPIO 26 (LEDC Channel 2, Timer 1)
+\item Sensor PIR\+: El ventilador solo funciona si detecta presencia (excepto modo MANUAL)
+\item Sensor NTC\+: Utilizado para control automático por temperatura
+\end{DoxyItemize}
+
+Características\+:
+\begin{DoxyItemize}
+\item Control PWM de 8 bits (0-\/255 niveles)
+\item Frecuencia\+: 25k\+Hz (adecuada para motores)
+\item Múltiples modos de operación con tareas independientes
+\item Integración con sistema de registros para control por horarios
+\item Verificación de presencia mediante sensor PIR (excepto modo MANUAL)
+\end{DoxyItemize}
+
+Modos de operación\+:
+\begin{DoxyItemize}
+\item FAN\+\_\+\+MODE\+\_\+\+OFF\+: Ventilador apagado (0\% PWM)
+\item FAN\+\_\+\+MODE\+\_\+\+MANUAL\+: Control manual por porcentaje (0-\/100\%), ignora PIR
+\item FAN\+\_\+\+MODE\+\_\+\+AUTO\+\_\+\+TEMP\+: Control automático basado en temperatura (15-\/25°C)
+\item FAN\+\_\+\+MODE\+\_\+\+SCHEDULE\+: Control por horarios usando registros guardados
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{Í\+NDICE DE SECCIONES\+: }
+
+Sección 1\+: CONFIGURACIÓN DE PINES Y PWM se encuentra en las líneas 45 a 50 Sección 2\+: CONFIGURACIÓN DE TEMPERATURAS se encuentra en las líneas 52 a 54 Sección 3\+: ESTRUCTURAS DE DATOS se encuentra en las líneas 56 a 61 Sección 4\+: MODOS DE OPERACIÓN se encuentra en las líneas 63 a 68 \doxysubsection*{Sección 5\+: PROTOTIPOS DE FUNCIONES se encuentra en las líneas 70 a 108 }
+
+\doxysubsection{Documentación de «define»}
+\Hypertarget{fan__control_8h_ae9e8086029e3725ec9047acc54b3bab1}\label{fan__control_8h_ae9e8086029e3725ec9047acc54b3bab1} 
+\index{fan\_control.h@{fan\_control.h}!FAN\_DUTY\_RES@{FAN\_DUTY\_RES}}
+\index{FAN\_DUTY\_RES@{FAN\_DUTY\_RES}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{FAN\_DUTY\_RES}{FAN\_DUTY\_RES}}
+{\footnotesize\ttfamily \#define FAN\+\_\+\+DUTY\+\_\+\+RES~LEDC\+\_\+\+TIMER\+\_\+8\+\_\+\+BIT}
+
+\Hypertarget{fan__control_8h_a7eebbfda848ba8d746cbeb9ce7bfe56a}\label{fan__control_8h_a7eebbfda848ba8d746cbeb9ce7bfe56a} 
+\index{fan\_control.h@{fan\_control.h}!FAN\_FREQUENCY@{FAN\_FREQUENCY}}
+\index{FAN\_FREQUENCY@{FAN\_FREQUENCY}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{FAN\_FREQUENCY}{FAN\_FREQUENCY}}
+{\footnotesize\ttfamily \#define FAN\+\_\+\+FREQUENCY~(25000)}
+
+\Hypertarget{fan__control_8h_a766b42db8a2d0d9abd70125498bf8059}\label{fan__control_8h_a766b42db8a2d0d9abd70125498bf8059} 
+\index{fan\_control.h@{fan\_control.h}!FAN\_LEDC\_CHANNEL@{FAN\_LEDC\_CHANNEL}}
+\index{FAN\_LEDC\_CHANNEL@{FAN\_LEDC\_CHANNEL}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{FAN\_LEDC\_CHANNEL}{FAN\_LEDC\_CHANNEL}}
+{\footnotesize\ttfamily \#define FAN\+\_\+\+LEDC\+\_\+\+CHANNEL~LEDC\+\_\+\+CHANNEL\+\_\+2}
+
+\Hypertarget{fan__control_8h_a6d7c64ea572ed7b5017ba20a105b96f7}\label{fan__control_8h_a6d7c64ea572ed7b5017ba20a105b96f7} 
+\index{fan\_control.h@{fan\_control.h}!FAN\_LEDC\_TIMER@{FAN\_LEDC\_TIMER}}
+\index{FAN\_LEDC\_TIMER@{FAN\_LEDC\_TIMER}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{FAN\_LEDC\_TIMER}{FAN\_LEDC\_TIMER}}
+{\footnotesize\ttfamily \#define FAN\+\_\+\+LEDC\+\_\+\+TIMER~LEDC\+\_\+\+TIMER\+\_\+1}
+
+\Hypertarget{fan__control_8h_a2166de7a6d9d6a4bc0338cbd69df123a}\label{fan__control_8h_a2166de7a6d9d6a4bc0338cbd69df123a} 
+\index{fan\_control.h@{fan\_control.h}!FAN\_PWM\_PIN@{FAN\_PWM\_PIN}}
+\index{FAN\_PWM\_PIN@{FAN\_PWM\_PIN}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{FAN\_PWM\_PIN}{FAN\_PWM\_PIN}}
+{\footnotesize\ttfamily \#define FAN\+\_\+\+PWM\+\_\+\+PIN~26}
+
+\Hypertarget{fan__control_8h_a6a956a648d79cbbd71a93dc307e5691b}\label{fan__control_8h_a6a956a648d79cbbd71a93dc307e5691b} 
+\index{fan\_control.h@{fan\_control.h}!FAN\_TEMP\_HYSTERESIS@{FAN\_TEMP\_HYSTERESIS}}
+\index{FAN\_TEMP\_HYSTERESIS@{FAN\_TEMP\_HYSTERESIS}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{FAN\_TEMP\_HYSTERESIS}{FAN\_TEMP\_HYSTERESIS}}
+{\footnotesize\ttfamily \#define FAN\+\_\+\+TEMP\+\_\+\+HYSTERESIS~1.\+0f}
+
+\Hypertarget{fan__control_8h_a08d99f68c2aa728cf155a5878a3da5c6}\label{fan__control_8h_a08d99f68c2aa728cf155a5878a3da5c6} 
+\index{fan\_control.h@{fan\_control.h}!FAN\_TEMP\_MAX\_C@{FAN\_TEMP\_MAX\_C}}
+\index{FAN\_TEMP\_MAX\_C@{FAN\_TEMP\_MAX\_C}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{FAN\_TEMP\_MAX\_C}{FAN\_TEMP\_MAX\_C}}
+{\footnotesize\ttfamily \#define FAN\+\_\+\+TEMP\+\_\+\+MAX\+\_\+C~25.\+0f}
+
+\Hypertarget{fan__control_8h_aeeb7b1922e4fa623e95098769dacd17a}\label{fan__control_8h_aeeb7b1922e4fa623e95098769dacd17a} 
+\index{fan\_control.h@{fan\_control.h}!FAN\_TEMP\_MIN\_C@{FAN\_TEMP\_MIN\_C}}
+\index{FAN\_TEMP\_MIN\_C@{FAN\_TEMP\_MIN\_C}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{FAN\_TEMP\_MIN\_C}{FAN\_TEMP\_MIN\_C}}
+{\footnotesize\ttfamily \#define FAN\+\_\+\+TEMP\+\_\+\+MIN\+\_\+C~15.\+0f}
+
+
+
+\doxysubsection{Documentación de enumeraciones}
+\Hypertarget{fan__control_8h_ad55164305e4bf1becf684ba008d967cb}\label{fan__control_8h_ad55164305e4bf1becf684ba008d967cb} 
+\index{fan\_control.h@{fan\_control.h}!fan\_mode\_t@{fan\_mode\_t}}
+\index{fan\_mode\_t@{fan\_mode\_t}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{fan\_mode\_t}{fan\_mode\_t}}
+{\footnotesize\ttfamily enum \mbox{\hyperlink{fan__control_8h_ad55164305e4bf1becf684ba008d967cb}{fan\+\_\+mode\+\_\+t}}}
+
+
+
+Modos de operación del ventilador. 
+
+\begin{DoxyEnumFields}{Valores de enumeraciones}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{FAN\_MODE\_OFF@{FAN\_MODE\_OFF}!fan\_control.h@{fan\_control.h}}\index{fan\_control.h@{fan\_control.h}!FAN\_MODE\_OFF@{FAN\_MODE\_OFF}}}\Hypertarget{fan__control_8h_ad55164305e4bf1becf684ba008d967cbaec360e11a77bae25e08236cacfdaa860}\label{fan__control_8h_ad55164305e4bf1becf684ba008d967cbaec360e11a77bae25e08236cacfdaa860} 
+FAN\+\_\+\+MODE\+\_\+\+OFF&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{FAN\_MODE\_MANUAL@{FAN\_MODE\_MANUAL}!fan\_control.h@{fan\_control.h}}\index{fan\_control.h@{fan\_control.h}!FAN\_MODE\_MANUAL@{FAN\_MODE\_MANUAL}}}\Hypertarget{fan__control_8h_ad55164305e4bf1becf684ba008d967cbabb2b8a3b109c0cac14216bb918f0a1cc}\label{fan__control_8h_ad55164305e4bf1becf684ba008d967cbabb2b8a3b109c0cac14216bb918f0a1cc} 
+FAN\+\_\+\+MODE\+\_\+\+MANUAL&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{FAN\_MODE\_AUTO\_TEMP@{FAN\_MODE\_AUTO\_TEMP}!fan\_control.h@{fan\_control.h}}\index{fan\_control.h@{fan\_control.h}!FAN\_MODE\_AUTO\_TEMP@{FAN\_MODE\_AUTO\_TEMP}}}\Hypertarget{fan__control_8h_ad55164305e4bf1becf684ba008d967cbaf8243090914baa5832f41d9568853b8f}\label{fan__control_8h_ad55164305e4bf1becf684ba008d967cbaf8243090914baa5832f41d9568853b8f} 
+FAN\+\_\+\+MODE\+\_\+\+AUTO\+\_\+\+TEMP&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{FAN\_MODE\_SCHEDULE@{FAN\_MODE\_SCHEDULE}!fan\_control.h@{fan\_control.h}}\index{fan\_control.h@{fan\_control.h}!FAN\_MODE\_SCHEDULE@{FAN\_MODE\_SCHEDULE}}}\Hypertarget{fan__control_8h_ad55164305e4bf1becf684ba008d967cbac9ef3ee686819d2cb026e42e69ca2890}\label{fan__control_8h_ad55164305e4bf1becf684ba008d967cbac9ef3ee686819d2cb026e42e69ca2890} 
+FAN\+\_\+\+MODE\+\_\+\+SCHEDULE&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\doxysubsection{Documentación de funciones}
+\Hypertarget{fan__control_8h_ad74d137284b059fdea1c056ead2515c9}\label{fan__control_8h_ad74d137284b059fdea1c056ead2515c9} 
+\index{fan\_control.h@{fan\_control.h}!fan\_get\_current\_percent@{fan\_get\_current\_percent}}
+\index{fan\_get\_current\_percent@{fan\_get\_current\_percent}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{fan\_get\_current\_percent()}{fan\_get\_current\_percent()}}
+{\footnotesize\ttfamily uint8\+\_\+t fan\+\_\+get\+\_\+current\+\_\+percent (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Obtiene el porcentaje de velocidad PWM actual. 
+
+\begin{DoxyReturn}{Devuelve}
+Porcentaje de velocidad actual (0-\/100) 
+\end{DoxyReturn}
+\Hypertarget{fan__control_8h_a404f2ab7830fcdc38d7d783b6fe2eeab}\label{fan__control_8h_a404f2ab7830fcdc38d7d783b6fe2eeab} 
+\index{fan\_control.h@{fan\_control.h}!fan\_get\_mode@{fan\_get\_mode}}
+\index{fan\_get\_mode@{fan\_get\_mode}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{fan\_get\_mode()}{fan\_get\_mode()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{fan__control_8h_ad55164305e4bf1becf684ba008d967cb}{fan\+\_\+mode\+\_\+t}} fan\+\_\+get\+\_\+mode (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Obtiene el modo de operación actual. 
+
+\begin{DoxyReturn}{Devuelve}
+Modo actual del ventilador 
+\end{DoxyReturn}
+\Hypertarget{fan__control_8h_a648b7e106efd21e3948d16df84409906}\label{fan__control_8h_a648b7e106efd21e3948d16df84409906} 
+\index{fan\_control.h@{fan\_control.h}!fan\_init@{fan\_init}}
+\index{fan\_init@{fan\_init}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{fan\_init()}{fan\_init()}}
+{\footnotesize\ttfamily void fan\+\_\+init (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Inicializa el PWM para el control del ventilador. 
+
+Configura el timer LEDC y el canal PWM para controlar el ventilador. Esta función debe llamarse una vez durante la inicialización del sistema antes de usar cualquier otra función de este módulo.
+
+Proceso de inicialización\+:
+\begin{DoxyEnumerate}
+\item Configura el timer LEDC con resolución de 8 bits y frecuencia de 25k\+Hz
+\item Configura el canal LEDC para el GPIO del ventilador
+\item Inicia el ventilador en modo OFF (0\% PWM) 
+\end{DoxyEnumerate}\Hypertarget{fan__control_8h_a61c3eb30b914513c56f67c5ea6d973a6}\label{fan__control_8h_a61c3eb30b914513c56f67c5ea6d973a6} 
+\index{fan\_control.h@{fan\_control.h}!fan\_set\_manual\_percent@{fan\_set\_manual\_percent}}
+\index{fan\_set\_manual\_percent@{fan\_set\_manual\_percent}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{fan\_set\_manual\_percent()}{fan\_set\_manual\_percent()}}
+{\footnotesize\ttfamily void fan\+\_\+set\+\_\+manual\+\_\+percent (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{percent }\end{DoxyParamCaption})}
+
+
+
+Establece el porcentaje de velocidad en modo manual. 
+
+Solo tiene efecto si el ventilador está en modo FAN\+\_\+\+MODE\+\_\+\+MANUAL. En modo MANUAL, el ventilador ignora el sensor PIR y funciona directamente.
+
+
+\begin{DoxyParams}{Parámetros}
+{\em percent} & Porcentaje de velocidad (0-\/100) \\
+\hline
+\end{DoxyParams}
+\Hypertarget{fan__control_8h_a2f360b83e1c60b9a0a998b4ce2eb5d35}\label{fan__control_8h_a2f360b83e1c60b9a0a998b4ce2eb5d35} 
+\index{fan\_control.h@{fan\_control.h}!fan\_set\_mode@{fan\_set\_mode}}
+\index{fan\_set\_mode@{fan\_set\_mode}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{fan\_set\_mode()}{fan\_set\_mode()}}
+{\footnotesize\ttfamily void fan\+\_\+set\+\_\+mode (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{fan__control_8h_ad55164305e4bf1becf684ba008d967cb}{fan\+\_\+mode\+\_\+t}}}]{mode }\end{DoxyParamCaption})}
+
+
+
+Establece el modo de operación del ventilador. 
+
+Cambia el modo de operación del ventilador y aplica la configuración correspondiente. Al cambiar de modo, se actualiza inmediatamente la velocidad del ventilador.
+
+
+\begin{DoxyParams}{Parámetros}
+{\em mode} & Modo a establecer (FAN\+\_\+\+MODE\+\_\+\+OFF, FAN\+\_\+\+MODE\+\_\+\+MANUAL, FAN\+\_\+\+MODE\+\_\+\+AUTO\+\_\+\+TEMP, FAN\+\_\+\+MODE\+\_\+\+SCHEDULE) \\
+\hline
+\end{DoxyParams}
+\Hypertarget{fan__control_8h_a47f1b478d98fe73822ab8e47330e9012}\label{fan__control_8h_a47f1b478d98fe73822ab8e47330e9012} 
+\index{fan\_control.h@{fan\_control.h}!fan\_set\_schedule@{fan\_set\_schedule}}
+\index{fan\_set\_schedule@{fan\_set\_schedule}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{fan\_set\_schedule()}{fan\_set\_schedule()}}
+{\footnotesize\ttfamily void fan\+\_\+set\+\_\+schedule (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{structfan__schedule__t}{fan\+\_\+schedule\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{schedule }\end{DoxyParamCaption})}
+
+
+
+Establece la configuración para el modo programado (legacy) 
+
+\begin{DoxyNote}{Nota}
+Esta función se mantiene por compatibilidad, pero el modo SCHEDULE ahora funciona basado en registros guardados en SPIFFS
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parámetros}
+{\em schedule} & Configuración de horario y temperatura mínima \\
+\hline
+\end{DoxyParams}
+\Hypertarget{fan__control_8h_a66650b863935f2f556256a9523edfe45}\label{fan__control_8h_a66650b863935f2f556256a9523edfe45} 
+\index{fan\_control.h@{fan\_control.h}!fan\_start\_auto\_temp\_task@{fan\_start\_auto\_temp\_task}}
+\index{fan\_start\_auto\_temp\_task@{fan\_start\_auto\_temp\_task}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{fan\_start\_auto\_temp\_task()}{fan\_start\_auto\_temp\_task()}}
+{\footnotesize\ttfamily void fan\+\_\+start\+\_\+auto\+\_\+temp\+\_\+task (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Inicia la tarea de control automático por temperatura. 
+
+Crea una tarea de Free\+RTOS que lee la temperatura periódicamente (cada 1 segundo) y actualiza el ventilador automáticamente cuando está en modo FAN\+\_\+\+MODE\+\_\+\+AUTO\+\_\+\+TEMP.
+
+Requisitos\+:
+\begin{DoxyItemize}
+\item \doxylink{ntc__sensor_8c_af44c4669ed5a3938a1f1e3262326baac}{ntc\+\_\+sensor\+\_\+init()} debe haber sido llamado
+\item \doxylink{ntc__sensor_8c_a69ced77938cafdbf46373f5888295aed}{ntc\+\_\+start\+\_\+reading\+\_\+task()} debe haber sido llamado
+\end{DoxyItemize}
+
+La tarea se ejecuta de forma independiente y monitorea la temperatura continuamente.
+
+Esta función crea una tarea de Free\+RTOS que monitorea la temperatura y actualiza el ventilador automáticamente cuando está en modo AUTO\+\_\+\+TEMP. \Hypertarget{fan__control_8h_a64cd9385f9da4e3d22584fc7e947d3ec}\label{fan__control_8h_a64cd9385f9da4e3d22584fc7e947d3ec} 
+\index{fan\_control.h@{fan\_control.h}!fan\_start\_schedule\_task@{fan\_start\_schedule\_task}}
+\index{fan\_start\_schedule\_task@{fan\_start\_schedule\_task}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{fan\_start\_schedule\_task()}{fan\_start\_schedule\_task()}}
+{\footnotesize\ttfamily void fan\+\_\+start\+\_\+schedule\+\_\+task (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Inicia la tarea de control por horarios (registros) 
+
+Crea una tarea de Free\+RTOS que verifica periódicamente los registros guardados (cada 10 segundos) y activa el ventilador cuando coincide el día y hora actual con algún registro guardado en SPIFFS.
+
+Requisitos\+:
+\begin{DoxyItemize}
+\item \doxylink{time__sync_8c_abcc7941866a530a5e1112a7b038f4278}{time\+\_\+sync\+\_\+init()} debe haber sido llamado
+\item La hora debe estar sincronizada (\doxylink{time__sync_8c_ae3dd675660b57518a66e42fc1388d321}{hora\+\_\+sincronizada()} == true)
+\item Los registros deben estar guardados en /spiffs/registros.json
+\end{DoxyItemize}
+
+Cuando está en modo FAN\+\_\+\+MODE\+\_\+\+SCHEDULE, el ventilador solo funciona según los registros.
+
+Inicia la tarea de control por horarios (registros)
+
+Esta función crea una tarea de Free\+RTOS que verifica periódicamente los registros guardados y activa el ventilador cuando coincide el día y hora actual con algún registro. Cuando está en modo FAN\+\_\+\+MODE\+\_\+\+SCHEDULE, el ventilador solo funciona según los registros. \Hypertarget{fan__control_8h_a853a9d5ce5176c036364f4c324fe4d48}\label{fan__control_8h_a853a9d5ce5176c036364f4c324fe4d48} 
+\index{fan\_control.h@{fan\_control.h}!fan\_update\_auto\_temp@{fan\_update\_auto\_temp}}
+\index{fan\_update\_auto\_temp@{fan\_update\_auto\_temp}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{fan\_update\_auto\_temp()}{fan\_update\_auto\_temp()}}
+{\footnotesize\ttfamily void fan\+\_\+update\+\_\+auto\+\_\+temp (\begin{DoxyParamCaption}\item[{float}]{current\+\_\+temp }\end{DoxyParamCaption})}
+
+
+
+Actualiza la velocidad del ventilador en modo automático por temperatura. 
+
+Calcula el porcentaje de velocidad basado en la temperatura actual usando un mapeo lineal entre FAN\+\_\+\+TEMP\+\_\+\+MIN\+\_\+C y FAN\+\_\+\+TEMP\+\_\+\+MAX\+\_\+C. Solo tiene efecto si el ventilador está en modo FAN\+\_\+\+MODE\+\_\+\+AUTO\+\_\+\+TEMP.
+
+
+\begin{DoxyParams}{Parámetros}
+{\em current\+\_\+temp} & Temperatura actual en Celsius \\
+\hline
+\end{DoxyParams}
+\Hypertarget{fan__control_8h_a9d499097e130c35f4e4f0a199e41e6d0}\label{fan__control_8h_a9d499097e130c35f4e4f0a199e41e6d0} 
+\index{fan\_control.h@{fan\_control.h}!fan\_update\_from\_registros@{fan\_update\_from\_registros}}
+\index{fan\_update\_from\_registros@{fan\_update\_from\_registros}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{fan\_update\_from\_registros()}{fan\_update\_from\_registros()}}
+{\footnotesize\ttfamily void fan\+\_\+update\+\_\+from\+\_\+registros (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Actualiza el ventilador basado en registros activos. 
+
+Verifica si hay un registro activo para el día y hora actuales y ajusta la velocidad del ventilador según el registro encontrado.
+
+Solo tiene efecto si el ventilador está en modo FAN\+\_\+\+MODE\+\_\+\+SCHEDULE. Si no hay registro activo, el ventilador se apaga (0\% PWM).
+
+Requisitos\+:
+\begin{DoxyItemize}
+\item La hora debe estar sincronizada
+\item Debe poder obtener día y hora actual
+\end{DoxyItemize}
+
+Verifica si hay un registro activo para el momento actual y ajusta la velocidad. Solo funciona cuando el ventilador está en modo FAN\+\_\+\+MODE\+\_\+\+SCHEDULE. Durante el modo horario, el ventilador solo funciona según los registros, ignorando otros modos (manual, temperatura). \Hypertarget{fan__control_8h_ae7956a073d2df51a9d58af7b1bb88d2e}\label{fan__control_8h_ae7956a073d2df51a9d58af7b1bb88d2e} 
+\index{fan\_control.h@{fan\_control.h}!fan\_update\_schedule@{fan\_update\_schedule}}
+\index{fan\_update\_schedule@{fan\_update\_schedule}!fan\_control.h@{fan\_control.h}}
+\doxysubsubsection{\texorpdfstring{fan\_update\_schedule()}{fan\_update\_schedule()}}
+{\footnotesize\ttfamily void fan\+\_\+update\+\_\+schedule (\begin{DoxyParamCaption}\item[{float}]{current\+\_\+temp,  }\item[{uint8\+\_\+t}]{current\+\_\+hour }\end{DoxyParamCaption})}
+
+
+
+Actualiza la velocidad del ventilador en modo programado (legacy) 
+
+\begin{DoxyNote}{Nota}
+Esta función se mantiene por compatibilidad, pero el modo SCHEDULE ahora funciona basado en registros. Usar \doxylink{fan__control_8h_a9d499097e130c35f4e4f0a199e41e6d0}{fan\+\_\+update\+\_\+from\+\_\+registros()}.
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parámetros}
+{\em current\+\_\+temp} & Temperatura actual en Celsius \\
+\hline
+{\em current\+\_\+hour} & Hora actual (0-\/23) \\
+\hline
+\end{DoxyParams}

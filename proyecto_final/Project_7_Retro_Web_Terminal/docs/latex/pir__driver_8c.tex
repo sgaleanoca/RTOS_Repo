@@ -1,0 +1,251 @@
+\doxysection{Referencia del archivo main/pir\+\_\+driver.c}
+\hypertarget{pir__driver_8c}{}\label{pir__driver_8c}\index{main/pir\_driver.c@{main/pir\_driver.c}}
+
+
+Implementación del driver para sensor PIR.  
+
+
+{\ttfamily \#include "{}pir\+\_\+driver.\+h"{}}\newline
+{\ttfamily \#include "{}driver/gpio.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+attr.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+log.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/\+Free\+RTOS.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/queue.\+h"{}}\newline
+\doxysubsubsection*{Funciones}
+\begin{DoxyCompactItemize}
+\item 
+static void IRAM\+\_\+\+ATTR \mbox{\hyperlink{pir__driver_8c_a717c58bf39bf14aedb3a011971f640c7}{pir\+\_\+isr\+\_\+handler}} (void \texorpdfstring{$\ast$}{*}arg)
+\begin{DoxyCompactList}\small\item\em ISR (Interrupt Service Routine) del sensor PIR. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{pir__driver_8c_a0eeed3cd7f30d6213009385f03ad018a}{pir\+\_\+init}} (gpio\+\_\+num\+\_\+t pir\+\_\+gpio, Queue\+Handle\+\_\+t pir\+\_\+queue)
+\begin{DoxyCompactList}\small\item\em Inicializa el driver del sensor PIR. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{pir__driver_8c_a81ffd3f243f99fd46341ee96793e6310}{pir\+\_\+is\+\_\+motion\+\_\+active}} (void)
+\begin{DoxyCompactList}\small\item\em Lee el estado actual del sensor PIR. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+static const char \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{pir__driver_8c_a5a85b9c772bbeb480b209a3e6ea92b4c}{TAG}} = "{}PIR\+\_\+\+DRIVER"{}
+\item 
+static gpio\+\_\+num\+\_\+t \mbox{\hyperlink{pir__driver_8c_a40e6d5e02e46c056df3474a8372375a2}{s\+\_\+pir\+\_\+gpio}} = GPIO\+\_\+\+NUM\+\_\+\+NC
+\item 
+static Queue\+Handle\+\_\+t \mbox{\hyperlink{pir__driver_8c_ac84d370a4a3a7e50d4d640c54ba08a99}{s\+\_\+pir\+\_\+evt\+\_\+queue}} = NULL
+\item 
+static bool \mbox{\hyperlink{pir__driver_8c_a4100d2109a6ebb2702f0ac04a3873c88}{s\+\_\+pir\+\_\+initialized}} = false
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Descripción detallada}
+Implementación del driver para sensor PIR. 
+
+\begin{DoxyAuthor}{Autor}
+Proyecto Final RTOS 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Fecha}
+2024
+\end{DoxyDate}
+Implementación del driver del sensor PIR (Passive Infrared Sensor). Este módulo gestiona la detección de movimiento mediante interrupciones GPIO.\hypertarget{rgb__led_8h_hardware}{}\doxysubsection{\texorpdfstring{Hardware}{Hardware}}\label{rgb__led_8h_hardware}
+
+\begin{DoxyItemize}
+\item Sensor PIR\+: GPIO 12 (configurable mediante \doxylink{pir__driver_8c_a0eeed3cd7f30d6213009385f03ad018a}{pir\+\_\+init()})
+\item El sensor PIR detecta movimiento mediante cambios en radiación infrarroja
+\end{DoxyItemize}\hypertarget{time__sync_8h_features}{}\doxysubsection{\texorpdfstring{Características}{Características}}\label{time__sync_8h_features}
+
+\begin{DoxyItemize}
+\item Detección de movimiento mediante interrupciones GPIO
+\item Soporte para cola de eventos opcional para notificaciones asíncronas
+\item Lectura síncrona del estado actual del sensor
+\item ISR (Interrupt Service Routine) thread-\/safe usando colas desde ISR
+\item Configuración automática de pull-\/up/pull-\/down (deshabilitados, el módulo PIR ya los tiene)
+\end{DoxyItemize}\hypertarget{terminal__commands_8h_architecture}{}\doxysubsection{\texorpdfstring{Arquitectura del sistema}{Arquitectura del sistema}}\label{terminal__commands_8h_architecture}
+
+\begin{DoxyItemize}
+\item Interrupciones GPIO en ambos flancos (subida y bajada) para detectar cambios
+\item ISR envía eventos a cola de Free\+RTOS (si está configurada) usando x\+Queue\+Send\+From\+ISR()
+\item Función síncrona para leer estado actual sin esperar eventos
+\item El ventilador utiliza este sensor para verificar presencia antes de activarse
+\end{DoxyItemize}\hypertarget{wifi__app_8c_usage}{}\doxysubsection{\texorpdfstring{Uso en el sistema}{Uso en el sistema}}\label{wifi__app_8c_usage}
+
+\begin{DoxyItemize}
+\item El ventilador verifica presencia mediante \doxylink{pir__driver_8c_a81ffd3f243f99fd46341ee96793e6310}{pir\+\_\+is\+\_\+motion\+\_\+active()}
+\item En modo MANUAL, el ventilador ignora el PIR
+\item En otros modos, el ventilador solo funciona si hay presencia detectada
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{ARCHIVO\+: \doxylink{pir__driver_8c}{pir\+\_\+driver.\+c} }
+
+RESUMEN\+: Implementación del driver del sensor PIR (Passive Infrared Sensor). Este módulo gestiona la detección de movimiento mediante interrupciones GPIO.
+
+Hardware\+:
+\begin{DoxyItemize}
+\item Sensor PIR\+: GPIO 12 (configurable mediante \doxylink{pir__driver_8c_a0eeed3cd7f30d6213009385f03ad018a}{pir\+\_\+init()})
+\item El sensor PIR detecta movimiento mediante cambios en radiación infrarroja
+\end{DoxyItemize}
+
+Características\+:
+\begin{DoxyItemize}
+\item Detección de movimiento mediante interrupciones GPIO
+\item Soporte para cola de eventos opcional para notificaciones asíncronas
+\item Lectura síncrona del estado actual del sensor
+\item ISR (Interrupt Service Routine) thread-\/safe usando colas desde ISR
+\item Configuración automática de pull-\/up/pull-\/down (deshabilitados, el módulo PIR ya los tiene)
+\end{DoxyItemize}
+
+Arquitectura\+:
+\begin{DoxyItemize}
+\item Interrupciones GPIO en ambos flancos (subida y bajada) para detectar cambios
+\item ISR envía eventos a cola de Free\+RTOS (si está configurada) usando x\+Queue\+Send\+From\+ISR()
+\item Función síncrona para leer estado actual sin esperar eventos
+\item El ventilador utiliza este sensor para verificar presencia antes de activarse
+\end{DoxyItemize}
+
+Uso en el sistema\+:
+\begin{DoxyItemize}
+\item El ventilador verifica presencia mediante \doxylink{pir__driver_8c_a81ffd3f243f99fd46341ee96793e6310}{pir\+\_\+is\+\_\+motion\+\_\+active()}
+\item En modo MANUAL, el ventilador ignora el PIR
+\item En otros modos, el ventilador solo funciona si hay presencia detectada
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{Í\+NDICE DE SECCIONES\+: }
+
+Sección 1\+: INCLUDES se encuentra en las líneas 37 a 47 Sección 2\+: DEFINICIONES Y CONSTANTES se encuentra en las líneas 49 a 50 Sección 3\+: VARIABLES ESTÁ\+TICAS se encuentra en las líneas 52 a 55 Sección 4\+: FUNCIONES INTERNAS se encuentra en las líneas 57 a 94 \doxysubsection*{Sección 5\+: FUNCIONES PÚ\+BLICAS se encuentra en las líneas 96 a 219 }
+
+\DoxyHorRuler{0}
+ \doxysubsection*{RESUMEN DE TAREAS, COLAS Y SEMÁ\+FOROS IMPLEMENTADOS\+: }
+
+=== TAREAS (TASKS) ===
+
+Ninguna en este módulo. Las funciones se llaman desde otras tareas.
+
+=== COLAS (QUEUES) ===
+
+
+\begin{DoxyEnumerate}
+\item s\+\_\+pir\+\_\+evt\+\_\+queue (opcional, configurada externamente)
+\begin{DoxyItemize}
+\item Tipo\+: Queue\+Handle\+\_\+t (Free\+RTOS queue)
+\item Tamaño\+: Configurado externamente
+\item Elemento\+: \doxylink{structpir__event__t}{pir\+\_\+event\+\_\+t} (estructura con campo motion)
+\item Dirección\+: ISR → Tarea externa
+\item Operación\+: x\+Queue\+Send\+From\+ISR() desde ISR
+\item Uso\+: Notificaciones asíncronas de cambios de movimiento (opcional)
+\end{DoxyItemize}
+\end{DoxyEnumerate}
+
+=== SEMÁ\+FOROS (MUTEXES) ===
+
+Ninguno en este módulo. gpio\+\_\+get\+\_\+level() es thread-\/safe.
+
+\DoxyHorRuler{0}
+ 
+
+\doxysubsection{Documentación de funciones}
+\Hypertarget{pir__driver_8c_a0eeed3cd7f30d6213009385f03ad018a}\label{pir__driver_8c_a0eeed3cd7f30d6213009385f03ad018a} 
+\index{pir\_driver.c@{pir\_driver.c}!pir\_init@{pir\_init}}
+\index{pir\_init@{pir\_init}!pir\_driver.c@{pir\_driver.c}}
+\doxysubsubsection{\texorpdfstring{pir\_init()}{pir\_init()}}
+{\footnotesize\ttfamily bool pir\+\_\+init (\begin{DoxyParamCaption}\item[{gpio\+\_\+num\+\_\+t}]{pir\+\_\+gpio,  }\item[{Queue\+Handle\+\_\+t}]{pir\+\_\+queue }\end{DoxyParamCaption})}
+
+
+
+Inicializa el driver del sensor PIR. 
+
+Configura el pin GPIO como entrada con interrupciones en ambos flancos (subida y bajada) para detectar cambios en el estado del sensor.
+
+Si se proporciona una cola de eventos, los eventos de movimiento se enviarán automáticamente a través de la cola cuando se detecten cambios. Esto permite procesamiento asíncrono de eventos de movimiento en una tarea separada.
+
+Proceso de inicialización\+:
+\begin{DoxyEnumerate}
+\item Valida que el pin GPIO sea válido
+\item Configura el pin GPIO como entrada sin pull-\/up/pull-\/down
+\item Configura interrupciones en ambos flancos (GPIO\+\_\+\+INTR\+\_\+\+ANYEDGE)
+\item Instala el servicio de ISR de GPIO (si no está instalado)
+\item Registra el handler de interrupción para el pin
+\end{DoxyEnumerate}
+
+
+\begin{DoxyParams}{Parámetros}
+{\em pir\+\_\+gpio} & Número del pin GPIO donde está conectado el sensor PIR \\
+\hline
+{\em pir\+\_\+queue} & Cola de eventos donde se enviarán las notificaciones de movimiento. Puede ser NULL si no se necesita notificación asíncrona. La cola debe ser creada previamente con x\+Queue\+Create().\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Devuelve}
+true si la inicialización fue exitosa, false en caso contrario
+\end{DoxyReturn}
+\begin{DoxyNote}{Nota}
+La cola de eventos debe ser creada antes de llamar a esta función. Ejemplo\+: Queue\+Handle\+\_\+t pir\+\_\+queue = x\+Queue\+Create(10, sizeof(pir\+\_\+event\+\_\+t));
+
+Muchos módulos PIR ya incluyen electrónica interna (pull-\/up, filtrado), por lo que no se configuran pull-\/up/pull-\/down en el GPIO. 
+\end{DoxyNote}
+\Hypertarget{pir__driver_8c_a81ffd3f243f99fd46341ee96793e6310}\label{pir__driver_8c_a81ffd3f243f99fd46341ee96793e6310} 
+\index{pir\_driver.c@{pir\_driver.c}!pir\_is\_motion\_active@{pir\_is\_motion\_active}}
+\index{pir\_is\_motion\_active@{pir\_is\_motion\_active}!pir\_driver.c@{pir\_driver.c}}
+\doxysubsubsection{\texorpdfstring{pir\_is\_motion\_active()}{pir\_is\_motion\_active()}}
+{\footnotesize\ttfamily bool pir\+\_\+is\+\_\+motion\+\_\+active (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Lee el estado actual del sensor PIR. 
+
+Lee directamente el nivel del pin GPIO para determinar si hay movimiento detectado. Esta función es síncrona y puede ser llamada desde cualquier tarea.
+
+\begin{DoxyReturn}{Devuelve}
+true si hay movimiento detectado (GPIO en nivel alto), false si no hay movimiento (GPIO en nivel bajo) o si el driver no está inicializado
+\end{DoxyReturn}
+\begin{DoxyNote}{Nota}
+Esta función lee el estado actual del GPIO, no el último evento. Para recibir notificaciones de cambios, usar la cola de eventos en \doxylink{pir__driver_8c_a0eeed3cd7f30d6213009385f03ad018a}{pir\+\_\+init()}.
+
+Esta función es thread-\/safe porque gpio\+\_\+get\+\_\+level() es thread-\/safe. 
+\end{DoxyNote}
+\Hypertarget{pir__driver_8c_a717c58bf39bf14aedb3a011971f640c7}\label{pir__driver_8c_a717c58bf39bf14aedb3a011971f640c7} 
+\index{pir\_driver.c@{pir\_driver.c}!pir\_isr\_handler@{pir\_isr\_handler}}
+\index{pir\_isr\_handler@{pir\_isr\_handler}!pir\_driver.c@{pir\_driver.c}}
+\doxysubsubsection{\texorpdfstring{pir\_isr\_handler()}{pir\_isr\_handler()}}
+{\footnotesize\ttfamily static void IRAM\+\_\+\+ATTR pir\+\_\+isr\+\_\+handler (\begin{DoxyParamCaption}\item[{void \texorpdfstring{$\ast$}{*}}]{arg }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+ISR (Interrupt Service Routine) del sensor PIR. 
+
+Esta función se ejecuta cuando se detecta un cambio en el pin GPIO del sensor PIR (flanco de subida o bajada). Lee el nivel actual del GPIO y envía un evento a la cola de Free\+RTOS si está configurada.
+
+Características importantes\+:
+\begin{DoxyItemize}
+\item Debe estar marcada con IRAM\+\_\+\+ATTR para ejecutarse desde IRAM (memoria rápida)
+\item Usa x\+Queue\+Send\+From\+ISR() para enviar eventos de forma thread-\/safe desde ISR
+\item Hace yield si una tarea de mayor prioridad fue despertada
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parámetros}
+{\em arg} & Argumento pasado al registrar el ISR (no usado) \\
+\hline
+\end{DoxyParams}
+
+
+\doxysubsection{Documentación de variables}
+\Hypertarget{pir__driver_8c_ac84d370a4a3a7e50d4d640c54ba08a99}\label{pir__driver_8c_ac84d370a4a3a7e50d4d640c54ba08a99} 
+\index{pir\_driver.c@{pir\_driver.c}!s\_pir\_evt\_queue@{s\_pir\_evt\_queue}}
+\index{s\_pir\_evt\_queue@{s\_pir\_evt\_queue}!pir\_driver.c@{pir\_driver.c}}
+\doxysubsubsection{\texorpdfstring{s\_pir\_evt\_queue}{s\_pir\_evt\_queue}}
+{\footnotesize\ttfamily Queue\+Handle\+\_\+t s\+\_\+pir\+\_\+evt\+\_\+queue = NULL\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{pir__driver_8c_a40e6d5e02e46c056df3474a8372375a2}\label{pir__driver_8c_a40e6d5e02e46c056df3474a8372375a2} 
+\index{pir\_driver.c@{pir\_driver.c}!s\_pir\_gpio@{s\_pir\_gpio}}
+\index{s\_pir\_gpio@{s\_pir\_gpio}!pir\_driver.c@{pir\_driver.c}}
+\doxysubsubsection{\texorpdfstring{s\_pir\_gpio}{s\_pir\_gpio}}
+{\footnotesize\ttfamily gpio\+\_\+num\+\_\+t s\+\_\+pir\+\_\+gpio = GPIO\+\_\+\+NUM\+\_\+\+NC\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{pir__driver_8c_a4100d2109a6ebb2702f0ac04a3873c88}\label{pir__driver_8c_a4100d2109a6ebb2702f0ac04a3873c88} 
+\index{pir\_driver.c@{pir\_driver.c}!s\_pir\_initialized@{s\_pir\_initialized}}
+\index{s\_pir\_initialized@{s\_pir\_initialized}!pir\_driver.c@{pir\_driver.c}}
+\doxysubsubsection{\texorpdfstring{s\_pir\_initialized}{s\_pir\_initialized}}
+{\footnotesize\ttfamily bool s\+\_\+pir\+\_\+initialized = false\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{pir__driver_8c_a5a85b9c772bbeb480b209a3e6ea92b4c}\label{pir__driver_8c_a5a85b9c772bbeb480b209a3e6ea92b4c} 
+\index{pir\_driver.c@{pir\_driver.c}!TAG@{TAG}}
+\index{TAG@{TAG}!pir\_driver.c@{pir\_driver.c}}
+\doxysubsubsection{\texorpdfstring{TAG}{TAG}}
+{\footnotesize\ttfamily const char\texorpdfstring{$\ast$}{*} TAG = "{}PIR\+\_\+\+DRIVER"{}\hspace{0.3cm}{\ttfamily [static]}}
+

@@ -1,0 +1,69 @@
+\doxysection{Referencia de la estructura webserver\+\_\+context\+\_\+t}
+\hypertarget{structwebserver__context__t}{}\label{structwebserver__context__t}\index{webserver\_context\_t@{webserver\_context\_t}}
+\doxysubsubsection*{Campos de datos}
+\begin{DoxyCompactItemize}
+\item 
+httpd\+\_\+handle\+\_\+t \mbox{\hyperlink{structwebserver__context__t_ab09b846a29a468f7431f9ab973ece817}{server}}
+\item 
+Queue\+Handle\+\_\+t \mbox{\hyperlink{structwebserver__context__t_a8996349f1178cb5b3e8d8de963023e4d}{gpio\+\_\+command\+\_\+queue}}
+\item 
+Queue\+Handle\+\_\+t \mbox{\hyperlink{structwebserver__context__t_abf00bd104c8947cbccc309a1fa913fad}{gpio\+\_\+response\+\_\+queue}}
+\item 
+Semaphore\+Handle\+\_\+t \mbox{\hyperlink{structwebserver__context__t_aefb97e4824e24c89545dab28f7836dce}{session\+\_\+mutex}}
+\item 
+uint32\+\_\+t \mbox{\hyperlink{structwebserver__context__t_a9bb708ee69d57c8f8d9fa5ba62782adb}{command\+\_\+id\+\_\+counter}}
+\item 
+Semaphore\+Handle\+\_\+t \mbox{\hyperlink{structwebserver__context__t_ac2a4a4df18ce6a97b7cb9fc97d3046c3}{command\+\_\+id\+\_\+mutex}}
+\item 
+\mbox{\hyperlink{structsession__t}{session\+\_\+t}} \mbox{\hyperlink{structwebserver__context__t_a05e702afc54ac305f603d76ad69a07d7}{sessions}} \mbox{[}\mbox{\hyperlink{web__server_8c_ad3ef68d2292999ee3beb635427a515ef}{MAX\+\_\+\+SESSIONS}}\mbox{]}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Documentación de campos}
+\Hypertarget{structwebserver__context__t_a9bb708ee69d57c8f8d9fa5ba62782adb}\label{structwebserver__context__t_a9bb708ee69d57c8f8d9fa5ba62782adb} 
+\index{webserver\_context\_t@{webserver\_context\_t}!command\_id\_counter@{command\_id\_counter}}
+\index{command\_id\_counter@{command\_id\_counter}!webserver\_context\_t@{webserver\_context\_t}}
+\doxysubsubsection{\texorpdfstring{command\_id\_counter}{command\_id\_counter}}
+{\footnotesize\ttfamily uint32\+\_\+t webserver\+\_\+context\+\_\+t\+::command\+\_\+id\+\_\+counter}
+
+\Hypertarget{structwebserver__context__t_ac2a4a4df18ce6a97b7cb9fc97d3046c3}\label{structwebserver__context__t_ac2a4a4df18ce6a97b7cb9fc97d3046c3} 
+\index{webserver\_context\_t@{webserver\_context\_t}!command\_id\_mutex@{command\_id\_mutex}}
+\index{command\_id\_mutex@{command\_id\_mutex}!webserver\_context\_t@{webserver\_context\_t}}
+\doxysubsubsection{\texorpdfstring{command\_id\_mutex}{command\_id\_mutex}}
+{\footnotesize\ttfamily Semaphore\+Handle\+\_\+t webserver\+\_\+context\+\_\+t\+::command\+\_\+id\+\_\+mutex}
+
+\Hypertarget{structwebserver__context__t_a8996349f1178cb5b3e8d8de963023e4d}\label{structwebserver__context__t_a8996349f1178cb5b3e8d8de963023e4d} 
+\index{webserver\_context\_t@{webserver\_context\_t}!gpio\_command\_queue@{gpio\_command\_queue}}
+\index{gpio\_command\_queue@{gpio\_command\_queue}!webserver\_context\_t@{webserver\_context\_t}}
+\doxysubsubsection{\texorpdfstring{gpio\_command\_queue}{gpio\_command\_queue}}
+{\footnotesize\ttfamily Queue\+Handle\+\_\+t webserver\+\_\+context\+\_\+t\+::gpio\+\_\+command\+\_\+queue}
+
+\Hypertarget{structwebserver__context__t_abf00bd104c8947cbccc309a1fa913fad}\label{structwebserver__context__t_abf00bd104c8947cbccc309a1fa913fad} 
+\index{webserver\_context\_t@{webserver\_context\_t}!gpio\_response\_queue@{gpio\_response\_queue}}
+\index{gpio\_response\_queue@{gpio\_response\_queue}!webserver\_context\_t@{webserver\_context\_t}}
+\doxysubsubsection{\texorpdfstring{gpio\_response\_queue}{gpio\_response\_queue}}
+{\footnotesize\ttfamily Queue\+Handle\+\_\+t webserver\+\_\+context\+\_\+t\+::gpio\+\_\+response\+\_\+queue}
+
+\Hypertarget{structwebserver__context__t_ab09b846a29a468f7431f9ab973ece817}\label{structwebserver__context__t_ab09b846a29a468f7431f9ab973ece817} 
+\index{webserver\_context\_t@{webserver\_context\_t}!server@{server}}
+\index{server@{server}!webserver\_context\_t@{webserver\_context\_t}}
+\doxysubsubsection{\texorpdfstring{server}{server}}
+{\footnotesize\ttfamily httpd\+\_\+handle\+\_\+t webserver\+\_\+context\+\_\+t\+::server}
+
+\Hypertarget{structwebserver__context__t_aefb97e4824e24c89545dab28f7836dce}\label{structwebserver__context__t_aefb97e4824e24c89545dab28f7836dce} 
+\index{webserver\_context\_t@{webserver\_context\_t}!session\_mutex@{session\_mutex}}
+\index{session\_mutex@{session\_mutex}!webserver\_context\_t@{webserver\_context\_t}}
+\doxysubsubsection{\texorpdfstring{session\_mutex}{session\_mutex}}
+{\footnotesize\ttfamily Semaphore\+Handle\+\_\+t webserver\+\_\+context\+\_\+t\+::session\+\_\+mutex}
+
+\Hypertarget{structwebserver__context__t_a05e702afc54ac305f603d76ad69a07d7}\label{structwebserver__context__t_a05e702afc54ac305f603d76ad69a07d7} 
+\index{webserver\_context\_t@{webserver\_context\_t}!sessions@{sessions}}
+\index{sessions@{sessions}!webserver\_context\_t@{webserver\_context\_t}}
+\doxysubsubsection{\texorpdfstring{sessions}{sessions}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structsession__t}{session\+\_\+t}} webserver\+\_\+context\+\_\+t\+::sessions\mbox{[}\mbox{\hyperlink{web__server_8c_ad3ef68d2292999ee3beb635427a515ef}{MAX\+\_\+\+SESSIONS}}\mbox{]}}
+
+
+
+La documentación de esta estructura está generada del siguiente archivo\+:\begin{DoxyCompactItemize}
+\item 
+main/\mbox{\hyperlink{web__server_8c}{web\+\_\+server.\+c}}\end{DoxyCompactItemize}

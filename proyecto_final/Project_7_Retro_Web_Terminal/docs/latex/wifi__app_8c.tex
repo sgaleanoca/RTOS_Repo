@@ -1,0 +1,191 @@
+\doxysection{Referencia del archivo main/wifi\+\_\+app.c}
+\hypertarget{wifi__app_8c}{}\label{wifi__app_8c}\index{main/wifi\_app.c@{main/wifi\_app.c}}
+
+
+Implementación del módulo de Wi\+Fi en modo AP+\+STA.  
+
+
+{\ttfamily \#include "{}wifi\+\_\+app.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+event.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+log.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+mac.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+wifi.\+h"{}}\newline
+{\ttfamily \#include "{}nvs\+\_\+flash.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+netif\+\_\+ip\+\_\+addr.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/\+Free\+RTOS.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/task.\+h"{}}\newline
+{\ttfamily \#include "{}lwip/err.\+h"{}}\newline
+{\ttfamily \#include "{}lwip/sys.\+h"{}}\newline
+{\ttfamily \#include "{}lwip/netdb.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+netif.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+netif\+\_\+types.\+h"{}}\newline
+{\ttfamily \#include $<$string.\+h$>$}\newline
+\doxysubsubsection*{Funciones}
+\begin{DoxyCompactItemize}
+\item 
+static void \mbox{\hyperlink{wifi__app_8c_ac31e38637f7a5e5c8ce4d033b0955fec}{wifi\+\_\+event\+\_\+handler}} (void \texorpdfstring{$\ast$}{*}arg, esp\+\_\+event\+\_\+base\+\_\+t event\+\_\+base, int32\+\_\+t event\+\_\+id, void \texorpdfstring{$\ast$}{*}event\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Manejador de eventos Wi\+Fi para logging de conexiones/desconexiones Registra cuando los clientes se conectan o desconectan del Access Point y maneja la conexión del ESP32 como Station a la red Wi\+Fi externa. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{wifi__app_8c_a4a2bc421f17a5713e35165034943cea3}{wifi\+\_\+init\+\_\+softap}} (void)
+\begin{DoxyCompactList}\small\item\em Inicializa el ESP32 en modo AP+\+STA (Access Point + Station) \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{wifi__app_8c_ac2e99f68c3fb924e301871f4388ccc51}{wifi\+\_\+is\+\_\+connected}} (void)
+\begin{DoxyCompactList}\small\item\em Verifica si el ESP32 está conectado a Internet (modo Station) \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+static const char \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{wifi__app_8c_a5a85b9c772bbeb480b209a3e6ea92b4c}{TAG}} = "{}WIFI\+\_\+\+APP"{}
+\item 
+static bool \mbox{\hyperlink{wifi__app_8c_a36071d51503ca8b42c5c0be8294995da}{wifi\+\_\+connected}} = false
+\item 
+static int \mbox{\hyperlink{wifi__app_8c_ae4da33fdcdaa6688ed25dab508ed5592}{s\+\_\+retry\+\_\+num}} = 0
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Descripción detallada}
+Implementación del módulo de Wi\+Fi en modo AP+\+STA. 
+
+\begin{DoxyAuthor}{Autor}
+Proyecto Final RTOS 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Fecha}
+2024
+\end{DoxyDate}
+Implementación del módulo de Wi\+Fi en modo AP+\+STA (Access Point + Station). Este módulo configura el ESP32 para funcionar simultáneamente como\+:
+\begin{DoxyItemize}
+\item Access Point (Soft\+AP)\+: Crea su propia red Wi\+Fi para acceso local
+\item Station (STA)\+: Se conecta a una red Wi\+Fi externa para tener Internet
+\end{DoxyItemize}\hypertarget{wifi__app_8c_functionality}{}\doxysubsection{\texorpdfstring{Funcionalidades}{Funcionalidades}}\label{wifi__app_8c_functionality}
+
+\begin{DoxyItemize}
+\item Inicializa la pila de red TCP/\+IP
+\item Configura el ESP32 como punto de acceso Wi\+Fi (red local)
+\item Se conecta a una red Wi\+Fi externa para tener Internet (SNTP, etc.)
+\item Maneja eventos de conexión/desconexión de clientes y estaciones
+\item Reintentos automáticos de conexión a la red externa
+\end{DoxyItemize}\hypertarget{wifi__app_8c_usage}{}\doxysubsection{\texorpdfstring{Uso en el sistema}{Uso en el sistema}}\label{wifi__app_8c_usage}
+Los usuarios pueden conectarse a la red "{}\+ESP32\+\_\+\+Server"{} y acceder al servidor web para controlar el sistema. El ESP32 también se conecta a la red "{}\+Mondongo"{} para tener acceso a Internet (SNTP, etc.).
+
+\DoxyHorRuler{0}
+ \doxysubsection*{ARCHIVO\+: \doxylink{wifi__app_8c}{wifi\+\_\+app.\+c} }
+
+RESUMEN\+: Implementación del módulo de Wi\+Fi en modo AP+\+STA (Access Point + Station). Este módulo configura el ESP32 para funcionar simultáneamente como\+:
+\begin{DoxyItemize}
+\item Access Point (Soft\+AP)\+: Crea su propia red Wi\+Fi para acceso local
+\item Station (STA)\+: Se conecta a una red Wi\+Fi externa para tener Internet
+\end{DoxyItemize}
+
+Funcionalidades\+:
+\begin{DoxyItemize}
+\item Inicializa la pila de red TCP/\+IP
+\item Configura el ESP32 como punto de acceso Wi\+Fi (red local)
+\item Se conecta a una red Wi\+Fi externa para tener Internet (SNTP, etc.)
+\item Maneja eventos de conexión/desconexión de clientes y estaciones
+\item Reintentos automáticos de conexión a la red externa
+\end{DoxyItemize}
+
+Los usuarios pueden conectarse a la red "{}\+ESP32\+\_\+\+Server"{} y acceder al servidor web para controlar el sistema. El ESP32 también se conecta a la red "{}\+Mondongo"{} para tener acceso a Internet (SNTP, etc.).
+
+\DoxyHorRuler{0}
+ \doxysubsection*{Í\+NDICE DE SECCIONES\+: }
+
+Sección 1\+: INCLUDES se encuentra en las líneas 36 a 60 Sección 2\+: DEFINICIONES Y CONSTANTES se encuentra en las líneas 62 a 64 Sección 3\+: MANEJO DE EVENTOS WIFI se encuentra en las líneas 66 a 103 Sección 4\+: INICIALIZACIÓN DE SOFTAP se encuentra en las líneas 105 a 197 \doxysubsection*{Sección 5\+: FUNCIONES DE UTILIDAD se encuentra en las líneas 199 a 205 }
+
+\DoxyHorRuler{0}
+ \doxysubsection*{RESUMEN DE TAREAS, COLAS Y SEMÁ\+FOROS IMPLEMENTADOS\+: }
+
+=== TAREAS (TASKS) ===
+
+Ninguna en este módulo. Wi\+Fi funciona mediante eventos y callbacks.
+
+=== COLAS (QUEUES) ===
+
+Ninguna en este módulo.
+
+=== SEMÁ\+FOROS (MUTEXES) ===
+
+Ninguno en este módulo. El acceso a variables globales es thread-\/safe porque solo se modifican desde el handler de eventos que se ejecuta en el contexto del bucle de eventos.
+
+\DoxyHorRuler{0}
+ 
+
+\doxysubsection{Documentación de funciones}
+\Hypertarget{wifi__app_8c_ac31e38637f7a5e5c8ce4d033b0955fec}\label{wifi__app_8c_ac31e38637f7a5e5c8ce4d033b0955fec} 
+\index{wifi\_app.c@{wifi\_app.c}!wifi\_event\_handler@{wifi\_event\_handler}}
+\index{wifi\_event\_handler@{wifi\_event\_handler}!wifi\_app.c@{wifi\_app.c}}
+\doxysubsubsection{\texorpdfstring{wifi\_event\_handler()}{wifi\_event\_handler()}}
+{\footnotesize\ttfamily static void wifi\+\_\+event\+\_\+handler (\begin{DoxyParamCaption}\item[{void \texorpdfstring{$\ast$}{*}}]{arg,  }\item[{esp\+\_\+event\+\_\+base\+\_\+t}]{event\+\_\+base,  }\item[{int32\+\_\+t}]{event\+\_\+id,  }\item[{void \texorpdfstring{$\ast$}{*}}]{event\+\_\+data }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Manejador de eventos Wi\+Fi para logging de conexiones/desconexiones Registra cuando los clientes se conectan o desconectan del Access Point y maneja la conexión del ESP32 como Station a la red Wi\+Fi externa. 
+
+
+\begin{DoxyParams}{Parámetros}
+{\em arg} & Argumento del handler (no usado) \\
+\hline
+{\em event\+\_\+base} & Base del evento (WIFI\+\_\+\+EVENT o IP\+\_\+\+EVENT) \\
+\hline
+{\em event\+\_\+id} & ID del evento específico \\
+\hline
+{\em event\+\_\+data} & Datos del evento \\
+\hline
+\end{DoxyParams}
+\Hypertarget{wifi__app_8c_a4a2bc421f17a5713e35165034943cea3}\label{wifi__app_8c_a4a2bc421f17a5713e35165034943cea3} 
+\index{wifi\_app.c@{wifi\_app.c}!wifi\_init\_softap@{wifi\_init\_softap}}
+\index{wifi\_init\_softap@{wifi\_init\_softap}!wifi\_app.c@{wifi\_app.c}}
+\doxysubsubsection{\texorpdfstring{wifi\_init\_softap()}{wifi\_init\_softap()}}
+{\footnotesize\ttfamily void wifi\+\_\+init\+\_\+softap (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Inicializa el ESP32 en modo AP+\+STA (Access Point + Station) 
+
+
+\begin{DoxyItemize}
+\item Crea su propia red Wi\+Fi (Soft\+AP) para acceso local
+\item Se conecta a una red Wi\+Fi externa (Station) para tener Internet
+\end{DoxyItemize}
+
+Proceso de inicialización\+:
+\begin{DoxyEnumerate}
+\item Inicializa la pila TCP/\+IP
+\item Crea el bucle de eventos
+\item Crea las interfaces de red Wi\+Fi (AP y STA)
+\item Inicializa el driver Wi\+Fi
+\item Registra los manejadores de eventos (Wi\+Fi e IP)
+\item Configura credenciales del Access Point
+\item Configura credenciales del Station (red externa)
+\item Aplica configuración y inicia en modo AP+\+STA 
+\end{DoxyEnumerate}\Hypertarget{wifi__app_8c_ac2e99f68c3fb924e301871f4388ccc51}\label{wifi__app_8c_ac2e99f68c3fb924e301871f4388ccc51} 
+\index{wifi\_app.c@{wifi\_app.c}!wifi\_is\_connected@{wifi\_is\_connected}}
+\index{wifi\_is\_connected@{wifi\_is\_connected}!wifi\_app.c@{wifi\_app.c}}
+\doxysubsubsection{\texorpdfstring{wifi\_is\_connected()}{wifi\_is\_connected()}}
+{\footnotesize\ttfamily bool wifi\+\_\+is\+\_\+connected (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Verifica si el ESP32 está conectado a Internet (modo Station) 
+
+\begin{DoxyReturn}{Devuelve}
+true si está conectado, false en caso contrario 
+\end{DoxyReturn}
+
+
+\doxysubsection{Documentación de variables}
+\Hypertarget{wifi__app_8c_ae4da33fdcdaa6688ed25dab508ed5592}\label{wifi__app_8c_ae4da33fdcdaa6688ed25dab508ed5592} 
+\index{wifi\_app.c@{wifi\_app.c}!s\_retry\_num@{s\_retry\_num}}
+\index{s\_retry\_num@{s\_retry\_num}!wifi\_app.c@{wifi\_app.c}}
+\doxysubsubsection{\texorpdfstring{s\_retry\_num}{s\_retry\_num}}
+{\footnotesize\ttfamily int s\+\_\+retry\+\_\+num = 0\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{wifi__app_8c_a5a85b9c772bbeb480b209a3e6ea92b4c}\label{wifi__app_8c_a5a85b9c772bbeb480b209a3e6ea92b4c} 
+\index{wifi\_app.c@{wifi\_app.c}!TAG@{TAG}}
+\index{TAG@{TAG}!wifi\_app.c@{wifi\_app.c}}
+\doxysubsubsection{\texorpdfstring{TAG}{TAG}}
+{\footnotesize\ttfamily const char\texorpdfstring{$\ast$}{*} TAG = "{}WIFI\+\_\+\+APP"{}\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{wifi__app_8c_a36071d51503ca8b42c5c0be8294995da}\label{wifi__app_8c_a36071d51503ca8b42c5c0be8294995da} 
+\index{wifi\_app.c@{wifi\_app.c}!wifi\_connected@{wifi\_connected}}
+\index{wifi\_connected@{wifi\_connected}!wifi\_app.c@{wifi\_app.c}}
+\doxysubsubsection{\texorpdfstring{wifi\_connected}{wifi\_connected}}
+{\footnotesize\ttfamily bool wifi\+\_\+connected = false\hspace{0.3cm}{\ttfamily [static]}}
+

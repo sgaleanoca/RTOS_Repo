@@ -1,0 +1,164 @@
+\doxysection{Referencia del archivo main/web\+\_\+server.h}
+\hypertarget{web__server_8h}{}\label{web__server_8h}\index{main/web\_server.h@{main/web\_server.h}}
+
+
+Servidor web HTTP del ESP32.  
+
+
+\doxysubsubsection*{Funciones}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{web__server_8h_a440992a6db6af61fb71e65ddf68e71b0}{start\+\_\+webserver}} (void)
+\begin{DoxyCompactList}\small\item\em Inicia el servidor web HTTP. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Descripción detallada}
+Servidor web HTTP del ESP32. 
+
+\begin{DoxyAuthor}{Autor}
+Proyecto Final RTOS 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Fecha}
+2024
+\end{DoxyDate}
+Header file para el servidor web HTTP del ESP32. Este módulo gestiona\+:
+\begin{DoxyItemize}
+\item Montaje del sistema de archivos SPIFFS (donde se almacenan los archivos HTML/\+CSS/\+JS)
+\item Inicialización del servidor HTTP con múltiples rutas
+\item Manejo de autenticación de usuarios (login/logout)
+\item Procesamiento de comandos desde la terminal web mediante colas
+\item Servicio de datos de temperatura en tiempo real
+\item Gestión de sesiones con timeout automático
+\item Control del ventilador mediante API REST
+\item Gestión de registros de horarios del ventilador
+\item Control del sensor PIR
+\item Configuración de hora manual
+\end{DoxyItemize}\hypertarget{web__server_8h_routes}{}\doxysubsection{\texorpdfstring{Rutas disponibles}{Rutas disponibles}}\label{web__server_8h_routes}
+\hypertarget{web__server_8h_pages}{}\doxysubsubsection{\texorpdfstring{Páginas web}{Páginas web}}\label{web__server_8h_pages}
+
+\begin{DoxyItemize}
+\item / \+: Página de login o redirección al dashboard
+\item /dashboard \+: Panel principal con opciones
+\item /terminal \+: Terminal web retro para comandos
+\item /slider \+: Panel de control con temperatura y ventilador
+\end{DoxyItemize}\hypertarget{web__server_8h_auth}{}\doxysubsubsection{\texorpdfstring{Sistema de autenticación y sesiones}{Sistema de autenticación y sesiones}}\label{web__server_8h_auth}
+
+\begin{DoxyItemize}
+\item /login \+: Autenticación de usuarios (POST)
+\item /logout \+: Cerrar sesión (GET)
+\end{DoxyItemize}\hypertarget{web__server_8h_api}{}\doxysubsubsection{\texorpdfstring{API REST}{API REST}}\label{web__server_8h_api}
+
+\begin{DoxyItemize}
+\item /cmd \+: Endpoint para ejecutar comandos de terminal (GET ?c=comando)
+\item /temperature \+: API JSON para obtener temperatura actual (GET)
+\item /fan/mode \+: Establecer modo del ventilador (POST)
+\item /fan/manual \+: Establecer velocidad manual (POST)
+\item /fan/status \+: Obtener estado del ventilador (GET)
+\item /fan/diagnostic \+: Diagnóstico completo del sistema (GET)
+\item /registros \+: Obtener todos los registros (GET) / Agregar nuevo registro (POST)
+\item /pir/status \+: Obtener estado del sensor PIR (GET)
+\item /time/set \+: Establecer hora manualmente (POST)
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{ARCHIVO\+: \doxylink{web__server_8h}{web\+\_\+server.\+h} }
+
+RESUMEN\+: Header file para el servidor web HTTP del ESP32. Este módulo gestiona\+:
+\begin{DoxyItemize}
+\item Montaje del sistema de archivos SPIFFS (donde se almacenan los archivos HTML/\+CSS/\+JS)
+\item Inicialización del servidor HTTP con múltiples rutas
+\item Manejo de autenticación de usuarios (login/logout)
+\item Procesamiento de comandos desde la terminal web mediante colas
+\item Servicio de datos de temperatura en tiempo real
+\item Gestión de sesiones con timeout automático
+\item Control del ventilador mediante API REST
+\item Gestión de registros de horarios del ventilador
+\item Control del sensor PIR
+\item Configuración de hora manual
+\end{DoxyItemize}
+
+Rutas disponibles\+:
+
+Páginas web\+:
+\begin{DoxyItemize}
+\item / \+: Página de login o redirección al dashboard
+\item /dashboard \+: Panel principal con opciones
+\item /terminal \+: Terminal web retro para comandos
+\item /slider \+: Panel de control con temperatura y ventilador
+\end{DoxyItemize}
+
+Autenticación\+:
+\begin{DoxyItemize}
+\item /login \+: Autenticación de usuarios (POST)
+\item /logout \+: Cerrar sesión (GET)
+\end{DoxyItemize}
+
+API de comandos\+:
+\begin{DoxyItemize}
+\item /cmd \+: Endpoint para ejecutar comandos de terminal (GET ?c=comando)
+\end{DoxyItemize}
+
+API de temperatura\+:
+\begin{DoxyItemize}
+\item /temperature \+: API JSON para obtener temperatura actual (GET)
+\end{DoxyItemize}
+
+API de ventilador\+:
+\begin{DoxyItemize}
+\item /fan/mode \+: Establecer modo del ventilador (POST)
+\item /fan/manual \+: Establecer velocidad manual (POST)
+\item /fan/status \+: Obtener estado del ventilador (GET)
+\item /fan/diagnostic \+: Diagnóstico completo del sistema (GET)
+\end{DoxyItemize}
+
+API de registros\+:
+\begin{DoxyItemize}
+\item /registros \+: Obtener todos los registros (GET)
+\item /registros \+: Agregar nuevo registro (POST)
+\end{DoxyItemize}
+
+API de sensor PIR\+:
+\begin{DoxyItemize}
+\item /pir/status \+: Obtener estado del sensor PIR (GET)
+\end{DoxyItemize}
+
+API de tiempo\+:
+\begin{DoxyItemize}
+\item /time/set \+: Establecer hora manualmente (POST)
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{Í\+NDICE DE SECCIONES\+: }
+
+\doxysubsection*{Sección 1\+: PROTOTIPOS DE FUNCIONES se encuentra en las líneas 60 a 70 }
+
+\doxysubsection{Documentación de funciones}
+\Hypertarget{web__server_8h_a440992a6db6af61fb71e65ddf68e71b0}\label{web__server_8h_a440992a6db6af61fb71e65ddf68e71b0} 
+\index{web\_server.h@{web\_server.h}!start\_webserver@{start\_webserver}}
+\index{start\_webserver@{start\_webserver}!web\_server.h@{web\_server.h}}
+\doxysubsubsection{\texorpdfstring{start\_webserver()}{start\_webserver()}}
+{\footnotesize\ttfamily void start\+\_\+webserver (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Inicia el servidor web HTTP. 
+
+
+\begin{DoxyItemize}
+\item Monta el sistema de archivos SPIFFS
+\item Registra todas las rutas y handlers
+\item Crea tareas para procesamiento de comandos y gestión de sesiones
+\end{DoxyItemize}
+
+Inicia el servidor web HTTP.
+
+Proceso de inicialización\+:
+\begin{DoxyEnumerate}
+\item Crea estructura de contexto para encapsular el estado (sin variables globales)
+\item Crea mutex y colas para comandos y sesiones
+\item Crea tareas para procesamiento de comandos y gestión de sesiones (pasa contexto)
+\item Monta el sistema de archivos SPIFFS
+\item Verifica que todos los archivos necesarios estén presentes
+\item Configura e inicia el servidor HTTP
+\item Registra todas las rutas y handlers (pasa contexto a través de user\+\_\+ctx) 
+\end{DoxyEnumerate}

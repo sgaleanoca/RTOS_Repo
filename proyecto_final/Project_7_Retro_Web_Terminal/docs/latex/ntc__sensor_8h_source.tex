@@ -1,0 +1,44 @@
+\doxysection{ntc\+\_\+sensor.\+h}
+\hypertarget{ntc__sensor_8h_source}{}\label{ntc__sensor_8h_source}\index{main/ntc\_sensor.h@{main/ntc\_sensor.h}}
+\mbox{\hyperlink{ntc__sensor_8h}{Ir a la documentación de este archivo.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#ifndef\ NTC\_SENSOR\_H}}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#define\ NTC\_SENSOR\_H}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#include\ <stdint.h>}}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \textcolor{comment}{//\ =====\ CONFIGURACIÓN\ DE\ PINES\ Y\ ADC\ =====}}
+\DoxyCodeLine{00056\ \textcolor{comment}{//\ Nota:\ ADC2\ no\ funciona\ con\ WiFi\ activo,\ por\ lo\ que\ usamos\ ADC1}}
+\DoxyCodeLine{00057\ \textcolor{comment}{//\ GPIO32\ es\ ADC\_CHANNEL\_4\ (ADC1)\ y\ funciona\ correctamente\ con\ WiFi}}
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\#define\ NTC\_PIN\ \ \ \ \ \ \ \ \ ADC\_CHANNEL\_4\ \ \ }\textcolor{comment}{//\ GPIO32\ es\ ADC\_CHANNEL\_4\ (ADC1)}}
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#define\ ADC\_UNIT\ \ \ \ \ \ \ \ ADC\_UNIT\_1}}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \textcolor{comment}{//\ =====\ CONSTANTES\ DEL\ TERMISTOR\ NTC\ 10k\ =====}}
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\#define\ NOMINAL\_RESISTANCE\ \ \ \ \ \ 10000.0\ }\textcolor{comment}{//\ Resistencia\ nominal\ a\ 25°C\ (en\ ohmios)}}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\#define\ NOMINAL\_TEMPERATURE\ \ \ \ \ 25.0\ \ \ \ }\textcolor{comment}{//\ Temperatura\ nominal\ en\ Celsius}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\#define\ B\_COEFFICIENT\ \ \ \ \ \ \ \ \ \ \ 3380.0\ \ }\textcolor{comment}{//\ Coeficiente\ Beta\ del\ termistor\ (ajustado\ para\ NTC\ 10k)}}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\#define\ SERIES\_RESISTOR\ \ \ \ \ \ \ \ \ 10000.0\ }\textcolor{comment}{//\ Valor\ de\ la\ resistencia\ en\ serie\ (10k\ ohmios)}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \textcolor{comment}{//\ =====\ ESTRUCTURAS\ DE\ DATOS\ =====}}
+\DoxyCodeLine{00071\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{structntc__data__t_a64501d711b6fd8577989d6fc54cd04a2}{temperature\_c}};\ \ \ \ \textcolor{comment}{//\ Temperatura\ calculada\ en\ grados\ Celsius}}
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{structntc__data__t_a3366680619c9a3635ad5b81276324334}{resistance}};\ \ \ \ \ \ \ \textcolor{comment}{//\ Resistencia\ calculada\ del\ NTC\ en\ ohmios}}
+\DoxyCodeLine{00074\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structntc__data__t_aa54ec05784a57da325ba05475d478ea1}{raw\_adc\_value}};\ \ \ \ \ \ \textcolor{comment}{//\ Valor\ crudo\ leído\ del\ ADC\ (0-\/4095)}}
+\DoxyCodeLine{00075\ \}\ \mbox{\hyperlink{structntc__data__t}{ntc\_data\_t}};}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \textcolor{comment}{//\ =====\ PROTOTIPOS\ DE\ FUNCIONES\ =====}}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \textcolor{comment}{//\ Inicialización}}
+\DoxyCodeLine{00080\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{ntc__sensor_8h_af44c4669ed5a3938a1f1e3262326baac}{ntc\_sensor\_init}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{comment}{//\ Lectura\ de\ temperatura}}
+\DoxyCodeLine{00083\ \mbox{\hyperlink{structntc__data__t}{ntc\_data\_t}}\ \mbox{\hyperlink{ntc__sensor_8h_aa35003f17612d11399263342f97b05ef}{ntc\_read\_temperature}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00084\ \mbox{\hyperlink{structntc__data__t}{ntc\_data\_t}}\ \mbox{\hyperlink{ntc__sensor_8h_a940e98e0b41c8e4170e9ef2a90f82c7e}{ntc\_get\_current\_temperature}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{comment}{//\ Gestión\ de\ tarea\ de\ lectura\ periódica}}
+\DoxyCodeLine{00087\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{ntc__sensor_8h_a69ced77938cafdbf46373f5888295aed}{ntc\_start\_reading\_task}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ NTC\_SENSOR\_H}}
+
+\end{DoxyCode}

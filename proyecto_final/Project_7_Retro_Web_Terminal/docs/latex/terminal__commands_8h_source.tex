@@ -1,0 +1,40 @@
+\doxysection{terminal\+\_\+commands.\+h}
+\hypertarget{terminal__commands_8h_source}{}\label{terminal__commands_8h_source}\index{main/terminal\_commands.h@{main/terminal\_commands.h}}
+\mbox{\hyperlink{terminal__commands_8h}{Ir a la documentación de este archivo.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00079\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{comment}{//\ =====\ INCLUDES\ =====}}
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\#include\ <stdint.h>}}
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\#include\ <stdbool.h>}}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\#include\ "{}freertos/FreeRTOS.h"{}}}
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#include\ "{}freertos/queue.h"{}}}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \textcolor{comment}{//\ =====\ DEFINICIONES\ =====}}
+\DoxyCodeLine{00089\ \textcolor{comment}{//\ Estructura\ para\ comandos\ GPIO}}
+\DoxyCodeLine{00090\ \textcolor{comment}{//\ Esta\ estructura\ se\ usa\ para\ comunicar\ comandos\ entre\ el\ handler\ HTTP\ y\ la\ tarea\ de\ procesamiento}}
+\DoxyCodeLine{00091\ \textcolor{comment}{//\ mediante\ colas\ (queues)\ de\ FreeRTOS}}
+\DoxyCodeLine{00092\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00093\ \ \ \ \ uint32\_t\ \mbox{\hyperlink{structgpio__command__t_a5a0aaa59ee825b754cf879c89ea7a911}{command\_id}};\ \ \textcolor{comment}{//\ ID\ único\ para\ emparejar\ comando-\/respuesta}}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Permite\ que\ múltiples\ comandos\ estén\ en\ proceso\ simultáneamente}}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ y\ que\ cada\ handler\ HTTP\ reciba\ la\ respuesta\ correcta}}
+\DoxyCodeLine{00096\ \ \ \ \ \textcolor{keywordtype}{char}\ command[100];\ \ \ \textcolor{comment}{//\ Texto\ del\ comando\ recibido\ (ej:\ "{}led\ on"{},\ "{}fan\ 50"{},\ "{}status"{},\ "{}help"{})}}
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{keywordtype}{char}\ response[512];\ \ \textcolor{comment}{//\ Respuesta\ generada\ por\ process\_terminal\_command()}}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Se\ llena\ después\ de\ procesar\ el\ comando}}
+\DoxyCodeLine{00099\ \}\ \mbox{\hyperlink{structgpio__command__t}{gpio\_command\_t}};}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \textcolor{comment}{//\ =====\ PROTOTIPOS\ DE\ FUNCIONES\ =====}}
+\DoxyCodeLine{00124\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{terminal__commands_8h_a6c2c567b2888c28a52c142cd226fa8b9}{process\_terminal\_command}}(\mbox{\hyperlink{structgpio__command__t}{gpio\_command\_t}}\ *cmd);}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00156\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{terminal__commands_8h_a6d843cea44bc0cb6d8e1932816bc4322}{terminal\_command\_task}}(\textcolor{keywordtype}{void}\ *pvParameters);}
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00159\ \}}
+\DoxyCodeLine{00160\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

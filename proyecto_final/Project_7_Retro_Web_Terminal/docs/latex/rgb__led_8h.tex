@@ -1,0 +1,117 @@
+\doxysection{Referencia del archivo main/rgb\+\_\+led.h}
+\hypertarget{rgb__led_8h}{}\label{rgb__led_8h}\index{main/rgb\_led.h@{main/rgb\_led.h}}
+
+
+Controlador de LED RGB mediante PWM.  
+
+
+{\ttfamily \#include $<$stdint.\+h$>$}\newline
+{\ttfamily \#include $<$stdbool.\+h$>$}\newline
+\doxysubsubsection*{Funciones}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{rgb__led_8h_a3998750ac5327295428745cd6b755701}{rgb\+\_\+led\+\_\+init}} (void)
+\begin{DoxyCompactList}\small\item\em Inicializa el controlador PWM para el LED RGB verde. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{rgb__led_8h_afa0d2f77515bfca8255a418ee003f399}{rgb\+\_\+set\+\_\+green\+\_\+percent}} (uint8\+\_\+t percent)
+\begin{DoxyCompactList}\small\item\em Establece el brillo del LED verde como porcentaje. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Descripción detallada}
+Controlador de LED RGB mediante PWM. 
+
+\begin{DoxyAuthor}{Autor}
+Proyecto Final RTOS 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Fecha}
+2024
+\end{DoxyDate}
+Header file para el controlador de LED RGB (actualmente solo canal verde). Este módulo gestiona el control PWM del LED RGB conectado al ESP32 mediante el periférico LEDC (LED Controller).\hypertarget{rgb__led_8h_hardware}{}\doxysubsection{\texorpdfstring{Hardware}{Hardware}}\label{rgb__led_8h_hardware}
+
+\begin{DoxyItemize}
+\item LED Verde\+: GPIO 27 (PWM mediante LEDC Channel 1, Timer 0)
+\end{DoxyItemize}\hypertarget{time__sync_8h_features}{}\doxysubsection{\texorpdfstring{Características}{Características}}\label{time__sync_8h_features}
+
+\begin{DoxyItemize}
+\item Control PWM de 8 bits (0-\/255 niveles)
+\item Frecuencia\+: 5k\+Hz (adecuada para LEDs sin parpadeo visible)
+\item Interfaz simple con porcentaje (0-\/100\%)
+\item Validación automática de parámetros
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{ARCHIVO\+: \doxylink{rgb__led_8h}{rgb\+\_\+led.\+h} }
+
+RESUMEN\+: Header file para el controlador de LED RGB (actualmente solo canal verde). Este módulo gestiona el control PWM del LED RGB conectado al ESP32 mediante el periférico LEDC (LED Controller).
+
+Hardware\+:
+\begin{DoxyItemize}
+\item LED Verde\+: GPIO 27 (PWM mediante LEDC Channel 1, Timer 0)
+\end{DoxyItemize}
+
+Características\+:
+\begin{DoxyItemize}
+\item Control PWM de 8 bits (0-\/255 niveles)
+\item Frecuencia\+: 5k\+Hz (adecuada para LEDs sin parpadeo visible)
+\item Interfaz simple con porcentaje (0-\/100\%)
+\item Validación automática de parámetros
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{Í\+NDICE DE SECCIONES\+: }
+
+\doxysubsection*{Sección 1\+: PROTOTIPOS DE FUNCIONES se encuentra en las líneas 40 a 51 }
+
+\doxysubsection{Documentación de funciones}
+\Hypertarget{rgb__led_8h_a3998750ac5327295428745cd6b755701}\label{rgb__led_8h_a3998750ac5327295428745cd6b755701} 
+\index{rgb\_led.h@{rgb\_led.h}!rgb\_led\_init@{rgb\_led\_init}}
+\index{rgb\_led\_init@{rgb\_led\_init}!rgb\_led.h@{rgb\_led.h}}
+\doxysubsubsection{\texorpdfstring{rgb\_led\_init()}{rgb\_led\_init()}}
+{\footnotesize\ttfamily bool rgb\+\_\+led\+\_\+init (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Inicializa el controlador PWM para el LED RGB verde. 
+
+Configura el timer LEDC y el canal PWM para controlar el LED verde. Debe llamarse una vez durante la inicialización del sistema.
+
+\begin{DoxyReturn}{Devuelve}
+true si la inicialización fue exitosa, false en caso contrario
+\end{DoxyReturn}
+Configura el timer LEDC y el canal PWM para controlar el LED verde. Esta función debe llamarse una vez durante la inicialización del sistema antes de usar cualquier otra función de este módulo.
+
+Proceso de inicialización\+:
+\begin{DoxyEnumerate}
+\item Configura el timer LEDC con resolución de 8 bits y frecuencia de 5k\+Hz
+\item Configura el canal LEDC para el GPIO del LED verde
+\item Inicia el LED con brillo 0\% (apagado)
+\end{DoxyEnumerate}
+
+\begin{DoxyReturn}{Devuelve}
+true si la inicialización fue exitosa, false en caso contrario 
+\end{DoxyReturn}
+\Hypertarget{rgb__led_8h_afa0d2f77515bfca8255a418ee003f399}\label{rgb__led_8h_afa0d2f77515bfca8255a418ee003f399} 
+\index{rgb\_led.h@{rgb\_led.h}!rgb\_set\_green\_percent@{rgb\_set\_green\_percent}}
+\index{rgb\_set\_green\_percent@{rgb\_set\_green\_percent}!rgb\_led.h@{rgb\_led.h}}
+\doxysubsubsection{\texorpdfstring{rgb\_set\_green\_percent()}{rgb\_set\_green\_percent()}}
+{\footnotesize\ttfamily void rgb\+\_\+set\+\_\+green\+\_\+percent (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{percent }\end{DoxyParamCaption})}
+
+
+
+Establece el brillo del LED verde como porcentaje. 
+
+Convierte el porcentaje (0-\/100) a valor PWM (0-\/255) y actualiza el LED. Valores fuera de rango se limitan automáticamente.
+
+
+\begin{DoxyParams}{Parámetros}
+{\em percent} & Porcentaje de brillo (0-\/100)\\
+\hline
+\end{DoxyParams}
+Convierte el porcentaje (0-\/100) a valor PWM (0-\/255) y actualiza el LED. Valores fuera de rango se limitan automáticamente a 0-\/100.
+
+Nota\+: Esta función requiere que \doxylink{rgb__led_8c_a3998750ac5327295428745cd6b755701}{rgb\+\_\+led\+\_\+init()} haya sido llamada previamente. Si no está inicializado, la función no realizará ninguna acción.
+
+
+\begin{DoxyParams}{Parámetros}
+{\em percent} & Porcentaje de brillo (0-\/100). Valores \texorpdfstring{$>$}{>}100 se limitan a 100. \\
+\hline
+\end{DoxyParams}

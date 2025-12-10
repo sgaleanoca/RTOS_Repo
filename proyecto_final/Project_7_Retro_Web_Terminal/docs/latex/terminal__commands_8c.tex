@@ -1,0 +1,241 @@
+\doxysection{Referencia del archivo main/terminal\+\_\+commands.c}
+\hypertarget{terminal__commands_8c}{}\label{terminal__commands_8c}\index{main/terminal\_commands.c@{main/terminal\_commands.c}}
+
+
+Implementación del procesamiento de comandos de terminal.  
+
+
+{\ttfamily \#include "{}terminal\+\_\+commands.\+h"{}}\newline
+{\ttfamily \#include "{}rgb\+\_\+led.\+h"{}}\newline
+{\ttfamily \#include "{}fan\+\_\+control.\+h"{}}\newline
+{\ttfamily \#include $<$esp\+\_\+log.\+h$>$}\newline
+{\ttfamily \#include "{}freertos/\+Free\+RTOS.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/task.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/queue.\+h"{}}\newline
+{\ttfamily \#include $<$string.\+h$>$}\newline
+{\ttfamily \#include $<$stdlib.\+h$>$}\newline
+\doxysubsubsection*{Estructuras de datos}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structterminal__context__t}{terminal\+\_\+context\+\_\+t}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Funciones}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{terminal__commands_8c_a6c2c567b2888c28a52c142cd226fa8b9}{process\+\_\+terminal\+\_\+command}} (\mbox{\hyperlink{structgpio__command__t}{gpio\+\_\+command\+\_\+t}} \texorpdfstring{$\ast$}{*}cmd)
+\begin{DoxyCompactList}\small\item\em Procesa un comando de terminal y genera la respuesta correspondiente. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{terminal__commands_8c_a6d843cea44bc0cb6d8e1932816bc4322}{terminal\+\_\+command\+\_\+task}} (void \texorpdfstring{$\ast$}{*}pv\+Parameters)
+\begin{DoxyCompactList}\small\item\em Tarea de Free\+RTOS que procesa comandos GPIO recibidos desde la web Lee comandos de la cola, los ejecuta y envía respuestas. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+static const char \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{terminal__commands_8c_a5a85b9c772bbeb480b209a3e6ea92b4c}{TAG}} = "{}TERMINAL\+\_\+\+CMD"{}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Descripción detallada}
+Implementación del procesamiento de comandos de terminal. 
+
+\begin{DoxyAuthor}{Autor}
+Proyecto Final RTOS 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Fecha}
+2024
+\end{DoxyDate}
+Implementación del módulo de procesamiento de comandos de terminal. Este módulo gestiona el procesamiento de comandos recibidos desde la terminal web, incluyendo comandos para control de LEDs, ventilador y comandos del sistema.\hypertarget{wifi__app_8c_functionality}{}\doxysubsection{\texorpdfstring{Funcionalidades}{Funcionalidades}}\label{wifi__app_8c_functionality}
+
+\begin{DoxyItemize}
+\item Procesa comandos de la terminal (led, fan, status, help, clear, etc.)
+\item Ejecuta acciones correspondientes (control de GPIO, PWM para LED y ventilador)
+\item Genera respuestas apropiadas para cada comando
+\end{DoxyItemize}\hypertarget{terminal__commands_8h_architecture}{}\doxysubsection{\texorpdfstring{Arquitectura del sistema}{Arquitectura del sistema}}\label{terminal__commands_8h_architecture}
+Utiliza el patrón Producer-\/\+Consumer con colas de Free\+RTOS para comunicación asíncrona entre el handler HTTP y la tarea de procesamiento.
+
+\DoxyHorRuler{0}
+ \doxysubsection*{ARCHIVO\+: \doxylink{terminal__commands_8c}{terminal\+\_\+commands.\+c} }
+
+RESUMEN\+: Implementación del módulo de procesamiento de comandos de terminal. Este módulo gestiona el procesamiento de comandos recibidos desde la terminal web, incluyendo comandos para control de LEDs, ventilador y comandos del sistema.
+
+Funcionalidad\+:
+\begin{DoxyItemize}
+\item Procesa comandos de la terminal (led, fan, status, help, clear, etc.)
+\item Ejecuta acciones correspondientes (control de GPIO, PWM para LED y ventilador)
+\item Genera respuestas apropiadas para cada comando
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{Í\+NDICE DE SECCIONES\+: }
+
+Sección 1\+: INCLUDES se encuentra en las líneas 30 a 45 Sección 2\+: DEFINICIONES Y CONSTANTES se encuentra en las líneas 47 a 50 Sección 3\+: FUNCIÓN DE PROCESAMIENTO DE COMANDOS se encuentra en las líneas 52 a 100 \doxysubsection*{Sección 4\+: TAREA DE PROCESAMIENTO DE COMANDOS se encuentra en las líneas 102 a 130 }
+
+\DoxyHorRuler{0}
+ \doxysubsection*{RESUMEN DE TAREAS, COLAS Y SEMÁ\+FOROS IMPLEMENTADOS\+: }
+
+=== TAREAS (TASKS) ===
+
+
+\begin{DoxyEnumerate}
+\item terminal\+\_\+command\+\_\+task (Sección 4)
+\begin{DoxyItemize}
+\item Nombre\+: "{}gpio\+\_\+cmd\+\_\+task"{} (configurado en \doxylink{web__server_8c}{web\+\_\+server.\+c})
+\item Stack\+: 4096 bytes
+\item Prioridad\+: 5 (alta)
+\item Función\+: Procesa comandos GPIO recibidos desde la terminal web
+\item Propósito\+: Ejecutar comandos de forma asíncrona sin bloquear el servidor HTTP
+\item Estado\+: Loop infinito, bloquea esperando comandos (port\+MAX\+\_\+\+DELAY)
+\item Flujo\+:
+\begin{DoxyEnumerate}
+\item Recibe comando de gpio\+\_\+command\+\_\+queue (x\+Queue\+Receive, bloqueante)
+\item Procesa comando con \doxylink{terminal__commands_8c_a6c2c567b2888c28a52c142cd226fa8b9}{process\+\_\+terminal\+\_\+command()}
+\item Envía respuesta a gpio\+\_\+response\+\_\+queue (x\+Queue\+Send)
+\end{DoxyEnumerate}
+\end{DoxyItemize}
+\end{DoxyEnumerate}
+
+=== COLAS (QUEUES) ===
+
+
+\begin{DoxyEnumerate}
+\item gpio\+\_\+command\+\_\+queue (recibida en contexto)
+\begin{DoxyItemize}
+\item Tipo\+: Queue\+Handle\+\_\+t
+\item Tamaño\+: GPIO\+\_\+\+QUEUE\+\_\+\+SIZE (10 elementos)
+\item Elemento\+: \doxylink{structgpio__command__t}{gpio\+\_\+command\+\_\+t}
+\item Dirección\+: Handler HTTP → Esta tarea
+\item Operación\+: x\+Queue\+Receive() con port\+MAX\+\_\+\+DELAY (bloqueante)
+\item Uso\+: Esta tarea recibe comandos de la cola para procesarlos
+\end{DoxyItemize}
+\item gpio\+\_\+response\+\_\+queue (recibida en contexto)
+\begin{DoxyItemize}
+\item Tipo\+: Queue\+Handle\+\_\+t
+\item Tamaño\+: GPIO\+\_\+\+QUEUE\+\_\+\+SIZE (10 elementos)
+\item Elemento\+: \doxylink{structgpio__command__t}{gpio\+\_\+command\+\_\+t} (con respuesta generada)
+\item Dirección\+: Esta tarea → Handler HTTP
+\item Operación\+: x\+Queue\+Send() con timeout de 100ms
+\item Uso\+: Esta tarea envía respuestas procesadas a la cola
+\end{DoxyItemize}
+\end{DoxyEnumerate}
+
+=== SEMÁ\+FOROS (MUTEXES) ===
+
+Ninguno en este módulo. Los semáforos se gestionan en \doxylink{web__server_8c}{web\+\_\+server.\+c}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{ARQUITECTURA\+: }
+
+Esta tarea implementa el patrón Producer-\/\+Consumer\+:
+\begin{DoxyItemize}
+\item Producer\+: Handler HTTP /cmd (envía comandos a gpio\+\_\+command\+\_\+queue)
+\item Consumer\+: terminal\+\_\+command\+\_\+task (recibe y procesa comandos)
+\item Producer\+: terminal\+\_\+command\+\_\+task (envía respuestas a gpio\+\_\+response\+\_\+queue)
+\item Consumer\+: Handler HTTP /cmd (recibe respuestas)
+\end{DoxyItemize}
+
+Ventajas\+:
+\begin{DoxyItemize}
+\item Servidor HTTP no se bloquea esperando procesamiento
+\item Múltiples comandos pueden estar en cola simultáneamente
+\item Thread-\/safe gracias a las colas de Free\+RTOS
+\item Permite manejar picos de tráfico sin perder comandos
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ 
+
+\doxysubsection{Documentación de funciones}
+\Hypertarget{terminal__commands_8c_a6c2c567b2888c28a52c142cd226fa8b9}\label{terminal__commands_8c_a6c2c567b2888c28a52c142cd226fa8b9} 
+\index{terminal\_commands.c@{terminal\_commands.c}!process\_terminal\_command@{process\_terminal\_command}}
+\index{process\_terminal\_command@{process\_terminal\_command}!terminal\_commands.c@{terminal\_commands.c}}
+\doxysubsubsection{\texorpdfstring{process\_terminal\_command()}{process\_terminal\_command()}}
+{\footnotesize\ttfamily void process\+\_\+terminal\+\_\+command (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structgpio__command__t}{gpio\+\_\+command\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{cmd }\end{DoxyParamCaption})}
+
+
+
+Procesa un comando de terminal y genera la respuesta correspondiente. 
+
+
+\begin{DoxyParams}{Parámetros}
+{\em cmd} & Estructura con el comando a procesar (se modifica in-\/place con la respuesta)\\
+\hline
+\end{DoxyParams}
+Comandos soportados\+:
+
+Control de LED RGB\+:
+\begin{DoxyItemize}
+\item led on \+: Enciende el LED RGB verde (100\% brillo)
+\item led off \+: Apaga el LED RGB verde (0\% brillo)
+\item led \texorpdfstring{$<$}{<}0-\/100\texorpdfstring{$>$}{>} \+: Establece el brillo del LED RGB verde (0-\/100\%)
+\end{DoxyItemize}
+
+Control de Ventilador\+:
+\begin{DoxyItemize}
+\item fan on \+: Enciende el ventilador al 50\% de velocidad (modo manual)
+\item fan off \+: Apaga el ventilador (modo OFF)
+\item fan \texorpdfstring{$<$}{<}0-\/100\texorpdfstring{$>$}{>} \+: Establece la velocidad del ventilador manualmente (0-\/100\%, modo manual)
+\end{DoxyItemize}
+
+Sistema\+:
+\begin{DoxyItemize}
+\item status \+: Estado del sistema (LED RGB y ventilador)
+\item help \+: Lista de comandos disponibles
+\item clear \+: Limpiar pantalla (manejado en frontend) 
+\end{DoxyItemize}\Hypertarget{terminal__commands_8c_a6d843cea44bc0cb6d8e1932816bc4322}\label{terminal__commands_8c_a6d843cea44bc0cb6d8e1932816bc4322} 
+\index{terminal\_commands.c@{terminal\_commands.c}!terminal\_command\_task@{terminal\_command\_task}}
+\index{terminal\_command\_task@{terminal\_command\_task}!terminal\_commands.c@{terminal\_commands.c}}
+\doxysubsubsection{\texorpdfstring{terminal\_command\_task()}{terminal\_command\_task()}}
+{\footnotesize\ttfamily void terminal\+\_\+command\+\_\+task (\begin{DoxyParamCaption}\item[{void \texorpdfstring{$\ast$}{*}}]{pv\+Parameters }\end{DoxyParamCaption})}
+
+
+
+Tarea de Free\+RTOS que procesa comandos GPIO recibidos desde la web Lee comandos de la cola, los ejecuta y envía respuestas. 
+
+
+\begin{DoxyParams}{Parámetros}
+{\em pv\+Parameters} & Puntero al contexto del servidor web (\doxylink{structterminal__context__t}{terminal\+\_\+context\+\_\+t})\\
+\hline
+\end{DoxyParams}
+===== EXPLICACIÓN DE LA TAREA ===== Esta es una tarea de Free\+RTOS que se ejecuta de forma independiente para procesar comandos de la terminal web de manera asíncrona.
+
+Arquitectura\+:
+\begin{DoxyEnumerate}
+\item El handler HTTP (/cmd) recibe un comando del cliente web
+\item El handler envía el comando a gpio\+\_\+command\+\_\+queue (no bloquea)
+\item Esta tarea recibe el comando de la cola (bloqueante)
+\item Procesa el comando usando \doxylink{terminal__commands_8c_a6c2c567b2888c28a52c142cd226fa8b9}{process\+\_\+terminal\+\_\+command()}
+\item Envía la respuesta a gpio\+\_\+response\+\_\+queue
+\item El handler HTTP recibe la respuesta y la envía al cliente
+\end{DoxyEnumerate}
+
+Ventajas de esta arquitectura\+:
+\begin{DoxyItemize}
+\item El servidor HTTP no se bloquea esperando procesamiento
+\item Múltiples comandos pueden estar en cola simultáneamente
+\item El procesamiento es thread-\/safe gracias a las colas
+\item Permite manejar picos de tráfico sin perder comandos
+\end{DoxyItemize}
+
+===== USO DE COLAS ===== gpio\+\_\+command\+\_\+queue (entrada)\+:
+\begin{DoxyItemize}
+\item x\+Queue\+Receive() espera indefinidamente (port\+MAX\+\_\+\+DELAY) hasta recibir un comando
+\item Cuando recibe un comando, lo copia a la variable local \textquotesingle{}cmd\textquotesingle{}
+\item La cola es thread-\/safe\+: múltiples handlers HTTP pueden enviar simultáneamente
+\end{DoxyItemize}
+
+gpio\+\_\+response\+\_\+queue (salida)\+:
+\begin{DoxyItemize}
+\item x\+Queue\+Send() envía la respuesta con el mismo command\+\_\+id
+\item Timeout de 100ms\+: si la cola está llena, espera máximo 100ms
+\item Si falla, registra un warning pero continúa (el handler HTTP manejará el timeout)
+\end{DoxyItemize}
+
+===== FLUJO DE DATOS ===== Cliente Web -\/\texorpdfstring{$>$}{>} Handler HTTP -\/\texorpdfstring{$>$}{>} gpio\+\_\+command\+\_\+queue -\/\texorpdfstring{$>$}{>} Esta Tarea -\/\texorpdfstring{$>$}{>} \doxylink{terminal__commands_8c_a6c2c567b2888c28a52c142cd226fa8b9}{process\+\_\+terminal\+\_\+command()} -\/\texorpdfstring{$>$}{>} gpio\+\_\+response\+\_\+queue -\/\texorpdfstring{$>$}{>} Handler HTTP -\/\texorpdfstring{$>$}{>} Cliente Web
+
+Prioridad\+: 5 (configurada en \doxylink{web__server_8c}{web\+\_\+server.\+c}) Stack\+: 4096 bytes (suficiente para procesamiento de comandos) 
+
+\doxysubsection{Documentación de variables}
+\Hypertarget{terminal__commands_8c_a5a85b9c772bbeb480b209a3e6ea92b4c}\label{terminal__commands_8c_a5a85b9c772bbeb480b209a3e6ea92b4c} 
+\index{terminal\_commands.c@{terminal\_commands.c}!TAG@{TAG}}
+\index{TAG@{TAG}!terminal\_commands.c@{terminal\_commands.c}}
+\doxysubsubsection{\texorpdfstring{TAG}{TAG}}
+{\footnotesize\ttfamily const char\texorpdfstring{$\ast$}{*} TAG = "{}TERMINAL\+\_\+\+CMD"{}\hspace{0.3cm}{\ttfamily [static]}}
+

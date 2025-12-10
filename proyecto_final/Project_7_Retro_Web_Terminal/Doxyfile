@@ -138,7 +138,7 @@ USE_MDFILE_AS_MAINPAGE =
 # Configuración de salida
 #---------------------------------------------------------------------------
 
-GENERATE_HTML          = YES
+GENERATE_HTML          = NO
 HTML_OUTPUT            = html
 HTML_FILE_EXTENSION    = .html
 HTML_HEADER            = 
@@ -197,9 +197,9 @@ EXTRA_SEARCH_MAPPINGS  =
 # Configuración de LaTeX
 #---------------------------------------------------------------------------
 
-GENERATE_LATEX         = NO
+GENERATE_LATEX         = YES
 LATEX_OUTPUT           = latex
-LATEX_CMD_NAME         = latex
+LATEX_CMD_NAME         = pdflatex
 MAKEINDEX_CMD_NAME     = makeindex
 COMPACT_LATEX          = NO
 PAPER_TYPE             = a4

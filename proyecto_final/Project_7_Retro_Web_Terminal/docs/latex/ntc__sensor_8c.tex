@@ -1,0 +1,375 @@
+\doxysection{Referencia del archivo main/ntc\+\_\+sensor.c}
+\hypertarget{ntc__sensor_8c}{}\label{ntc__sensor_8c}\index{main/ntc\_sensor.c@{main/ntc\_sensor.c}}
+
+
+Implementación del driver para sensor de temperatura NTC.  
+
+
+{\ttfamily \#include "{}ntc\+\_\+sensor.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+log.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+adc/adc\+\_\+oneshot.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+adc/adc\+\_\+cali.\+h"{}}\newline
+{\ttfamily \#include "{}esp\+\_\+adc/adc\+\_\+cali\+\_\+scheme.\+h"{}}\newline
+{\ttfamily \#include "{}hal/adc\+\_\+types.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/\+Free\+RTOS.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/task.\+h"{}}\newline
+{\ttfamily \#include "{}freertos/semphr.\+h"{}}\newline
+{\ttfamily \#include $<$math.\+h$>$}\newline
+\doxysubsubsection*{defines}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{ntc__sensor_8c_a0db51829d40b5f91fc03dd44258fb2ee}{TEMP\+\_\+\+ERROR\+\_\+\+VALUE}}~-\/999.\+0
+\item 
+\#define \mbox{\hyperlink{ntc__sensor_8c_a8e965b09ba8c46425032e6dd576f9bce}{ADC\+\_\+\+MAX\+\_\+\+VALUE}}~4096
+\item 
+\#define \mbox{\hyperlink{ntc__sensor_8c_aff977c82c15809ed36d306ae09dcff9c}{ADC\+\_\+\+MIN\+\_\+\+VALUE}}~0
+\item 
+\#define \mbox{\hyperlink{ntc__sensor_8c_a5a26b26addc1036014bb2e72f30edc84}{RESISTANCE\+\_\+\+MAX\+\_\+\+OHMS}}~1000000.\+0
+\item 
+\#define \mbox{\hyperlink{ntc__sensor_8c_a2d590ca5bd45b774db485da22962f122}{SENSOR\+\_\+\+READ\+\_\+\+INTERVAL\+\_\+\+MS}}~1000
+\item 
+\#define \mbox{\hyperlink{ntc__sensor_8c_a7fae5488599e406e63f0de1be311168d}{ADC\+\_\+\+STABILIZATION\+\_\+\+DELAY\+\_\+\+MS}}~100
+\item 
+\#define \mbox{\hyperlink{ntc__sensor_8c_afff24d4d7eff981e57847a8d8ffbdce1}{NTC\+\_\+\+TASK\+\_\+\+STACK\+\_\+\+SIZE}}~4096
+\item 
+\#define \mbox{\hyperlink{ntc__sensor_8c_a1cde0067ee9cc7724b388b36f4fda1bd}{NTC\+\_\+\+TASK\+\_\+\+PRIORITY}}~5
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Funciones}
+\begin{DoxyCompactItemize}
+\item 
+static bool \mbox{\hyperlink{ntc__sensor_8c_a33853cc6cdc171525845f6e194edb960}{adc\+\_\+calibration\+\_\+init}} (adc\+\_\+unit\+\_\+t unit, adc\+\_\+atten\+\_\+t atten, adc\+\_\+cali\+\_\+handle\+\_\+t \texorpdfstring{$\ast$}{*}out\+\_\+handle)
+\begin{DoxyCompactList}\small\item\em Inicializa la calibración del ADC para obtener lecturas más precisas Intenta usar curve fitting primero, luego line fitting como fallback. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{ntc__sensor_8c_af44c4669ed5a3938a1f1e3262326baac}{ntc\+\_\+sensor\+\_\+init}} (void)
+\begin{DoxyCompactList}\small\item\em Inicializa el ADC1 y configura el canal para leer el sensor NTC. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{structntc__data__t}{ntc\+\_\+data\+\_\+t}} \mbox{\hyperlink{ntc__sensor_8c_aa35003f17612d11399263342f97b05ef}{ntc\+\_\+read\+\_\+temperature}} (void)
+\begin{DoxyCompactList}\small\item\em Lee el valor del ADC, calcula la resistencia del NTC y convierte a temperatura. \end{DoxyCompactList}\item 
+static void \mbox{\hyperlink{ntc__sensor_8c_a00ce05759b3ca87d16407ae45887e340}{ntc\+\_\+reading\+\_\+task}} (void \texorpdfstring{$\ast$}{*}arg)
+\begin{DoxyCompactList}\small\item\em Tarea de Free\+RTOS que lee la temperatura periódicamente cada segundo. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{structntc__data__t}{ntc\+\_\+data\+\_\+t}} \mbox{\hyperlink{ntc__sensor_8c_a940e98e0b41c8e4170e9ef2a90f82c7e}{ntc\+\_\+get\+\_\+current\+\_\+temperature}} (void)
+\begin{DoxyCompactList}\small\item\em Obtiene la temperatura actual almacenada por la tarea de lectura Esta función es thread-\/safe y puede llamarse desde cualquier tarea. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{ntc__sensor_8c_a69ced77938cafdbf46373f5888295aed}{ntc\+\_\+start\+\_\+reading\+\_\+task}} (void)
+\begin{DoxyCompactList}\small\item\em Crea e inicia la tarea de Free\+RTOS para lectura periódica de temperatura La tarea lee la temperatura cada segundo y actualiza los datos globales. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+static const char \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{ntc__sensor_8c_a5a85b9c772bbeb480b209a3e6ea92b4c}{TAG}} = "{}NTC\+\_\+\+TEMP\+\_\+\+CONTROL"{}
+\item 
+static adc\+\_\+oneshot\+\_\+unit\+\_\+handle\+\_\+t \mbox{\hyperlink{ntc__sensor_8c_a0b95b5937de8bdf11f73c2636d897c49}{adc1\+\_\+handle}}
+\item 
+static adc\+\_\+cali\+\_\+handle\+\_\+t \mbox{\hyperlink{ntc__sensor_8c_a49ce44847deee2ea73bb6920a9e82a7c}{adc1\+\_\+cali\+\_\+handle}} = NULL
+\item 
+static \mbox{\hyperlink{structntc__data__t}{ntc\+\_\+data\+\_\+t}} \mbox{\hyperlink{ntc__sensor_8c_a69f0662080567f93ce4b131ee1d80983}{current\+\_\+ntc\+\_\+data}} = \{.temperature\+\_\+c = \mbox{\hyperlink{ntc__sensor_8c_a0db51829d40b5f91fc03dd44258fb2ee}{TEMP\+\_\+\+ERROR\+\_\+\+VALUE}}, .resistance = 0.\+0, .raw\+\_\+adc\+\_\+value = 0\}
+\item 
+static bool \mbox{\hyperlink{ntc__sensor_8c_a12ab5ed79c71dcd11607b5a003c35107}{data\+\_\+ready}} = false
+\item 
+static Semaphore\+Handle\+\_\+t \mbox{\hyperlink{ntc__sensor_8c_aebe38e60e228c39f982af172c626e920}{data\+\_\+mutex}} = NULL
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Descripción detallada}
+Implementación del driver para sensor de temperatura NTC. 
+
+\begin{DoxyAuthor}{Autor}
+Proyecto Final RTOS 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Fecha}
+2024
+\end{DoxyDate}
+Implementación del módulo de sensor de temperatura NTC (Negative Temperature Coefficient). Este módulo gestiona la lectura de temperatura usando un termistor NTC 10k conectado a través de un divisor de voltaje al ADC del ESP32.\hypertarget{wifi__app_8c_functionality}{}\doxysubsection{\texorpdfstring{Funcionalidades}{Funcionalidades}}\label{wifi__app_8c_functionality}
+
+\begin{DoxyItemize}
+\item Inicializa el ADC1 del ESP32 para leer el voltaje del divisor de voltaje
+\item Calcula la resistencia del NTC basándose en el valor ADC
+\item Convierte la resistencia a temperatura usando la ecuación de Steinhart-\/\+Hart
+\item Ejecuta una tarea periódica que lee la temperatura cada segundo
+\item Proporciona acceso thread-\/safe a los datos de temperatura mediante mutex
+\end{DoxyItemize}\hypertarget{rgb__led_8h_hardware}{}\doxysubsection{\texorpdfstring{Hardware}{Hardware}}\label{rgb__led_8h_hardware}
+Circuito\+: VCC ---\mbox{[}10k Resistor\mbox{]}---\mbox{[}NTC 10k\mbox{]}---GND \texorpdfstring{$\vert$}{|} GPIO32 (ADC1\+\_\+\+CH4)
+
+Nota\+: ADC2 no funciona cuando Wi\+Fi está activo, por eso usamos ADC1\hypertarget{time__sync_8h_features}{}\doxysubsection{\texorpdfstring{Características}{Características}}\label{time__sync_8h_features}
+
+\begin{DoxyItemize}
+\item Calibración del ADC para lecturas más precisas (curve fitting o line fitting)
+\item Validación de rangos de ADC y resistencia
+\item Protección thread-\/safe con mutex para acceso concurrente
+\item Tarea independiente para lectura periódica (cada 1 segundo)
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{ARCHIVO\+: \doxylink{ntc__sensor_8c}{ntc\+\_\+sensor.\+c} }
+
+RESUMEN\+: Implementación del módulo de sensor de temperatura NTC (Negative Temperature Coefficient). Este módulo gestiona la lectura de temperatura usando un termistor NTC 10k conectado a través de un divisor de voltaje al ADC del ESP32.
+
+Funcionalidades\+:
+\begin{DoxyItemize}
+\item Inicializa el ADC1 del ESP32 para leer el voltaje del divisor de voltaje
+\item Calcula la resistencia del NTC basándose en el valor ADC
+\item Convierte la resistencia a temperatura usando la ecuación de Steinhart-\/\+Hart
+\item Ejecuta una tarea periódica que lee la temperatura cada segundo
+\item Proporciona acceso thread-\/safe a los datos de temperatura mediante mutex
+\end{DoxyItemize}
+
+Hardware\+: Circuito\+: VCC ---\mbox{[}10k Resistor\mbox{]}---\mbox{[}NTC 10k\mbox{]}---GND \texorpdfstring{$\vert$}{|} GPIO32 (ADC1\+\_\+\+CH4)
+
+Nota\+: ADC2 no funciona cuando Wi\+Fi está activo, por eso usamos ADC1
+
+Características\+:
+\begin{DoxyItemize}
+\item Calibración del ADC para lecturas más precisas (curve fitting o line fitting)
+\item Validación de rangos de ADC y resistencia
+\item Protección thread-\/safe con mutex para acceso concurrente
+\item Tarea independiente para lectura periódica (cada 1 segundo)
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ \doxysubsection*{Í\+NDICE DE SECCIONES\+: }
+
+Sección 1\+: INCLUDES se encuentra en las líneas 43 a 60 Sección 2\+: DEFINICIONES Y CONSTANTES se encuentra en las líneas 62 a 77 Sección 3\+: VARIABLES GLOBALES se encuentra en las líneas 79 a 87 Sección 4\+: CALIBRACIÓN DEL ADC se encuentra en las líneas 89 a 119 Sección 5\+: INICIALIZACIÓN se encuentra en las líneas 121 a 148 Sección 6\+: LECTURA Y CÁ\+LCULO DE TEMPERATURA se encuentra en las líneas 150 a 203 Sección 7\+: TAREA DE LECTURA PERIÓ\+DICA se encuentra en las líneas 205 a 249 \doxysubsection*{Sección 8\+: FUNCIONES GETTER se encuentra en las líneas 251 a 289 }
+
+\DoxyHorRuler{0}
+ \doxysubsection*{RESUMEN DE TAREAS, COLAS Y SEMÁ\+FOROS IMPLEMENTADOS\+: }
+
+=== TAREAS (TASKS) ===
+
+
+\begin{DoxyEnumerate}
+\item ntc\+\_\+reading\+\_\+task (Sección 7)
+\begin{DoxyItemize}
+\item Nombre\+: "{}ntc\+\_\+reader"{}
+\item Stack\+: 4096 bytes
+\item Prioridad\+: 5 (alta)
+\item Función\+: Lee la temperatura periódicamente cada segundo
+\item Propósito\+: Mantener datos de temperatura actualizados de forma continua
+\item Estado\+: Loop infinito, lee cada 1 segundo
+\item Flujo\+:
+\begin{DoxyEnumerate}
+\item Lee temperatura del sensor
+\item Valida que los datos sean válidos
+\item Almacena datos de forma thread-\/safe usando mutex
+\item Marca datos como "{}ready"{} cuando son válidos
+\end{DoxyEnumerate}
+\end{DoxyItemize}
+\end{DoxyEnumerate}
+
+=== COLAS (QUEUES) ===
+
+Ninguna en este módulo.
+
+=== SEMÁ\+FOROS (MUTEXES) ===
+
+
+\begin{DoxyEnumerate}
+\item data\+\_\+mutex
+\begin{DoxyItemize}
+\item Tipo\+: Semaphore\+Handle\+\_\+t (Free\+RTOS mutex)
+\item Protege\+: current\+\_\+ntc\+\_\+data y data\+\_\+ready
+\item Uso\+: Protege acceso concurrente a los datos del sensor
+\item Operaciones\+: x\+Semaphore\+Take() antes de leer/escribir, x\+Semaphore\+Give() después
+\item Timeout\+: Variable (port\+MAX\+\_\+\+DELAY en tarea, 100ms en getter)
+\item Funciones que lo usan\+:
+\begin{DoxyItemize}
+\item \doxylink{ntc__sensor_8c_a00ce05759b3ca87d16407ae45887e340}{ntc\+\_\+reading\+\_\+task()} -\/ Escribe datos periódicamente
+\item \doxylink{ntc__sensor_8c_a940e98e0b41c8e4170e9ef2a90f82c7e}{ntc\+\_\+get\+\_\+current\+\_\+temperature()} -\/ Lee datos de forma thread-\/safe
+\end{DoxyItemize}
+\end{DoxyItemize}
+\end{DoxyEnumerate}
+
+\DoxyHorRuler{0}
+ 
+
+\doxysubsection{Documentación de «define»}
+\Hypertarget{ntc__sensor_8c_a8e965b09ba8c46425032e6dd576f9bce}\label{ntc__sensor_8c_a8e965b09ba8c46425032e6dd576f9bce} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!ADC\_MAX\_VALUE@{ADC\_MAX\_VALUE}}
+\index{ADC\_MAX\_VALUE@{ADC\_MAX\_VALUE}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{ADC\_MAX\_VALUE}{ADC\_MAX\_VALUE}}
+{\footnotesize\ttfamily \#define ADC\+\_\+\+MAX\+\_\+\+VALUE~4096}
+
+\Hypertarget{ntc__sensor_8c_aff977c82c15809ed36d306ae09dcff9c}\label{ntc__sensor_8c_aff977c82c15809ed36d306ae09dcff9c} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!ADC\_MIN\_VALUE@{ADC\_MIN\_VALUE}}
+\index{ADC\_MIN\_VALUE@{ADC\_MIN\_VALUE}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{ADC\_MIN\_VALUE}{ADC\_MIN\_VALUE}}
+{\footnotesize\ttfamily \#define ADC\+\_\+\+MIN\+\_\+\+VALUE~0}
+
+\Hypertarget{ntc__sensor_8c_a7fae5488599e406e63f0de1be311168d}\label{ntc__sensor_8c_a7fae5488599e406e63f0de1be311168d} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!ADC\_STABILIZATION\_DELAY\_MS@{ADC\_STABILIZATION\_DELAY\_MS}}
+\index{ADC\_STABILIZATION\_DELAY\_MS@{ADC\_STABILIZATION\_DELAY\_MS}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{ADC\_STABILIZATION\_DELAY\_MS}{ADC\_STABILIZATION\_DELAY\_MS}}
+{\footnotesize\ttfamily \#define ADC\+\_\+\+STABILIZATION\+\_\+\+DELAY\+\_\+\+MS~100}
+
+\Hypertarget{ntc__sensor_8c_a1cde0067ee9cc7724b388b36f4fda1bd}\label{ntc__sensor_8c_a1cde0067ee9cc7724b388b36f4fda1bd} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!NTC\_TASK\_PRIORITY@{NTC\_TASK\_PRIORITY}}
+\index{NTC\_TASK\_PRIORITY@{NTC\_TASK\_PRIORITY}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{NTC\_TASK\_PRIORITY}{NTC\_TASK\_PRIORITY}}
+{\footnotesize\ttfamily \#define NTC\+\_\+\+TASK\+\_\+\+PRIORITY~5}
+
+\Hypertarget{ntc__sensor_8c_afff24d4d7eff981e57847a8d8ffbdce1}\label{ntc__sensor_8c_afff24d4d7eff981e57847a8d8ffbdce1} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!NTC\_TASK\_STACK\_SIZE@{NTC\_TASK\_STACK\_SIZE}}
+\index{NTC\_TASK\_STACK\_SIZE@{NTC\_TASK\_STACK\_SIZE}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{NTC\_TASK\_STACK\_SIZE}{NTC\_TASK\_STACK\_SIZE}}
+{\footnotesize\ttfamily \#define NTC\+\_\+\+TASK\+\_\+\+STACK\+\_\+\+SIZE~4096}
+
+\Hypertarget{ntc__sensor_8c_a5a26b26addc1036014bb2e72f30edc84}\label{ntc__sensor_8c_a5a26b26addc1036014bb2e72f30edc84} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!RESISTANCE\_MAX\_OHMS@{RESISTANCE\_MAX\_OHMS}}
+\index{RESISTANCE\_MAX\_OHMS@{RESISTANCE\_MAX\_OHMS}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{RESISTANCE\_MAX\_OHMS}{RESISTANCE\_MAX\_OHMS}}
+{\footnotesize\ttfamily \#define RESISTANCE\+\_\+\+MAX\+\_\+\+OHMS~1000000.\+0}
+
+\Hypertarget{ntc__sensor_8c_a2d590ca5bd45b774db485da22962f122}\label{ntc__sensor_8c_a2d590ca5bd45b774db485da22962f122} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!SENSOR\_READ\_INTERVAL\_MS@{SENSOR\_READ\_INTERVAL\_MS}}
+\index{SENSOR\_READ\_INTERVAL\_MS@{SENSOR\_READ\_INTERVAL\_MS}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{SENSOR\_READ\_INTERVAL\_MS}{SENSOR\_READ\_INTERVAL\_MS}}
+{\footnotesize\ttfamily \#define SENSOR\+\_\+\+READ\+\_\+\+INTERVAL\+\_\+\+MS~1000}
+
+\Hypertarget{ntc__sensor_8c_a0db51829d40b5f91fc03dd44258fb2ee}\label{ntc__sensor_8c_a0db51829d40b5f91fc03dd44258fb2ee} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!TEMP\_ERROR\_VALUE@{TEMP\_ERROR\_VALUE}}
+\index{TEMP\_ERROR\_VALUE@{TEMP\_ERROR\_VALUE}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{TEMP\_ERROR\_VALUE}{TEMP\_ERROR\_VALUE}}
+{\footnotesize\ttfamily \#define TEMP\+\_\+\+ERROR\+\_\+\+VALUE~-\/999.\+0}
+
+
+
+\doxysubsection{Documentación de funciones}
+\Hypertarget{ntc__sensor_8c_a33853cc6cdc171525845f6e194edb960}\label{ntc__sensor_8c_a33853cc6cdc171525845f6e194edb960} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!adc\_calibration\_init@{adc\_calibration\_init}}
+\index{adc\_calibration\_init@{adc\_calibration\_init}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{adc\_calibration\_init()}{adc\_calibration\_init()}}
+{\footnotesize\ttfamily static bool adc\+\_\+calibration\+\_\+init (\begin{DoxyParamCaption}\item[{adc\+\_\+unit\+\_\+t}]{unit,  }\item[{adc\+\_\+atten\+\_\+t}]{atten,  }\item[{adc\+\_\+cali\+\_\+handle\+\_\+t \texorpdfstring{$\ast$}{*}}]{out\+\_\+handle }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Inicializa la calibración del ADC para obtener lecturas más precisas Intenta usar curve fitting primero, luego line fitting como fallback. 
+
+
+\begin{DoxyParams}{Parámetros}
+{\em unit} & Unidad ADC (ADC\+\_\+\+UNIT\+\_\+1 o ADC\+\_\+\+UNIT\+\_\+2) \\
+\hline
+{\em atten} & Atenuación del ADC \\
+\hline
+{\em out\+\_\+handle} & Puntero donde se guardará el handle de calibración \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Devuelve}
+true si la calibración fue exitosa, false en caso contrario 
+\end{DoxyReturn}
+\Hypertarget{ntc__sensor_8c_a940e98e0b41c8e4170e9ef2a90f82c7e}\label{ntc__sensor_8c_a940e98e0b41c8e4170e9ef2a90f82c7e} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!ntc\_get\_current\_temperature@{ntc\_get\_current\_temperature}}
+\index{ntc\_get\_current\_temperature@{ntc\_get\_current\_temperature}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{ntc\_get\_current\_temperature()}{ntc\_get\_current\_temperature()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structntc__data__t}{ntc\+\_\+data\+\_\+t}} ntc\+\_\+get\+\_\+current\+\_\+temperature (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Obtiene la temperatura actual almacenada por la tarea de lectura Esta función es thread-\/safe y puede llamarse desde cualquier tarea. 
+
+\begin{DoxyReturn}{Devuelve}
+Estructura \doxylink{structntc__data__t}{ntc\+\_\+data\+\_\+t} con los últimos datos leídos 
+\end{DoxyReturn}
+\Hypertarget{ntc__sensor_8c_aa35003f17612d11399263342f97b05ef}\label{ntc__sensor_8c_aa35003f17612d11399263342f97b05ef} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!ntc\_read\_temperature@{ntc\_read\_temperature}}
+\index{ntc\_read\_temperature@{ntc\_read\_temperature}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{ntc\_read\_temperature()}{ntc\_read\_temperature()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structntc__data__t}{ntc\+\_\+data\+\_\+t}} ntc\+\_\+read\+\_\+temperature (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Lee el valor del ADC, calcula la resistencia del NTC y convierte a temperatura. 
+
+Proceso\+:
+\begin{DoxyEnumerate}
+\item Lee el valor crudo del ADC (0-\/4095)
+\item Calcula la resistencia del NTC usando la fórmula del divisor de voltaje\+: R\+\_\+ntc = R\+\_\+series \texorpdfstring{$\ast$}{*} (4095 / ADC\+\_\+value -\/ 1)
+\item Convierte resistencia a temperatura usando ecuación de Steinhart-\/\+Hart\+: 1/T = 1/\+T0 + (1/B) \texorpdfstring{$\ast$}{*} ln(R/\+R0)
+\end{DoxyEnumerate}
+
+\begin{DoxyReturn}{Devuelve}
+Estructura \doxylink{structntc__data__t}{ntc\+\_\+data\+\_\+t} con temperatura, resistencia y valor ADC 
+\end{DoxyReturn}
+\Hypertarget{ntc__sensor_8c_a00ce05759b3ca87d16407ae45887e340}\label{ntc__sensor_8c_a00ce05759b3ca87d16407ae45887e340} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!ntc\_reading\_task@{ntc\_reading\_task}}
+\index{ntc\_reading\_task@{ntc\_reading\_task}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{ntc\_reading\_task()}{ntc\_reading\_task()}}
+{\footnotesize\ttfamily static void ntc\+\_\+reading\+\_\+task (\begin{DoxyParamCaption}\item[{void \texorpdfstring{$\ast$}{*}}]{arg }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Tarea de Free\+RTOS que lee la temperatura periódicamente cada segundo. 
+
+
+\begin{DoxyItemize}
+\item Lee la temperatura del sensor
+\item Valida que los datos estén en rangos razonables
+\item Almacena los datos de forma thread-\/safe usando mutex
+\item Marca los datos como "{}ready"{} cuando son válidos
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parámetros}
+{\em arg} & Argumentos de la tarea (no usado) \\
+\hline
+\end{DoxyParams}
+\Hypertarget{ntc__sensor_8c_af44c4669ed5a3938a1f1e3262326baac}\label{ntc__sensor_8c_af44c4669ed5a3938a1f1e3262326baac} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!ntc\_sensor\_init@{ntc\_sensor\_init}}
+\index{ntc\_sensor\_init@{ntc\_sensor\_init}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{ntc\_sensor\_init()}{ntc\_sensor\_init()}}
+{\footnotesize\ttfamily void ntc\+\_\+sensor\+\_\+init (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Inicializa el ADC1 y configura el canal para leer el sensor NTC. 
+
+
+\begin{DoxyItemize}
+\item Crea el mutex para proteger acceso a datos
+\item Configura ADC1 con atenuación de 12dB (rango 0-\/3.\+3V)
+\item Inicializa la calibración del ADC si está disponible
+\end{DoxyItemize}
+
+Nota\+: Usamos ADC1 porque ADC2 no funciona cuando Wi\+Fi está activo \Hypertarget{ntc__sensor_8c_a69ced77938cafdbf46373f5888295aed}\label{ntc__sensor_8c_a69ced77938cafdbf46373f5888295aed} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!ntc\_start\_reading\_task@{ntc\_start\_reading\_task}}
+\index{ntc\_start\_reading\_task@{ntc\_start\_reading\_task}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{ntc\_start\_reading\_task()}{ntc\_start\_reading\_task()}}
+{\footnotesize\ttfamily void ntc\+\_\+start\+\_\+reading\+\_\+task (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Crea e inicia la tarea de Free\+RTOS para lectura periódica de temperatura La tarea lee la temperatura cada segundo y actualiza los datos globales. 
+
+
+
+\doxysubsection{Documentación de variables}
+\Hypertarget{ntc__sensor_8c_a49ce44847deee2ea73bb6920a9e82a7c}\label{ntc__sensor_8c_a49ce44847deee2ea73bb6920a9e82a7c} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!adc1\_cali\_handle@{adc1\_cali\_handle}}
+\index{adc1\_cali\_handle@{adc1\_cali\_handle}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{adc1\_cali\_handle}{adc1\_cali\_handle}}
+{\footnotesize\ttfamily adc\+\_\+cali\+\_\+handle\+\_\+t adc1\+\_\+cali\+\_\+handle = NULL\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{ntc__sensor_8c_a0b95b5937de8bdf11f73c2636d897c49}\label{ntc__sensor_8c_a0b95b5937de8bdf11f73c2636d897c49} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!adc1\_handle@{adc1\_handle}}
+\index{adc1\_handle@{adc1\_handle}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{adc1\_handle}{adc1\_handle}}
+{\footnotesize\ttfamily adc\+\_\+oneshot\+\_\+unit\+\_\+handle\+\_\+t adc1\+\_\+handle\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{ntc__sensor_8c_a69f0662080567f93ce4b131ee1d80983}\label{ntc__sensor_8c_a69f0662080567f93ce4b131ee1d80983} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!current\_ntc\_data@{current\_ntc\_data}}
+\index{current\_ntc\_data@{current\_ntc\_data}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{current\_ntc\_data}{current\_ntc\_data}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structntc__data__t}{ntc\+\_\+data\+\_\+t}} current\+\_\+ntc\+\_\+data = \{.temperature\+\_\+c = \mbox{\hyperlink{ntc__sensor_8c_a0db51829d40b5f91fc03dd44258fb2ee}{TEMP\+\_\+\+ERROR\+\_\+\+VALUE}}, .resistance = 0.\+0, .raw\+\_\+adc\+\_\+value = 0\}\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{ntc__sensor_8c_aebe38e60e228c39f982af172c626e920}\label{ntc__sensor_8c_aebe38e60e228c39f982af172c626e920} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!data\_mutex@{data\_mutex}}
+\index{data\_mutex@{data\_mutex}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{data\_mutex}{data\_mutex}}
+{\footnotesize\ttfamily Semaphore\+Handle\+\_\+t data\+\_\+mutex = NULL\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{ntc__sensor_8c_a12ab5ed79c71dcd11607b5a003c35107}\label{ntc__sensor_8c_a12ab5ed79c71dcd11607b5a003c35107} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!data\_ready@{data\_ready}}
+\index{data\_ready@{data\_ready}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{data\_ready}{data\_ready}}
+{\footnotesize\ttfamily bool data\+\_\+ready = false\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{ntc__sensor_8c_a5a85b9c772bbeb480b209a3e6ea92b4c}\label{ntc__sensor_8c_a5a85b9c772bbeb480b209a3e6ea92b4c} 
+\index{ntc\_sensor.c@{ntc\_sensor.c}!TAG@{TAG}}
+\index{TAG@{TAG}!ntc\_sensor.c@{ntc\_sensor.c}}
+\doxysubsubsection{\texorpdfstring{TAG}{TAG}}
+{\footnotesize\ttfamily const char\texorpdfstring{$\ast$}{*} TAG = "{}NTC\+\_\+\+TEMP\+\_\+\+CONTROL"{}\hspace{0.3cm}{\ttfamily [static]}}
+

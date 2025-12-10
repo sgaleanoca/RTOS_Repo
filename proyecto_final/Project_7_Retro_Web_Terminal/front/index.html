@@ -1,0 +1,83 @@
+<!--
+============================================================================
+ARCHIVO: index.html
+============================================================================
+
+RESUMEN:
+Página principal de la terminal web retro. Esta página proporciona una
+interfaz de terminal estilo retro donde los usuarios pueden ejecutar comandos
+para controlar los LEDs del ESP32.
+
+Características:
+- Interfaz de terminal con prompt "root@esp32:~$"
+- Barra superior con información: reloj en tiempo real y temperatura
+- Historial de comandos con navegación con flechas arriba/abajo
+- Autocompletado con TAB
+- Auto-logout después de 3 minutos de inactividad
+- Comandos disponibles: led y on/off, led b on/off, status, help, clear
+
+Funcionalidad:
+- Los comandos se envían al servidor mediante GET /cmd?c=comando
+- La temperatura se actualiza cada segundo desde /temperature
+- El reloj se actualiza cada segundo en el cliente
+
+============================================================================
+ÍNDICE DE SECCIONES:
+============================================================================
+Sección 1: METADATOS Y CONFIGURACIÓN (HEAD) se encuentra en las líneas 28 a 38
+Sección 2: BARRA SUPERIOR se encuentra en las líneas 41 a 55
+Sección 3: ÁREA DE TERMINAL se encuentra en las líneas 57 a 59
+Sección 4: INPUT DE COMANDOS se encuentra en las líneas 61 a 66
+Sección 5: SCRIPTS se encuentra en las líneas 68 a 69
+============================================================================
+-->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- ===== SECCIÓN: METADATOS Y CONFIGURACIÓN ===== -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="screen-orientation" content="portrait" />
+    <meta name="orientation" content="portrait" />
+    <title>ESP32 Retro Terminal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ===== SECCIÓN: BARRA SUPERIOR ===== -->
+    <div class="top-bar">
+        <!-- Título de la aplicación -->
+        <div class="bar-left">ESP32 RETRO TERMINAL</div>
+        
+        <!-- Información en tiempo real: reloj y temperatura -->
+        <div class="bar-center">
+            <span id="clock">00:00:00</span>
+            <span>|</span>
+            <span id="tempDisplay">Temp: --°C</span>
+        </div>
+        
+        <!-- Botones de navegación y logout -->
+        <div class="bar-right">
+            <button class="dashboard-btn" onclick="goToDashboard()">← Dashboard</button>
+            <button class="logout-btn" onclick="doLogout()">LOGOUT</button>
+        </div>
+    </div>
+    
+    <!-- ===== SECCIÓN: ÁREA DE TERMINAL ===== -->
+    <!-- Aquí se muestran los mensajes y respuestas de comandos -->
+    <div id="term"></div>
+    
+    <!-- ===== SECCIÓN: INPUT DE COMANDOS ===== -->
+    <!-- Línea de entrada donde el usuario escribe comandos -->
+    <div class="input-container">
+        <span class="prompt">root@esp32:~$ </span>
+        <input id="inputLine" autocomplete="off" autofocus />
+    </div>
+    
+    <!-- ===== SECCIÓN: SCRIPTS ===== -->
+    <script src="script.js"></script>
+</body>
+</html>

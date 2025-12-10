@@ -7,7 +7,7 @@
  * Este es el punto de entrada principal de la aplicación ESP32. Se encarga de
  * inicializar todos los componentes del sistema en el orden correcto:
  * - Sistema de almacenamiento no volátil (NVS) para WiFi
- * - Controladores de hardware (GPIO para LEDs, sensor NTC de temperatura)
+ * - Controladores de hardware (LED RGB, sensor NTC de temperatura)
  * - Configuración de WiFi en modo SoftAP (Access Point)
  * - Servidor web HTTP para la interfaz de usuario
  * 
@@ -35,9 +35,9 @@
 
 // Headers locales (ordenados alfabéticamente)
 #include "fan_control.h"
-#include "gpio_driver.h"
 #include "ntc_sensor.h"
 #include "pir_driver.h"
+#include "rgb_led.h"
 #include "time_sync.h"
 #include "web_server.h"
 #include "wifi_app.h"
@@ -52,7 +52,7 @@ static const char *TAG = "MAIN";
  * 
  * Orden de inicialización:
  * 1. NVS (almacenamiento no volátil para configuración WiFi)
- * 2. Hardware (GPIO para LEDs y sensor NTC de temperatura)
+ * 2. Hardware (LED RGB y sensor NTC de temperatura)
  * 3. WiFi (configuración como Access Point)
  * 4. Servidor Web (HTTP con SPIFFS y rutas)
  */
@@ -70,9 +70,9 @@ void app_main(void) {
     ESP_ERROR_CHECK(ret);
 
     // ===== SECCIÓN 2: INICIALIZACIÓN DE HARDWARE =====
-    // Configurar GPIO para control de LEDs (amarillo y azul)
-    if (!gpio_init_leds()) {
-        ESP_LOGE(TAG, "Error crítico al inicializar GPIO LEDs");
+    // Inicializar LED RGB verde (GPIO 27, PWM mediante LEDC)
+    if (!rgb_led_init()) {
+        ESP_LOGE(TAG, "Error crítico al inicializar LED RGB");
         // Continuar ejecución aunque falle (puede ser problema de hardware)
     }
     
@@ -111,39 +111,22 @@ void app_main(void) {
     // - Se conecta a la red WiFi "Mndongo" para tener Internet
     wifi_init_softap(); 
     
-    // Esperar a que el ESP32 se conecte a la red WiFi externa para tener Internet
-    // Esto es necesario para sincronizar la hora con NTP
+    // Esperar conexión WiFi para sincronizar hora
     ESP_LOGI(TAG, "Esperando conexión a Internet...");
-    int wifi_retry = 0;
-    const int max_wifi_retries = 30; // Esperar hasta 30 segundos (30 * 1 segundo)
-    while (!wifi_is_connected() && wifi_retry < max_wifi_retries) {
-        vTaskDelay(pdMS_TO_TICKS(1000)); // Esperar 1 segundo
-        wifi_retry++;
-        if (wifi_retry % 5 == 0) {
-            ESP_LOGI(TAG, "Esperando conexión WiFi... (%d/%d)", wifi_retry, max_wifi_retries);
-        }
+    for (int retry = 0; retry < 30 && !wifi_is_connected(); retry++) {
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        if (retry % 5 == 4) ESP_LOGI(TAG, "Esperando conexión WiFi... (%d/30)", retry + 1);
     }
     
     if (wifi_is_connected()) {
         ESP_LOGI(TAG, "✓ Conectado a Internet, sincronizando hora...");
-        // Inicializar sincronización de tiempo (SNTP)
-        // Necesario para el sistema de horarios basado en registros
-        time_sync_init();
     } else {
-        ESP_LOGW(TAG, "⚠ No se pudo conectar a Internet después de %d segundos", max_wifi_retries);
-        ESP_LOGW(TAG, "⚠ Intentando sincronizar hora de todas formas...");
-        time_sync_init();
+        ESP_LOGW(TAG, "⚠ No se pudo conectar, intentando sincronizar hora de todas formas...");
     }
+    time_sync_init();
     
-    // Si SNTP no pudo sincronizar y no se restauró desde NVS,
-    // establecer una hora manual por defecto para que el sistema funcione
-    // NOTA: Esta hora por defecto solo se usa si no hay hora guardada en NVS
     if (!hora_sincronizada()) {
-        ESP_LOGW(TAG, "SNTP no sincronizó y no hay hora guardada en NVS.");
-        ESP_LOGW(TAG, "Estableciendo hora manual por defecto (lunes 12:00).");
-        ESP_LOGW(TAG, "IMPORTANTE: Ajusta la hora manualmente desde la página web.");
-        // Establecer hora por defecto solo si no hay hora guardada
-        // Esta hora se guardará en NVS y se restaurará en el próximo reinicio
+        ESP_LOGW(TAG, "SNTP no sincronizó. Estableciendo hora por defecto (lunes 12:00).");
         establecer_hora_manual(2024, 12, 9, 12, 0, 0);
     }
 

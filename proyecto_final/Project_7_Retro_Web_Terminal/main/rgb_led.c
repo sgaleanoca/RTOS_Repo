@@ -128,19 +128,15 @@ void rgb_set_green_percent(uint8_t percent)
     }
     
     // Convertir porcentaje a valor PWM (0-255)
-    // Usar multiplicación de 32 bits para evitar overflow
     uint32_t duty = ((uint32_t)percent * 255) / 100;
     
     // Actualizar PWM del LED
     esp_err_t err = ledc_set_duty(LEDC_MODE, LEDC_CHANNEL_G, duty);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Error estableciendo duty cycle: %s (0x%x)", esp_err_to_name(err), err);
-        return;
+    if (err == ESP_OK) {
+        err = ledc_update_duty(LEDC_MODE, LEDC_CHANNEL_G);
     }
-    
-    err = ledc_update_duty(LEDC_MODE, LEDC_CHANNEL_G);
     if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Error actualizando duty cycle: %s (0x%x)", esp_err_to_name(err), err);
+        ESP_LOGE(TAG, "Error actualizando PWM: %s (0x%x)", esp_err_to_name(err), err);
         return;
     }
     

@@ -87,10 +87,10 @@ typedef struct {
  * @param cmd: Estructura con el comando a procesar (se modifica in-place con la respuesta)
  * 
  * Comandos soportados:
- * - led y on/off : Control LED amarillo
- * - led b on/off : Control LED azul
- * - led all on/off : Control ambos LEDs
- * - status : Estado de los LEDs
+ * - led on : Enciende el LED RGB verde (100% brillo)
+ * - led off : Apaga el LED RGB verde (0% brillo)
+ * - led <0-100> : Establece el brillo del LED RGB verde (0-100%)
+ * - status : Estado del LED RGB verde
  * - help : Lista de comandos disponibles
  * - clear : Limpiar pantalla (manejado en frontend)
  */

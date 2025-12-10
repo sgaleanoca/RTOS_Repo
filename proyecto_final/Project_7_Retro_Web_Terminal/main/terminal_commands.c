@@ -84,7 +84,7 @@
 // ===== INCLUDES =====
 // Headers locales
 #include "terminal_commands.h"
-#include "gpio_driver.h"
+#include "rgb_led.h"
 
 // ESP-IDF
 #include <esp_log.h>
@@ -96,6 +96,7 @@
 
 // Estándar C
 #include <string.h>
+#include <stdlib.h>
 
 // ===== DEFINICIONES Y CONSTANTES =====
 static const char *TAG = "TERMINAL_CMD";
@@ -114,61 +115,43 @@ typedef struct {
  * @param cmd: Estructura con el comando a procesar (se modifica in-place con la respuesta)
  * 
  * Comandos soportados:
- * - led y on/off : Control LED amarillo
- * - led b on/off : Control LED azul
- * - led all on/off : Control ambos LEDs
- * - status : Estado de los LEDs
+ * - led on : Enciende el LED RGB verde (100% brillo)
+ * - led off : Apaga el LED RGB verde (0% brillo)
+ * - led <0-100> : Establece el brillo del LED RGB verde (0-100%)
+ * - status : Estado del LED RGB verde
  * - help : Lista de comandos disponibles
  * - clear : Limpiar pantalla (manejado en frontend)
  */
 void process_terminal_command(gpio_command_t *cmd) {
-    if (cmd == NULL) {
+    if (!cmd) {
         ESP_LOGE(TAG, "Comando NULL recibido");
         return;
     }
     
-    // Procesar comando (mantener el command_id para la respuesta)
-    if (strcmp(cmd->command, "led y on") == 0) {
-        gpio_set_yellow(true);
-        strcpy(cmd->response, "[OK] LED amarillo encendido.");
-    } else if (strcmp(cmd->command, "led y off") == 0) {
-        gpio_set_yellow(false);
-        strcpy(cmd->response, "[OK] LED amarillo apagado.");
-    } else if (strcmp(cmd->command, "led b on") == 0) {
-        gpio_set_blue(true);
-        strcpy(cmd->response, "[OK] LED azul encendido.");
-    } else if (strcmp(cmd->command, "led b off") == 0) {
-        gpio_set_blue(false);
-        strcpy(cmd->response, "[OK] LED azul apagado.");
-    } else if (strcmp(cmd->command, "led all on") == 0) {
-        gpio_set_yellow(true);
-        gpio_set_blue(true);
-        strcpy(cmd->response, "[OK] Ambos LEDs encendidos.");
-    } else if (strcmp(cmd->command, "led all off") == 0) {
-        gpio_set_yellow(false);
-        gpio_set_blue(false);
-        strcpy(cmd->response, "[OK] Ambos LEDs apagados.");
+    // Comando "led <número>" para establecer brillo (0-100)
+    if (strncmp(cmd->command, "led ", 4) == 0) {
+        int brightness = atoi(cmd->command + 4);
+        if (brightness >= 0 && brightness <= 100) {
+            rgb_set_green_percent((uint8_t)brightness);
+            snprintf(cmd->response, sizeof(cmd->response), 
+                     "[OK] LED RGB verde establecido a %d%% de brillo.", brightness);
+        } else {
+            strcpy(cmd->response, "[ERROR] El brillo debe estar entre 0 y 100.");
+        }
+        return;
+    }
+    
+    // Comandos simples
+    if (strcmp(cmd->command, "led on") == 0) {
+        rgb_set_green_percent(100);
+        strcpy(cmd->response, "[OK] LED RGB verde encendido (100%).");
+    } else if (strcmp(cmd->command, "led off") == 0) {
+        rgb_set_green_percent(0);
+        strcpy(cmd->response, "[OK] LED RGB verde apagado.");
     } else if (strcmp(cmd->command, "status") == 0) {
-        const char *estadoAmarillo = gpio_get_yellow() ? "ON" : "OFF";
-        const char *estadoAzul = gpio_get_blue() ? "ON" : "OFF";
-        snprintf(cmd->response, sizeof(cmd->response), 
-                 "Estado de los LEDs:\n  - Amarillo: %s\n  - Azul:     %s",
-                 estadoAmarillo, estadoAzul);
+        strcpy(cmd->response, "Estado del LED RGB:\n  - LED Verde: Configurado (GPIO 27, PWM)\n  - Control: Disponible mediante comandos 'led on/off/<0-100>'");
     } else if (strcmp(cmd->command, "help") == 0) {
-        strcpy(cmd->response, 
-               "Comandos disponibles:\n\n"
-               "  --- Control Individual ---\n"
-               "  led y on          - Enciende el LED amarillo.\n"
-               "  led y off         - Apaga el LED amarillo.\n"
-               "  led b on          - Enciende el LED azul.\n"
-               "  led b off         - Apaga el LED azul.\n\n"
-               "  --- Control General ---\n"
-               "  led all on        - Enciende ambos LEDs.\n"
-               "  led all off       - Apaga ambos LEDs.\n\n"
-               "  --- Sistema ---\n"
-               "  status            - Muestra el estado de los LEDs.\n"
-               "  help              - Muestra esta lista.\n"
-               "  clear             - Limpia la pantalla.");
+        strcpy(cmd->response, "Comandos disponibles:\n\n  --- Control de LED RGB ---\n  led on             - Enciende el LED RGB verde (100% brillo).\n  led off            - Apaga el LED RGB verde.\n  led <0-100>        - Establece el brillo del LED (0-100%).\n                      Ejemplo: 'led 50' establece 50% de brillo.\n\n  --- Sistema ---\n  status             - Muestra el estado del LED RGB.\n  help               - Muestra esta lista.\n  clear              - Limpia la pantalla.");
     } else {
         snprintf(cmd->response, sizeof(cmd->response), 
                  "[?] Comando no reconocido: '%s'. Escribe 'help' para ver la lista.", cmd->command);

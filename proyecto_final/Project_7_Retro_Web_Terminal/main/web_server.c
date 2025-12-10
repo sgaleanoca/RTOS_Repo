@@ -23,7 +23,7 @@
  * 4. Procesamiento de comandos:
  *    - Sistema de colas para comandos GPIO (thread-safe)
  *    - Tarea dedicada para procesar comandos
- *    - Soporte para comandos: led y on/off, led b on/off, status, help, clear
+ *    - Soporte para comandos: led on/off/<0-100>, status, help, clear
  * 
  * 5. Gestión de temperatura:
  *    - Endpoint JSON para obtener temperatura actual
@@ -137,7 +137,7 @@
 // ===== INCLUDES =====
 // Headers locales
 #include "web_server.h"
-#include "gpio_driver.h"
+#include "rgb_led.h"
 #include "ntc_sensor.h"
 #include "registros.h"
 #include "time_sync.h"
@@ -184,6 +184,49 @@ static const char *TAG = "WEB_SERVER";
 #define GPIO_QUEUE_SIZE 10                // Tamaño de las colas de comandos
 #define CMD_RESPONSE_TIMEOUT_MS 500       // Timeout para recibir respuesta de comando
 #define CMD_RESPONSE_MAX_ATTEMPTS 10      // Intentos máximos para recibir respuesta
+
+// ===== MACROS HELPER =====
+// Macro para verificar errores ESP_OK y retornar si falla
+#define CHECK_ESP_OK(err, msg) do { \
+    if ((err) != ESP_OK) { \
+        ESP_LOGE(TAG, "%s: %s (0x%x)", (msg), esp_err_to_name(err), (err)); \
+        return ESP_FAIL; \
+    } \
+} while(0)
+
+// Macro para verificar autenticación y retornar 401 si falla
+#define CHECK_AUTH(ctx, req) do { \
+    if (!is_authenticated((ctx), (req))) { \
+        httpd_resp_set_status((req), "401 Unauthorized"); \
+        httpd_resp_send((req), "Unauthorized", HTTPD_RESP_USE_STRLEN); \
+        return ESP_OK; \
+    } \
+} while(0)
+
+// Macro para respuesta JSON con headers de no-cache (para cadenas dinámicas)
+#define SEND_JSON_RESPONSE_STR(req, json_str) do { \
+    httpd_resp_set_type((req), "application/json"); \
+    httpd_resp_set_hdr((req), "Cache-Control", "no-cache, no-store, must-revalidate"); \
+    httpd_resp_set_hdr((req), "Pragma", "no-cache"); \
+    httpd_resp_set_hdr((req), "Expires", "0"); \
+    httpd_resp_sendstr((req), (json_str)); \
+} while(0)
+
+// Macro para respuesta JSON con headers de no-cache (para buffers locales)
+#define SEND_JSON_RESPONSE(req, json_buf) do { \
+    httpd_resp_set_type((req), "application/json"); \
+    httpd_resp_set_hdr((req), "Cache-Control", "no-cache, no-store, must-revalidate"); \
+    httpd_resp_set_hdr((req), "Pragma", "no-cache"); \
+    httpd_resp_set_hdr((req), "Expires", "0"); \
+    httpd_resp_send((req), (json_buf), strlen((json_buf))); \
+} while(0)
+
+// Macro para redirección
+#define REDIRECT(req, location) do { \
+    httpd_resp_set_hdr((req), "Location", (location)); \
+    httpd_resp_set_status((req), "302 Found"); \
+    httpd_resp_send((req), NULL, 0); \
+} while(0)
 
 // ===== ESTRUCTURAS DE DATOS =====
 // Nota: gpio_command_t está definido en terminal_commands.h
@@ -339,10 +382,9 @@ static void session_management_task(void *pvParameters) {
                     (now - ctx->sessions[i].last_activity > SESSION_TIMEOUT_MS)) {
                     // Expirar la sesión
                     ctx->sessions[i].authenticated = false;
-                    // Apagar LEDs por seguridad cuando la sesión expira
-                    gpio_set_yellow(false);
-                    gpio_set_blue(false);
-                    ESP_LOGI(TAG, "Sesión expirada para IP %s. LEDs apagados.", ctx->sessions[i].ip);
+                    // Apagar LED RGB por seguridad cuando la sesión expira
+                    rgb_set_green_percent(0);
+                    ESP_LOGI(TAG, "Sesión expirada para IP %s. LED RGB apagado.", ctx->sessions[i].ip);
                 }
             }
             // Liberar el mutex después de terminar las operaciones
@@ -477,9 +519,8 @@ static bool is_authenticated(webserver_context_t *ctx, httpd_req_t *req) {
             int64_t now = get_time_ms();
             if (now - session->last_activity > SESSION_TIMEOUT_MS) {
                 session->authenticated = false;
-                gpio_set_yellow(false);
-                gpio_set_blue(false);
-                ESP_LOGI(TAG, "Sesión expirada para IP %s. LEDs apagados.", ip);
+                rgb_set_green_percent(0);
+                ESP_LOGI(TAG, "Sesión expirada para IP %s. LED RGB apagado.", ip);
                 authenticated = false;
             } else {
                 session->last_activity = now;
@@ -543,26 +584,20 @@ esp_err_t send_file_from_spiffs(httpd_req_t *req, const char *filepath, const ch
 static esp_err_t root_get_handler(httpd_req_t *req) {
     webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
     ESP_LOGI(TAG, "GET / - URI: %s", req->uri);
-    esp_err_t ret;
+    
     if (is_authenticated(ctx, req)) {
-        // Redirigir al dashboard si está autenticado
         ESP_LOGI(TAG, "Usuario autenticado, redirigiendo a /dashboard");
-        httpd_resp_set_hdr(req, "Location", "/dashboard");
-        httpd_resp_set_status(req, "302 Found");
-        httpd_resp_send(req, NULL, 0);
+        REDIRECT(req, "/dashboard");
         return ESP_OK;
-    } else {
-        ESP_LOGI(TAG, "Usuario no autenticado, sirviendo login.html");
-        ret = send_file_from_spiffs(req, "/spiffs/login.html", "text/html");
     }
     
+    ESP_LOGI(TAG, "Usuario no autenticado, sirviendo login.html");
+    esp_err_t ret = send_file_from_spiffs(req, "/spiffs/login.html", "text/html");
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "Error al servir archivo HTML desde SPIFFS");
-        // Enviar una respuesta de error básica
         httpd_resp_set_type(req, "text/html");
         httpd_resp_send(req, "<html><body><h1>Error: No se pudo cargar la página</h1></body></html>", HTTPD_RESP_USE_STRLEN);
     }
-    
     return ret;
 }
 
@@ -573,12 +608,7 @@ static esp_err_t root_get_handler(httpd_req_t *req) {
 static esp_err_t dashboard_get_handler(httpd_req_t *req) {
     webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
     ESP_LOGI(TAG, "GET /dashboard");
-    if (!is_authenticated(ctx, req)) {
-        httpd_resp_set_hdr(req, "Location", "/");
-        httpd_resp_set_status(req, "302 Found");
-        httpd_resp_send(req, NULL, 0);
-        return ESP_OK;
-    }
+    CHECK_AUTH(ctx, req);
     return send_file_from_spiffs(req, "/spiffs/dashboard.html", "text/html");
 }
 
@@ -589,12 +619,7 @@ static esp_err_t dashboard_get_handler(httpd_req_t *req) {
 static esp_err_t terminal_get_handler(httpd_req_t *req) {
     webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
     ESP_LOGI(TAG, "GET /terminal");
-    if (!is_authenticated(ctx, req)) {
-        httpd_resp_set_hdr(req, "Location", "/");
-        httpd_resp_set_status(req, "302 Found");
-        httpd_resp_send(req, NULL, 0);
-        return ESP_OK;
-    }
+    CHECK_AUTH(ctx, req);
     return send_file_from_spiffs(req, "/spiffs/terminal.html", "text/html");
 }
 
@@ -606,9 +631,7 @@ static esp_err_t slider_get_handler(httpd_req_t *req) {
     webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
     ESP_LOGI(TAG, "GET /slider");
     if (!is_authenticated(ctx, req)) {
-        httpd_resp_set_hdr(req, "Location", "/");
-        httpd_resp_set_status(req, "302 Found");
-        httpd_resp_send(req, NULL, 0);
+        REDIRECT(req, "/");
         return ESP_OK;
     }
     return send_file_from_spiffs(req, "/spiffs/slider.html", "text/html");
@@ -657,18 +680,11 @@ static esp_err_t favicon_get_handler(httpd_req_t *req) {
  */
 static esp_err_t registros_get_handler(httpd_req_t *req) {
     webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
-    if (!is_authenticated(ctx, req)) {
-        httpd_resp_set_status(req, "401 Unauthorized");
-        httpd_resp_send(req, "Unauthorized", HTTPD_RESP_USE_STRLEN);
-        return ESP_OK;
-    }
+    CHECK_AUTH(ctx, req);
     
-    // Leer registros desde SPIFFS usando el módulo registros.c
     char *json = leer_registros_json();
-    httpd_resp_set_type(req, "application/json");
-    httpd_resp_sendstr(req, json);
+    SEND_JSON_RESPONSE_STR(req, json);
     free(json);
-    
     return ESP_OK;
 }
 
@@ -682,11 +698,7 @@ static esp_err_t registros_get_handler(httpd_req_t *req) {
  */
 static esp_err_t registros_post_handler(httpd_req_t *req) {
     webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
-    if (!is_authenticated(ctx, req)) {
-        httpd_resp_set_status(req, "401 Unauthorized");
-        httpd_resp_send(req, "Unauthorized", HTTPD_RESP_USE_STRLEN);
-        return ESP_OK;
-    }
+    CHECK_AUTH(ctx, req);
     
     char buf[256];
     int len = httpd_req_recv(req, buf, sizeof(buf) - 1);
@@ -718,22 +730,16 @@ static esp_err_t registros_post_handler(httpd_req_t *req) {
         return ESP_FAIL;
     }
     
-    const char *dia = dia_item->valuestring;
-    const char *hora = hora_item->valuestring;
-    int velocidad = velocidad_item->valueint;
-    
-    // Guardar registro en SPIFFS usando el módulo registros.c
-    bool ok = agregar_registro(dia, hora, velocidad);
+    bool ok = agregar_registro(dia_item->valuestring, hora_item->valuestring, velocidad_item->valueint);
     cJSON_Delete(root);
     
     if (ok) {
         httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
         return ESP_OK;
-    } else {
-        httpd_resp_set_status(req, "500 Internal Server Error");
-        httpd_resp_send(req, "Error guardando registro", HTTPD_RESP_USE_STRLEN);
-        return ESP_FAIL;
     }
+    httpd_resp_set_status(req, "500 Internal Server Error");
+    httpd_resp_send(req, "Error guardando registro", HTTPD_RESP_USE_STRLEN);
+    return ESP_FAIL;
 }
 
 /**
@@ -744,45 +750,22 @@ static esp_err_t registros_post_handler(httpd_req_t *req) {
  */
 static esp_err_t temperature_get_handler(httpd_req_t *req) {
     webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
-    if (!is_authenticated(ctx, req)) {
-        httpd_resp_set_status(req, "401 Unauthorized");
-        httpd_resp_send(req, "Unauthorized", HTTPD_RESP_USE_STRLEN);
-        return ESP_OK;
-    }
+    CHECK_AUTH(ctx, req);
     
-    // Obtener la temperatura actual almacenada por la tarea
     ntc_data_t temp_data = ntc_get_current_temperature();
     char response[128];
-    int len;
     
-    // Enviar la temperatura si es válida (no es -999.0)
     if (temp_data.temperature_c < -900.0 || isnan(temp_data.temperature_c) || !isfinite(temp_data.temperature_c)) {
-        // Error en la lectura o datos no disponibles aún
-        len = snprintf(response, sizeof(response), "{\"error\":\"No data available\"}");
+        snprintf(response, sizeof(response), "{\"error\":\"No data available\"}");
     } else {
-        // Enviar la temperatura siempre que sea un número válido
-        // Usar formato más explícito para asegurar que sea JSON válido
-        len = snprintf(response, sizeof(response), "{\"temperature\":%.1f}", temp_data.temperature_c);
-        
-        // Verificar que el JSON se formateó correctamente
-        if (len >= sizeof(response)) {
+        int len = snprintf(response, sizeof(response), "{\"temperature\":%.1f}", temp_data.temperature_c);
+        if (len >= (int)sizeof(response)) {
             ESP_LOGE(TAG, "Buffer de respuesta demasiado pequeño!");
-            len = snprintf(response, sizeof(response), "{\"error\":\"Buffer overflow\"}");
+            snprintf(response, sizeof(response), "{\"error\":\"Buffer overflow\"}");
         }
     }
     
-    // Configurar headers antes de enviar
-    httpd_resp_set_type(req, "application/json");
-    httpd_resp_set_hdr(req, "Cache-Control", "no-cache, no-store, must-revalidate");
-    httpd_resp_set_hdr(req, "Pragma", "no-cache");
-    httpd_resp_set_hdr(req, "Expires", "0");
-    
-    esp_err_t ret = httpd_resp_send(req, response, len);
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Error al enviar respuesta de temperatura: %s", esp_err_to_name(ret));
-        return ret;
-    }
-    
+    SEND_JSON_RESPONSE(req, response);
     return ESP_OK;
 }
 
@@ -794,11 +777,7 @@ static esp_err_t temperature_get_handler(httpd_req_t *req) {
  */
 static esp_err_t fan_mode_post_handler(httpd_req_t *req) {
     webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
-    if (!is_authenticated(ctx, req)) {
-        httpd_resp_set_status(req, "401 Unauthorized");
-        httpd_resp_send(req, "Unauthorized", HTTPD_RESP_USE_STRLEN);
-        return ESP_OK;
-    }
+    CHECK_AUTH(ctx, req);
     
     char buf[128];
     int len = httpd_req_recv(req, buf, sizeof(buf) - 1);
@@ -826,18 +805,27 @@ static esp_err_t fan_mode_post_handler(httpd_req_t *req) {
         return ESP_FAIL;
     }
     
-    const char *mode_str = mode_item->valuestring;
-    fan_mode_t mode;
+    static const struct {
+        const char *str;
+        fan_mode_t mode;
+    } mode_map[] = {
+        {"off", FAN_MODE_OFF}, {"manual", FAN_MODE_MANUAL},
+        {"temperature", FAN_MODE_AUTO_TEMP}, {"schedule", FAN_MODE_SCHEDULE}
+    };
     
-    if (strcmp(mode_str, "off") == 0) {
-        mode = FAN_MODE_OFF;
-    } else if (strcmp(mode_str, "manual") == 0) {
-        mode = FAN_MODE_MANUAL;
-    } else if (strcmp(mode_str, "temperature") == 0) {
-        mode = FAN_MODE_AUTO_TEMP;
-    } else if (strcmp(mode_str, "schedule") == 0) {
-        mode = FAN_MODE_SCHEDULE;
-    } else {
+    const char *mode_str = mode_item->valuestring;
+    fan_mode_t mode = FAN_MODE_OFF;
+    bool found = false;
+    
+    for (size_t i = 0; i < sizeof(mode_map) / sizeof(mode_map[0]); i++) {
+        if (strcmp(mode_str, mode_map[i].str) == 0) {
+            mode = mode_map[i].mode;
+            found = true;
+            break;
+        }
+    }
+    
+    if (!found) {
         ESP_LOGE(TAG, "Modo inválido: %s", mode_str);
         cJSON_Delete(root);
         httpd_resp_set_status(req, "400 Bad Request");
@@ -862,11 +850,7 @@ static esp_err_t fan_mode_post_handler(httpd_req_t *req) {
  */
 static esp_err_t fan_manual_post_handler(httpd_req_t *req) {
     webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
-    if (!is_authenticated(ctx, req)) {
-        httpd_resp_set_status(req, "401 Unauthorized");
-        httpd_resp_send(req, "Unauthorized", HTTPD_RESP_USE_STRLEN);
-        return ESP_OK;
-    }
+    CHECK_AUTH(ctx, req);
     
     char buf[128];
     int len = httpd_req_recv(req, buf, sizeof(buf) - 1);
@@ -921,40 +905,15 @@ static esp_err_t fan_manual_post_handler(httpd_req_t *req) {
  */
 static esp_err_t fan_status_get_handler(httpd_req_t *req) {
     webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
-    if (!is_authenticated(ctx, req)) {
-        httpd_resp_set_status(req, "401 Unauthorized");
-        httpd_resp_send(req, "Unauthorized", HTTPD_RESP_USE_STRLEN);
-        return ESP_OK;
-    }
+    CHECK_AUTH(ctx, req);
     
+    static const char* const mode_strs[] = {"off", "manual", "temperature", "schedule"};
     fan_mode_t mode = fan_get_mode();
-    uint8_t percent = fan_get_current_percent();
-    
-    const char *mode_str;
-    switch (mode) {
-        case FAN_MODE_OFF:
-            mode_str = "off";
-            break;
-        case FAN_MODE_MANUAL:
-            mode_str = "manual";
-            break;
-        case FAN_MODE_AUTO_TEMP:
-            mode_str = "temperature";
-            break;
-        case FAN_MODE_SCHEDULE:
-            mode_str = "schedule";
-            break;
-        default:
-            mode_str = "unknown";
-            break;
-    }
+    const char *mode_str = (mode >= 0 && mode < 4) ? mode_strs[mode] : "unknown";
     
     char response[128];
-    int len = snprintf(response, sizeof(response), "{\"mode\":\"%s\",\"percent\":%d}", mode_str, percent);
-    
-    httpd_resp_set_type(req, "application/json");
-    httpd_resp_send(req, response, len);
-    
+    snprintf(response, sizeof(response), "{\"mode\":\"%s\",\"percent\":%d}", mode_str, fan_get_current_percent());
+    SEND_JSON_RESPONSE(req, response);
     return ESP_OK;
 }
 
@@ -966,39 +925,16 @@ static esp_err_t fan_status_get_handler(httpd_req_t *req) {
  */
 static esp_err_t pir_status_get_handler(httpd_req_t *req) {
     webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
-    if (!is_authenticated(ctx, req)) {
-        httpd_resp_set_status(req, "401 Unauthorized");
-        httpd_resp_send(req, "Unauthorized", HTTPD_RESP_USE_STRLEN);
-        return ESP_OK;
-    }
+    CHECK_AUTH(ctx, req);
     
     // Leer el estado del PIR de forma segura
     // pir_is_motion_active() retorna false si el PIR no está inicializado
     // Esto es seguro y siempre retorna un valor válido (false si no está inicializado)
     bool motion_detected = pir_is_motion_active();
     
-    // Preparar respuesta JSON
     char response[64];
-    int len = snprintf(response, sizeof(response), "{\"motion\":%s}", motion_detected ? "true" : "false");
-    
-    // Verificar que el buffer sea suficiente y que la operación fue exitosa
-    if (len < 0 || len >= (int)sizeof(response)) {
-        ESP_LOGE(TAG, "Error formateando respuesta PIR (len=%d, size=%zu)", len, sizeof(response));
-        // En caso de error, devolver un JSON válido con motion=false
-        len = snprintf(response, sizeof(response), "{\"motion\":false}");
-        if (len < 0 || len >= (int)sizeof(response)) {
-            // Si aún falla, usar respuesta hardcodeada
-            const char *fallback = "{\"motion\":false}";
-            httpd_resp_set_type(req, "application/json");
-            httpd_resp_send(req, fallback, HTTPD_RESP_USE_STRLEN);
-            return ESP_OK;
-        }
-    }
-    
-    httpd_resp_set_type(req, "application/json");
-    httpd_resp_set_hdr(req, "Cache-Control", "no-cache, no-store, must-revalidate");
-    httpd_resp_send(req, response, len);
-    
+    snprintf(response, sizeof(response), "{\"motion\":%s}", motion_detected ? "true" : "false");
+    SEND_JSON_RESPONSE(req, response);
     return ESP_OK;
 }
 
@@ -1246,10 +1182,9 @@ static esp_err_t logout_get_handler(httpd_req_t *req) {
         }
     }
     
-    gpio_set_yellow(false);
-    gpio_set_blue(false);
+    rgb_set_green_percent(0);
     
-    ESP_LOGI(TAG, "Logout desde IP: %s. LEDs apagados.", ip);
+    ESP_LOGI(TAG, "Logout desde IP: %s. LED RGB apagado.", ip);
     
     httpd_resp_set_hdr(req, "Location", "/");
     httpd_resp_set_status(req, "302 Found");
@@ -1265,11 +1200,7 @@ static esp_err_t logout_get_handler(httpd_req_t *req) {
  */
 static esp_err_t fan_diagnostic_get_handler(httpd_req_t *req) {
     webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
-    if (!is_authenticated(ctx, req)) {
-        httpd_resp_set_status(req, "401 Unauthorized");
-        httpd_resp_send(req, "Unauthorized", HTTPD_RESP_USE_STRLEN);
-        return ESP_OK;
-    }
+    CHECK_AUTH(ctx, req);
     
     cJSON *root = cJSON_CreateObject();
     
@@ -1366,11 +1297,7 @@ static esp_err_t fan_diagnostic_get_handler(httpd_req_t *req) {
  */
 static esp_err_t time_set_post_handler(httpd_req_t *req) {
     webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
-    if (!is_authenticated(ctx, req)) {
-        httpd_resp_set_status(req, "401 Unauthorized");
-        httpd_resp_send(req, "Unauthorized", HTTPD_RESP_USE_STRLEN);
-        return ESP_OK;
-    }
+    CHECK_AUTH(ctx, req);
     
     char buf[256];
     int len = httpd_req_recv(req, buf, sizeof(buf) - 1);

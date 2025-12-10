@@ -1,5 +1,4 @@
 idf_component_register(SRCS "main.c"
-                       "gpio_driver.c"
                        "ntc_sensor.c"
                        "registros.c"
                        "terminal_commands.c"

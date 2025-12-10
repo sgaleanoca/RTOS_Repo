@@ -1,4 +1,43 @@
 /**
+ * @file script.js
+ * @brief Script principal del frontend - Gestión completa del cliente web
+ * @author Proyecto Final RTOS
+ * @date 2024
+ * 
+ * @details Script principal del frontend que gestiona toda la funcionalidad del cliente.
+ * Este archivo contiene:
+ * 
+ * @subsection orientation Gestión de orientación móvil
+ * - Fuerza orientación vertical en dispositivos móviles
+ * - Detecta cambios de orientación y los corrige
+ * 
+ * @subsection auth Sistema de autenticación
+ * - Manejo del formulario de login
+ * - Envío de credenciales al servidor
+ * - Redirección según resultado
+ * 
+ * @subsection terminal Terminal web retro
+ * - Interfaz de terminal con prompt
+ * - Historial de comandos (flechas arriba/abajo)
+ * - Autocompletado con TAB
+ * - Envío de comandos al servidor
+ * - Auto-logout por inactividad (3 minutos)
+ * 
+ * @subsection realtime Actualización en tiempo real
+ * - Reloj actualizado cada segundo
+ * - Temperatura actualizada cada segundo desde /temperature
+ * 
+ * @subsection control Panel de control (slider.html)
+ * - Control de ventilador con 4 modos (apagado, horario, temperatura, manual)
+ * - Gestión de horarios programados con almacenamiento persistente
+ * - Control de velocidad con slider
+ * - Monitoreo de temperatura para control automático
+ * - Registros guardados en SPIFFS del ESP32 (persistencia tras reinicio)
+ * 
+ * @subsection navigation Navegación
+ * - Funciones para ir al dashboard
+ * - Funciones de logout/suspender sesión
+ * 
  * ============================================================================
  * ARCHIVO: script.js
  * ============================================================================

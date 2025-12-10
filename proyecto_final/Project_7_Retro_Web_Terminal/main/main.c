@@ -1,4 +1,45 @@
 /**
+ * @file main.c
+ * @brief Punto de entrada principal de la aplicación ESP32 - Terminal Web Retro
+ * @author Proyecto Final RTOS
+ * @date 2024
+ * 
+ * @details Este es el punto de entrada principal de la aplicación ESP32. Se encarga de
+ * inicializar todos los componentes del sistema en el orden correcto:
+ * - Sistema de almacenamiento no volátil (NVS) para WiFi
+ * - Controladores de hardware (LED RGB, sensor NTC de temperatura, sensor PIR, ventilador)
+ * - Configuración de WiFi en modo AP+STA (Access Point + Station)
+ * - Sincronización de tiempo mediante SNTP
+ * - Servidor web HTTP para la interfaz de usuario
+ * 
+ * El sistema crea una red WiFi propia a la que los usuarios pueden conectarse
+ * y acceder a una terminal web retro para controlar LEDs, ventilador y monitorear
+ * temperatura. También se conecta a una red WiFi externa para tener Internet
+ * y sincronizar la hora mediante SNTP.
+ * 
+ * @section architecture Arquitectura del sistema
+ * - Hardware: LED RGB (GPIO 27), Sensor NTC (GPIO 32), Sensor PIR (GPIO 12), Ventilador (GPIO 26)
+ * - Red: WiFi AP+STA (red local + conexión a Internet)
+ * - Servidor: HTTP con SPIFFS para archivos estáticos
+ * - Control: Terminal web, API REST, control automático por temperatura y horarios
+ * 
+ * @section tasks Tareas FreeRTOS
+ * Las tareas se crean en los módulos correspondientes:
+ * - ntc_start_reading_task(): Tarea de lectura periódica del sensor NTC
+ * - fan_start_auto_temp_task(): Tarea de control automático por temperatura
+ * - fan_start_schedule_task(): Tarea de control por horarios (registros)
+ * - start_webserver(): Crea tareas de procesamiento de comandos y gestión de sesiones
+ * 
+ * @section queues Colas FreeRTOS
+ * Las colas se crean en web_server.c:
+ * - gpio_command_queue: Para comandos desde handler HTTP a tarea de procesamiento
+ * - gpio_response_queue: Para respuestas desde tarea de procesamiento a handler HTTP
+ * 
+ * @section mutexes Semáforos FreeRTOS
+ * Los semáforos se crean en web_server.c:
+ * - session_mutex: Protege acceso a sesiones de usuarios
+ * - command_id_mutex: Protege contador de IDs de comandos
+ * 
  * ============================================================================
  * ARCHIVO: main.c
  * ============================================================================
@@ -83,6 +124,16 @@ static const char *TAG = "MAIN";
 
 // ===== FUNCIÓN PRINCIPAL =====
 /**
+ * @brief Función principal de la aplicación ESP32
+ * @details Se ejecuta automáticamente al iniciar el dispositivo. Inicializa todos
+ * los componentes del sistema en el orden correcto.
+ * 
+ * @note Orden de inicialización:
+ * 1. NVS (almacenamiento no volátil para configuración WiFi)
+ * 2. Hardware (LED RGB y sensor NTC de temperatura)
+ * 3. WiFi (configuración como Access Point)
+ * 4. Servidor Web (HTTP con SPIFFS y rutas)
+ * 
  * Función principal de la aplicación ESP32
  * Se ejecuta automáticamente al iniciar el dispositivo
  * 

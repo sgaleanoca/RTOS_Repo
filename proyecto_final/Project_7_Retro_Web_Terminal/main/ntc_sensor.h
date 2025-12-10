@@ -1,4 +1,23 @@
 /**
+ * @file ntc_sensor.h
+ * @brief Driver para sensor de temperatura NTC (Negative Temperature Coefficient)
+ * @author Proyecto Final RTOS
+ * @date 2024
+ * 
+ * @details Header file para el módulo de sensor de temperatura NTC (Negative Temperature
+ * Coefficient). Este módulo gestiona la lectura de temperatura usando un
+ * termistor NTC 10k conectado a través de un divisor de voltaje al ADC del ESP32.
+ * 
+ * @section hardware Hardware
+ * - Sensor: NTC 10k termistor
+ * - Pin: GPIO32 (ADC1 Channel 4)
+ * - Nota: ADC2 no funciona cuando WiFi está activo, por eso usamos ADC1
+ * 
+ * @section features Características
+ * - Lectura periódica en tarea separada de FreeRTOS
+ * - Cálculo de temperatura usando ecuación de Steinhart-Hart
+ * - Protección thread-safe con mutex para acceso a datos
+ * 
  * ============================================================================
  * ARCHIVO: ntc_sensor.h
  * ============================================================================

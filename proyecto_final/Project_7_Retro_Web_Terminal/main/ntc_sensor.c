@@ -1,4 +1,34 @@
 /**
+ * @file ntc_sensor.c
+ * @brief Implementación del driver para sensor de temperatura NTC
+ * @author Proyecto Final RTOS
+ * @date 2024
+ * 
+ * @details Implementación del módulo de sensor de temperatura NTC (Negative Temperature
+ * Coefficient). Este módulo gestiona la lectura de temperatura usando un
+ * termistor NTC 10k conectado a través de un divisor de voltaje al ADC del ESP32.
+ * 
+ * @section functionality Funcionalidades
+ * - Inicializa el ADC1 del ESP32 para leer el voltaje del divisor de voltaje
+ * - Calcula la resistencia del NTC basándose en el valor ADC
+ * - Convierte la resistencia a temperatura usando la ecuación de Steinhart-Hart
+ * - Ejecuta una tarea periódica que lee la temperatura cada segundo
+ * - Proporciona acceso thread-safe a los datos de temperatura mediante mutex
+ * 
+ * @section hardware Hardware
+ * Circuito:
+ * VCC ---[10k Resistor]---[NTC 10k]---GND
+ *                |
+ *              GPIO32 (ADC1_CH4)
+ * 
+ * Nota: ADC2 no funciona cuando WiFi está activo, por eso usamos ADC1
+ * 
+ * @section features Características
+ * - Calibración del ADC para lecturas más precisas (curve fitting o line fitting)
+ * - Validación de rangos de ADC y resistencia
+ * - Protección thread-safe con mutex para acceso concurrente
+ * - Tarea independiente para lectura periódica (cada 1 segundo)
+ * 
  * ============================================================================
  * ARCHIVO: ntc_sensor.c
  * ============================================================================

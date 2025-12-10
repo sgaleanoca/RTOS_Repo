@@ -1,4 +1,20 @@
 /**
+ * @file time_sync.h
+ * @brief Sincronización de tiempo mediante SNTP
+ * @author Proyecto Final RTOS
+ * @date 2024
+ * 
+ * @details Header file para la sincronización de tiempo usando SNTP (Simple Network
+ * Time Protocol). Este módulo permite obtener la hora y fecha actual del
+ * sistema, necesaria para el sistema de horarios del ventilador.
+ * 
+ * @section features Funcionalidades
+ * - Sincronización automática con servidores NTP
+ * - Configuración de zona horaria para Colombia (UTC-5)
+ * - Persistencia de hora en NVS para restaurar después de reinicio
+ * - Establecimiento manual de hora cuando SNTP no está disponible
+ * - Obtención de día de la semana y hora actual en formato español
+ * 
  * ============================================================================
  * ARCHIVO: time_sync.h
  * ============================================================================

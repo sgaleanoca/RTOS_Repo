@@ -1,4 +1,22 @@
 /**
+ * @file rgb_led.c
+ * @brief Implementación del controlador de LED RGB
+ * @author Proyecto Final RTOS
+ * @date 2024
+ * 
+ * @details Implementación del controlador de LED RGB (actualmente solo canal verde).
+ * Este módulo gestiona el control PWM del LED RGB mediante el periférico LEDC
+ * del ESP32.
+ * 
+ * @section hardware Hardware
+ * - LED Verde: GPIO 27 (PWM mediante LEDC Channel 1, Timer 0)
+ * 
+ * @section features Características
+ * - Control PWM de 8 bits (0-255 niveles)
+ * - Frecuencia: 5kHz (adecuada para LEDs sin parpadeo visible)
+ * - Interfaz simple con porcentaje (0-100%)
+ * - Validación de parámetros y manejo de errores
+ * 
  * ============================================================================
  * ARCHIVO: rgb_led.c
  * ============================================================================

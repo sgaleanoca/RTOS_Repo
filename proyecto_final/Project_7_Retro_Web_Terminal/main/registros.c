@@ -1,4 +1,35 @@
 /**
+ * @file registros.c
+ * @brief Implementación de la gestión de registros de horarios
+ * @author Proyecto Final RTOS
+ * @date 2024
+ * 
+ * @details Implementación de la gestión de registros de horarios del ventilador.
+ * Este módulo proporciona funciones para almacenar y leer registros de forma
+ * persistente en la partición SPIFFS del ESP32.
+ * 
+ * @section functionality Funcionalidades
+ * - Creación automática del archivo registros.json si no existe
+ * - Guardado de registros en formato JSON en /spiffs/registros.json
+ * - Lectura de todos los registros almacenados
+ * - Verificación de registros activos para el día y hora actual
+ * - Persistencia de datos tras reinicio del ESP32
+ * 
+ * @section usage Uso
+ * Los registros se utilizan desde el módulo web_server.c a través de los
+ * endpoints HTTP GET /registros y POST /registros, y desde fan_control.c
+ * para el modo SCHEDULE del ventilador.
+ * 
+ * @section format Formato de registro
+ * @code{.json}
+ * {
+ *   "dia": "lunes",
+ *   "hora": "14:30",
+ *   "velocidad": 50,
+ *   "id": "1234567890"
+ * }
+ * @endcode
+ * 
  * ============================================================================
  * ARCHIVO: registros.c
  * ============================================================================

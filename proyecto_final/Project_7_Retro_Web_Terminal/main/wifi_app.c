@@ -1,4 +1,26 @@
 /**
+ * @file wifi_app.c
+ * @brief Implementación del módulo de WiFi en modo AP+STA
+ * @author Proyecto Final RTOS
+ * @date 2024
+ * 
+ * @details Implementación del módulo de WiFi en modo AP+STA (Access Point + Station).
+ * Este módulo configura el ESP32 para funcionar simultáneamente como:
+ * - Access Point (SoftAP): Crea su propia red WiFi para acceso local
+ * - Station (STA): Se conecta a una red WiFi externa para tener Internet
+ * 
+ * @section functionality Funcionalidades
+ * - Inicializa la pila de red TCP/IP
+ * - Configura el ESP32 como punto de acceso WiFi (red local)
+ * - Se conecta a una red WiFi externa para tener Internet (SNTP, etc.)
+ * - Maneja eventos de conexión/desconexión de clientes y estaciones
+ * - Reintentos automáticos de conexión a la red externa
+ * 
+ * @section usage Uso
+ * Los usuarios pueden conectarse a la red "ESP32_Server" y acceder al
+ * servidor web para controlar el sistema. El ESP32 también se conecta
+ * a la red "Mondongo" para tener acceso a Internet (SNTP, etc.).
+ * 
  * ============================================================================
  * ARCHIVO: wifi_app.c
  * ============================================================================

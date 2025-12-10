@@ -1,4 +1,32 @@
 /**
+ * @file fan_control.c
+ * @brief Implementación del controlador de ventilador mediante PWM
+ * @author Proyecto Final RTOS
+ * @date 2024
+ * 
+ * @details Implementación del módulo de control del ventilador mediante PWM.
+ * Este módulo gestiona el control de velocidad del ventilador en diferentes
+ * modos de operación: OFF, MANUAL, AUTO_TEMP (automático por temperatura) y
+ * SCHEDULE (control por horarios basado en registros).
+ * 
+ * @section hardware Hardware
+ * - Ventilador: Controlado mediante PWM en GPIO 26 (LEDC Channel 2, Timer 1)
+ * - Sensor PIR: El ventilador solo funciona si detecta presencia (excepto modo MANUAL)
+ * - Sensor NTC: Utilizado para control automático por temperatura
+ * 
+ * @section features Características
+ * - Control PWM de 8 bits (0-255 niveles)
+ * - Frecuencia: 25kHz (adecuada para motores)
+ * - Múltiples modos de operación con tareas independientes
+ * - Integración con sistema de registros para control por horarios
+ * - Verificación de presencia mediante sensor PIR (excepto modo MANUAL)
+ * 
+ * @section modes Modos de operación
+ * - FAN_MODE_OFF: Ventilador apagado (0% PWM)
+ * - FAN_MODE_MANUAL: Control manual por porcentaje (0-100%), ignora PIR
+ * - FAN_MODE_AUTO_TEMP: Control automático basado en temperatura (15-25°C)
+ * - FAN_MODE_SCHEDULE: Control por horarios usando registros guardados
+ * 
  * ============================================================================
  * ARCHIVO: fan_control.c
  * ============================================================================

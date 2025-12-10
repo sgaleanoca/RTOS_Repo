@@ -1,4 +1,39 @@
 /**
+ * @file web_server.c
+ * @brief Implementación del servidor web HTTP del ESP32
+ * @author Proyecto Final RTOS
+ * @date 2024
+ * 
+ * @details Implementación del servidor web HTTP del ESP32. Este módulo proporciona:
+ * 
+ * @subsection spiffs Sistema de archivos SPIFFS
+ * - Monta partición SPIFFS para servir archivos estáticos (HTML, CSS, JS)
+ * - Verifica que todos los archivos necesarios estén presentes
+ * 
+ * @subsection server Servidor HTTP con múltiples rutas
+ * - Páginas web: login, dashboard, terminal, slider
+ * - API REST: /cmd (comandos), /temperature (datos JSON), /registros (gestión de registros)
+ * - Autenticación: /login, /logout
+ * 
+ * @subsection auth Sistema de autenticación y sesiones
+ * - Login con usuario/contraseña (root/matrix123)
+ * - Gestión de sesiones basada en IP
+ * - Timeout automático después de 3 minutos de inactividad
+ * 
+ * @subsection commands Procesamiento de comandos
+ * - Sistema de colas para comandos GPIO (thread-safe)
+ * - Tarea dedicada para procesar comandos
+ * - Soporte para comandos: led on/off/<0-100>, status, help, clear
+ * 
+ * @subsection temperature Gestión de temperatura
+ * - Endpoint JSON para obtener temperatura actual
+ * - Datos actualizados desde la tarea de lectura del sensor
+ * 
+ * @subsection registros Gestión de registros de horarios
+ * - Endpoints HTTP para guardar y leer registros (/registros)
+ * - Utiliza el módulo registros.c para almacenamiento persistente en SPIFFS
+ * - Los registros se guardan en /spiffs/registros.json
+ * 
  * ============================================================================
  * ARCHIVO: web_server.c
  * ============================================================================

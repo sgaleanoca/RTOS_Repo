@@ -1,4 +1,25 @@
 /**
+ * @file wifi_app.h
+ * @brief Configuración y gestión de WiFi en modo AP+STA
+ * @author Proyecto Final RTOS
+ * @date 2024
+ * 
+ * @details Header file para la configuración y gestión de WiFi en modo AP+STA
+ * (Access Point + Station). Define las credenciales de las redes WiFi
+ * y las funciones para inicializar el punto de acceso y la conexión Station.
+ * 
+ * @section softap Configuración Access Point (SoftAP)
+ * - SSID: "ESP32_Server"
+ * - Contraseña: "12345678"
+ * - Canal: 1
+ * - Máximo de estaciones conectadas: 4
+ * - Autenticación: WPA2 Personal
+ * 
+ * @section station Configuración Station (STA)
+ * - SSID: "Mondongo"
+ * - Contraseña: "huevos12"
+ * - Máximo de reintentos: 5
+ * 
  * ============================================================================
  * ARCHIVO: wifi_app.h
  * ============================================================================

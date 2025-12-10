@@ -1,4 +1,28 @@
 /**
+ * @file pir_driver.h
+ * @brief Driver para sensor PIR (Passive Infrared Sensor)
+ * @author Proyecto Final RTOS
+ * @date 2024
+ * 
+ * @details Header file para el driver del sensor PIR (Passive Infrared Sensor).
+ * Este módulo gestiona la detección de movimiento mediante interrupciones GPIO.
+ * 
+ * @section hardware Hardware
+ * - Sensor PIR: GPIO 12 (configurable mediante PIR_GPIO_PIN)
+ * - El sensor PIR detecta movimiento mediante cambios en radiación infrarroja
+ * 
+ * @section features Características
+ * - Detección de movimiento mediante interrupciones GPIO (flanco de subida/bajada)
+ * - Soporte para cola de eventos opcional para notificaciones asíncronas
+ * - Lectura síncrona del estado actual del sensor
+ * - ISR (Interrupt Service Routine) thread-safe usando colas desde ISR
+ * - Configuración automática de pull-up/pull-down (deshabilitados, el módulo PIR ya los tiene)
+ * 
+ * @section usage Uso en el sistema
+ * - El ventilador verifica presencia mediante pir_is_motion_active()
+ * - En modo MANUAL, el ventilador ignora el PIR
+ * - En otros modos, el ventilador solo funciona si hay presencia detectada
+ * 
  * ============================================================================
  * ARCHIVO: pir_driver.h
  * ============================================================================

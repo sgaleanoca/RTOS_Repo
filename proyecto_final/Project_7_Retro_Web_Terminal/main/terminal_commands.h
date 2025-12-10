@@ -1,4 +1,22 @@
 /**
+ * @file terminal_commands.h
+ * @brief Procesamiento de comandos de terminal web
+ * @author Proyecto Final RTOS
+ * @date 2024
+ * 
+ * @details Header file para el módulo de procesamiento de comandos de terminal.
+ * Este módulo gestiona el procesamiento de comandos recibidos desde la
+ * terminal web, incluyendo comandos para control de LEDs, ventilador y comandos del sistema.
+ * 
+ * @section functionality Funcionalidad
+ * - Procesa comandos de la terminal (led, fan, status, help, clear, etc.)
+ * - Ejecuta acciones correspondientes (control de GPIO, PWM para LED y ventilador)
+ * - Genera respuestas apropiadas para cada comando
+ * 
+ * @section architecture Arquitectura
+ * Utiliza colas de FreeRTOS para comunicación asíncrona entre el handler HTTP
+ * y la tarea de procesamiento de comandos.
+ * 
  * ============================================================================
  * ARCHIVO: terminal_commands.h
  * ============================================================================

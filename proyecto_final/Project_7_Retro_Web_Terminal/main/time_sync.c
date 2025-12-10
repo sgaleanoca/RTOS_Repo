@@ -4,9 +4,47 @@
  * ============================================================================
  * 
  * RESUMEN:
- * Implementación de la sincronización de tiempo usando SNTP.
- * Permite obtener la hora y fecha actual del sistema para el sistema
- * de horarios del ventilador.
+ * Implementación de la sincronización de tiempo usando SNTP (Simple Network
+ * Time Protocol). Este módulo permite obtener la hora y fecha actual del
+ * sistema, necesaria para el sistema de horarios del ventilador.
+ * 
+ * Funcionalidades:
+ * - Sincronización automática con servidores NTP (co.pool.ntp.org)
+ * - Configuración de zona horaria para Colombia (UTC-5)
+ * - Persistencia de hora en NVS para restaurar después de reinicio
+ * - Establecimiento manual de hora cuando SNTP no está disponible
+ * - Obtención de día de la semana y hora actual en formato español
+ * 
+ * Características:
+ * - Restauración automática de hora desde NVS al reiniciar
+ * - Fallback a hora manual si SNTP no puede sincronizar
+ * - Soporte para zona horaria de Colombia (COT5)
+ * - Validación de sincronización antes de usar funciones de tiempo
+ * 
+ * ============================================================================
+ * ÍNDICE DE SECCIONES:
+ * ============================================================================
+ * Sección 1: INCLUDES se encuentra en las líneas 24 a 36
+ * Sección 2: DEFINICIONES Y CONSTANTES se encuentra en las líneas 38 a 48
+ * Sección 3: FUNCIONES INTERNAS se encuentra en las líneas 50 a 158
+ * Sección 4: FUNCIONES PÚBLICAS se encuentra en las líneas 160 a 337
+ * ============================================================================
+ * 
+ * ============================================================================
+ * RESUMEN DE TAREAS, COLAS Y SEMÁFOROS IMPLEMENTADOS:
+ * ============================================================================
+ * 
+ * === TAREAS (TASKS) ===
+ * 
+ * Ninguna en este módulo. SNTP funciona mediante callbacks y eventos.
+ * 
+ * === COLAS (QUEUES) ===
+ * 
+ * Ninguna en este módulo.
+ * 
+ * === SEMÁFOROS (MUTEXES) ===
+ * 
+ * Ninguno en este módulo. Las funciones de tiempo de C estándar son thread-safe.
  * 
  * ============================================================================
  */

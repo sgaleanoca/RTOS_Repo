@@ -6,11 +6,11 @@
  * RESUMEN:
  * Header file para el módulo de procesamiento de comandos de terminal.
  * Este módulo gestiona el procesamiento de comandos recibidos desde la
- * terminal web, incluyendo comandos para control de LEDs y comandos del sistema.
+ * terminal web, incluyendo comandos para control de LEDs, ventilador y comandos del sistema.
  * 
  * Funcionalidad:
- * - Procesa comandos de la terminal (led, status, help, clear, etc.)
- * - Ejecuta acciones correspondientes (control de GPIO)
+ * - Procesa comandos de la terminal (led, fan, status, help, clear, etc.)
+ * - Ejecuta acciones correspondientes (control de GPIO, PWM para LED y ventilador)
  * - Genera respuestas apropiadas para cada comando
  * 
  * ============================================================================
@@ -75,7 +75,7 @@ typedef struct {
     uint32_t command_id;  // ID único para emparejar comando-respuesta
                         // Permite que múltiples comandos estén en proceso simultáneamente
                         // y que cada handler HTTP reciba la respuesta correcta
-    char command[100];   // Texto del comando recibido (ej: "led y on", "status", "help")
+    char command[100];   // Texto del comando recibido (ej: "led on", "fan 50", "status", "help")
     char response[512];  // Respuesta generada por process_terminal_command()
                         // Se llena después de procesar el comando
 } gpio_command_t;
@@ -87,10 +87,19 @@ typedef struct {
  * @param cmd: Estructura con el comando a procesar (se modifica in-place con la respuesta)
  * 
  * Comandos soportados:
+ * 
+ * Control de LED RGB:
  * - led on : Enciende el LED RGB verde (100% brillo)
  * - led off : Apaga el LED RGB verde (0% brillo)
  * - led <0-100> : Establece el brillo del LED RGB verde (0-100%)
- * - status : Estado del LED RGB verde
+ * 
+ * Control de Ventilador:
+ * - fan on : Enciende el ventilador al 50% de velocidad (modo manual)
+ * - fan off : Apaga el ventilador (modo OFF)
+ * - fan <0-100> : Establece la velocidad del ventilador manualmente (0-100%, modo manual)
+ * 
+ * Sistema:
+ * - status : Estado del sistema (LED RGB y ventilador)
  * - help : Lista de comandos disponibles
  * - clear : Limpiar pantalla (manejado en frontend)
  */

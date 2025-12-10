@@ -7,22 +7,58 @@
  * Este es el punto de entrada principal de la aplicación ESP32. Se encarga de
  * inicializar todos los componentes del sistema en el orden correcto:
  * - Sistema de almacenamiento no volátil (NVS) para WiFi
- * - Controladores de hardware (LED RGB, sensor NTC de temperatura)
- * - Configuración de WiFi en modo SoftAP (Access Point)
+ * - Controladores de hardware (LED RGB, sensor NTC de temperatura, sensor PIR, ventilador)
+ * - Configuración de WiFi en modo AP+STA (Access Point + Station)
+ * - Sincronización de tiempo mediante SNTP
  * - Servidor web HTTP para la interfaz de usuario
  * 
  * El sistema crea una red WiFi propia a la que los usuarios pueden conectarse
- * y acceder a una terminal web retro para controlar LEDs y monitorear temperatura.
+ * y acceder a una terminal web retro para controlar LEDs, ventilador y monitorear
+ * temperatura. También se conecta a una red WiFi externa para tener Internet
+ * y sincronizar la hora mediante SNTP.
+ * 
+ * Arquitectura del sistema:
+ * - Hardware: LED RGB (GPIO 27), Sensor NTC (GPIO 32), Sensor PIR (GPIO 12), Ventilador (GPIO 26)
+ * - Red: WiFi AP+STA (red local + conexión a Internet)
+ * - Servidor: HTTP con SPIFFS para archivos estáticos
+ * - Control: Terminal web, API REST, control automático por temperatura y horarios
  * 
  * ============================================================================
  * ÍNDICE DE SECCIONES:
  * ============================================================================
- * Sección 1: INCLUDES se encuentra en las líneas 19 a 27
- * Sección 2: FUNCIÓN PRINCIPAL (app_main) se encuentra en las líneas 29 a 72
- *   - Subsección 2.1: INICIALIZACIÓN DE NVS se encuentra en las líneas 43 a 51
- *   - Subsección 2.2: INICIALIZACIÓN DE HARDWARE se encuentra en las líneas 53 a 61
- *   - Subsección 2.3: INICIALIZACIÓN DE RED se encuentra en las líneas 63 a 66
- *   - Subsección 2.4: INICIO DEL SERVIDOR WEB se encuentra en las líneas 68 a 71
+ * Sección 1: INCLUDES se encuentra en las líneas 39 a 53
+ * Sección 2: DEFINICIONES se encuentra en las líneas 55 a 56
+ * Sección 3: FUNCIÓN PRINCIPAL (app_main) se encuentra en las líneas 58 a 142
+ *   - Subsección 3.1: INICIALIZACIÓN DE NVS se encuentra en las líneas 72 a 80
+ *   - Subsección 3.2: INICIALIZACIÓN DE HARDWARE se encuentra en las líneas 82 a 106
+ *   - Subsección 3.3: INICIALIZACIÓN DE RED se encuentra en las líneas 108 a 131
+ *   - Subsección 3.4: INICIO DEL SERVIDOR WEB se encuentra en las líneas 133 a 141
+ * ============================================================================
+ * 
+ * ============================================================================
+ * RESUMEN DE TAREAS, COLAS Y SEMÁFOROS IMPLEMENTADOS:
+ * ============================================================================
+ * 
+ * === TAREAS (TASKS) ===
+ * 
+ * Las tareas se crean en los módulos correspondientes:
+ * - ntc_start_reading_task(): Tarea de lectura periódica del sensor NTC
+ * - fan_start_auto_temp_task(): Tarea de control automático por temperatura
+ * - fan_start_schedule_task(): Tarea de control por horarios (registros)
+ * - start_webserver(): Crea tareas de procesamiento de comandos y gestión de sesiones
+ * 
+ * === COLAS (QUEUES) ===
+ * 
+ * Las colas se crean en web_server.c:
+ * - gpio_command_queue: Para comandos desde handler HTTP a tarea de procesamiento
+ * - gpio_response_queue: Para respuestas desde tarea de procesamiento a handler HTTP
+ * 
+ * === SEMÁFOROS (MUTEXES) ===
+ * 
+ * Los semáforos se crean en web_server.c:
+ * - session_mutex: Protege acceso a sesiones de usuarios
+ * - command_id_mutex: Protege contador de IDs de comandos
+ * 
  * ============================================================================
  */
 

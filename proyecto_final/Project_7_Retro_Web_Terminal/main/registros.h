@@ -4,13 +4,26 @@
  * ============================================================================
  * 
  * RESUMEN:
- * Header para la gestión de registros de horarios del ventilador.
+ * Header file para la gestión de registros de horarios del ventilador.
  * Proporciona funciones para guardar y leer registros desde SPIFFS de forma
  * persistente. Los registros se almacenan en /spiffs/registros.json.
  * 
- * Este módulo es utilizado por web_server.c para manejar los endpoints
- * HTTP relacionados con registros de horarios del ventilador.
+ * Este módulo es utilizado por:
+ * - web_server.c: Para manejar los endpoints HTTP GET /registros y POST /registros
+ * - fan_control.c: Para verificar registros activos en modo SCHEDULE
  * 
+ * Formato de registro:
+ * {
+ *   "dia": "lunes",
+ *   "hora": "14:30",
+ *   "velocidad": 50,
+ *   "id": "1234567890"
+ * }
+ * 
+ * ============================================================================
+ * ÍNDICE DE SECCIONES:
+ * ============================================================================
+ * Sección 1: PROTOTIPOS DE FUNCIONES se encuentra en las líneas 25 a 58
  * ============================================================================
  */
 

@@ -4,29 +4,79 @@
  * ============================================================================
  * 
  * RESUMEN:
- * Implementación del módulo de sensor de temperatura NTC. Este módulo:
+ * Implementación del módulo de sensor de temperatura NTC (Negative Temperature
+ * Coefficient). Este módulo gestiona la lectura de temperatura usando un
+ * termistor NTC 10k conectado a través de un divisor de voltaje al ADC del ESP32.
+ * 
+ * Funcionalidades:
  * - Inicializa el ADC1 del ESP32 para leer el voltaje del divisor de voltaje
  * - Calcula la resistencia del NTC basándose en el valor ADC
  * - Convierte la resistencia a temperatura usando la ecuación de Steinhart-Hart
  * - Ejecuta una tarea periódica que lee la temperatura cada segundo
- * - Proporciona acceso thread-safe a los datos de temperatura
+ * - Proporciona acceso thread-safe a los datos de temperatura mediante mutex
  * 
+ * Hardware:
  * Circuito:
  * VCC ---[10k Resistor]---[NTC 10k]---GND
  *                |
  *              GPIO32 (ADC1_CH4)
  * 
+ * Nota: ADC2 no funciona cuando WiFi está activo, por eso usamos ADC1
+ * 
+ * Características:
+ * - Calibración del ADC para lecturas más precisas (curve fitting o line fitting)
+ * - Validación de rangos de ADC y resistencia
+ * - Protección thread-safe con mutex para acceso concurrente
+ * - Tarea independiente para lectura periódica (cada 1 segundo)
+ * 
  * ============================================================================
  * ÍNDICE DE SECCIONES:
  * ============================================================================
- * Sección 1: INCLUDES se encuentra en las líneas 21 a 38
- * Sección 2: DEFINICIONES Y CONSTANTES se encuentra en las líneas 40 a 55
- * Sección 3: VARIABLES GLOBALES se encuentra en las líneas 57 a 65
- * Sección 4: CALIBRACIÓN DEL ADC se encuentra en las líneas 67 a 108
- * Sección 5: INICIALIZACIÓN se encuentra en las líneas 109 a 137
- * Sección 6: LECTURA Y CÁLCULO DE TEMPERATURA se encuentra en las líneas 139 a 191
- * Sección 7: TAREA DE LECTURA PERIÓDICA se encuentra en las líneas 193 a 237
- * Sección 8: FUNCIONES GETTER se encuentra en las líneas 239 a 277
+ * Sección 1: INCLUDES se encuentra en las líneas 43 a 60
+ * Sección 2: DEFINICIONES Y CONSTANTES se encuentra en las líneas 62 a 77
+ * Sección 3: VARIABLES GLOBALES se encuentra en las líneas 79 a 87
+ * Sección 4: CALIBRACIÓN DEL ADC se encuentra en las líneas 89 a 119
+ * Sección 5: INICIALIZACIÓN se encuentra en las líneas 121 a 148
+ * Sección 6: LECTURA Y CÁLCULO DE TEMPERATURA se encuentra en las líneas 150 a 203
+ * Sección 7: TAREA DE LECTURA PERIÓDICA se encuentra en las líneas 205 a 249
+ * Sección 8: FUNCIONES GETTER se encuentra en las líneas 251 a 289
+ * ============================================================================
+ * 
+ * ============================================================================
+ * RESUMEN DE TAREAS, COLAS Y SEMÁFOROS IMPLEMENTADOS:
+ * ============================================================================
+ * 
+ * === TAREAS (TASKS) ===
+ * 
+ * 1. ntc_reading_task (Sección 7)
+ *    - Nombre: "ntc_reader"
+ *    - Stack: 4096 bytes
+ *    - Prioridad: 5 (alta)
+ *    - Función: Lee la temperatura periódicamente cada segundo
+ *    - Propósito: Mantener datos de temperatura actualizados de forma continua
+ *    - Estado: Loop infinito, lee cada 1 segundo
+ *    - Flujo:
+ *      1. Lee temperatura del sensor
+ *      2. Valida que los datos sean válidos
+ *      3. Almacena datos de forma thread-safe usando mutex
+ *      4. Marca datos como "ready" cuando son válidos
+ * 
+ * === COLAS (QUEUES) ===
+ * 
+ * Ninguna en este módulo.
+ * 
+ * === SEMÁFOROS (MUTEXES) ===
+ * 
+ * 1. data_mutex
+ *    - Tipo: SemaphoreHandle_t (FreeRTOS mutex)
+ *    - Protege: current_ntc_data y data_ready
+ *    - Uso: Protege acceso concurrente a los datos del sensor
+ *    - Operaciones: xSemaphoreTake() antes de leer/escribir, xSemaphoreGive() después
+ *    - Timeout: Variable (portMAX_DELAY en tarea, 100ms en getter)
+ *    - Funciones que lo usan:
+ *      * ntc_reading_task() - Escribe datos periódicamente
+ *      * ntc_get_current_temperature() - Lee datos de forma thread-safe
+ * 
  * ============================================================================
  */
 

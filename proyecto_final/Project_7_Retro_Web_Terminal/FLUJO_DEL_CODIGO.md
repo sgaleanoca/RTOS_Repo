@@ -10,10 +10,11 @@ Este documento explica el flujo de ejecución del código desde el inicio hasta 
 2. [Inicialización del Sistema](#2-inicialización-del-sistema)
 3. [Inicialización de Hardware](#3-inicialización-de-hardware)
 4. [Configuración de Red WiFi](#4-configuración-de-red-wifi)
-5. [Inicio del Servidor Web](#5-inicio-del-servidor-web)
-6. [Flujo de Peticiones HTTP](#6-flujo-de-peticiones-http)
-7. [Procesamiento de Comandos](#7-procesamiento-de-comandos)
-8. [Tareas en Segundo Plano](#8-tareas-en-segundo-plano)
+5. [Sincronización de Tiempo](#5-sincronización-de-tiempo)
+6. [Inicio del Servidor Web](#6-inicio-del-servidor-web)
+7. [Flujo de Peticiones HTTP](#7-flujo-de-peticiones-http)
+8. [Procesamiento de Comandos](#8-procesamiento-de-comandos)
+9. [Tareas en Segundo Plano](#9-tareas-en-segundo-plano)
 
 ---
 
@@ -30,16 +31,17 @@ void app_main(void)
 
 **Orden de ejecución:**
 1. Inicialización de NVS (almacenamiento no volátil)
-2. Inicialización de hardware (GPIO y sensor NTC)
-3. Inicialización de WiFi (modo SoftAP)
-4. Inicio del servidor web
+2. Inicialización de hardware (LED RGB, sensor NTC, sensor PIR, ventilador)
+3. Inicialización de WiFi (modo AP+STA)
+4. Sincronización de tiempo (SNTP)
+5. Inicio del servidor web
 
 ---
 
 ## 2. Inicialización del Sistema
 
 **Archivo:** `main/main.c`  
-**Sección:** Líneas 53-61
+**Sección:** Líneas 72-80
 
 ### 2.1. Inicialización de NVS (Non-Volatile Storage)
 
@@ -53,38 +55,36 @@ if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
 
 **¿Qué hace?**
 - Inicializa el sistema de almacenamiento no volátil del ESP32
-- NVS es necesario para almacenar configuración WiFi
+- NVS es necesario para almacenar configuración WiFi y hora sincronizada
 - Si hay problemas con la partición, la borra y reinicializa
 
 **¿Por qué es necesario?**
 - El WiFi necesita NVS para guardar configuración persistente
-- Aunque en este proyecto usamos SoftAP (no guarda configuración), NVS es requerido por el stack WiFi
+- El módulo de sincronización de tiempo guarda la hora en NVS
 
 ---
 
 ## 3. Inicialización de Hardware
 
 **Archivo:** `main/main.c`  
-**Sección:** Líneas 63-71
+**Sección:** Líneas 82-106
 
-### 3.1. Inicialización de GPIO (LEDs)
+### 3.1. Inicialización de LED RGB
 
 ```c
-gpio_init_leds();
+rgb_led_init();
 ```
 
-**Archivo:** `main/gpio_driver.c`  
-**Función:** `gpio_init_leds()`
+**Archivo:** `main/rgb_led.c`  
+**Función:** `rgb_led_init()`
 
 **¿Qué hace?**
-- Crea un mutex para proteger acceso concurrente a GPIO
-- Configura GPIO 2 (LED amarillo) como entrada/salida
-- Configura GPIO 5 (LED azul) como entrada/salida
-- Inicializa ambos LEDs en estado apagado
+- Configura el timer LEDC (Timer 0) con resolución de 8 bits y frecuencia de 5kHz
+- Configura el canal LEDC (Channel 1) para GPIO 27 (LED verde)
+- Inicia el LED con brillo 0% (apagado)
 
 **Hardware:**
-- LED Amarillo: GPIO 2
-- LED Azul: GPIO 5
+- LED Verde: GPIO 27 (PWM mediante LEDC Channel 1, Timer 0)
 
 ### 3.2. Inicialización del Sensor NTC
 
@@ -113,12 +113,72 @@ ntc_start_reading_task();
 - Prioridad: 5
 - Función: `ntc_reading_task()` (loop infinito)
 
+### 3.3. Inicialización del Sensor PIR
+
+```c
+pir_init(PIR_GPIO_PIN, NULL);
+```
+
+**Archivo:** `main/pir_driver.c`  
+**Función:** `pir_init()`
+
+**¿Qué hace?**
+- Configura GPIO 12 como entrada con interrupciones
+- Instala el servicio de ISR de GPIO
+- Registra el handler de interrupción para detectar cambios
+- **Nota:** Se pasa NULL como cola de eventos (no se necesita notificación asíncrona)
+
+**Hardware:**
+- Sensor PIR: GPIO 12
+- Interrupciones: Ambos flancos (subida y bajada)
+
+### 3.4. Inicialización del Ventilador
+
+```c
+fan_init();
+fan_set_mode(FAN_MODE_AUTO_TEMP);
+fan_start_auto_temp_task();
+fan_start_schedule_task();
+```
+
+**Archivo:** `main/fan_control.c`
+
+**¿Qué hace `fan_init()`?**
+- Configura el timer LEDC (Timer 1) con resolución de 8 bits y frecuencia de 25kHz
+- Configura el canal LEDC (Channel 2) para GPIO 26 (ventilador)
+- Inicia el ventilador en modo OFF (0% PWM)
+
+**¿Qué hace `fan_set_mode()`?**
+- Establece el modo inicial: FAN_MODE_AUTO_TEMP (control automático por temperatura)
+
+**¿Qué hace `fan_start_auto_temp_task()`?**
+- Crea una tarea de FreeRTOS llamada `"fan_auto_temp"`
+- La tarea lee la temperatura periódicamente y actualiza el ventilador cuando está en modo AUTO_TEMP
+
+**¿Qué hace `fan_start_schedule_task()`?**
+- Crea una tarea de FreeRTOS llamada `"fan_schedule"`
+- La tarea verifica los registros periódicamente y actualiza el ventilador cuando está en modo SCHEDULE
+
+**Tareas creadas:**
+- Nombre: `"fan_auto_temp"`
+- Stack: 4096 bytes
+- Prioridad: 5
+- Función: `fan_auto_temp_task()` (lee temperatura cada 1 segundo)
+
+- Nombre: `"fan_schedule"`
+- Stack: 4096 bytes
+- Prioridad: 5
+- Función: `fan_schedule_task()` (verifica registros cada 10 segundos)
+
+**Hardware:**
+- Ventilador: GPIO 26 (PWM mediante LEDC Channel 2, Timer 1)
+
 ---
 
 ## 4. Configuración de Red WiFi
 
 **Archivo:** `main/main.c`  
-**Línea:** 76
+**Línea:** 112
 
 ```c
 wifi_init_softap();
@@ -130,28 +190,75 @@ wifi_init_softap();
 **¿Qué hace?**
 1. Inicializa la pila TCP/IP (`esp_netif_init()`)
 2. Crea el bucle de eventos para manejar eventos WiFi
-3. Crea la interfaz de red WiFi en modo Access Point
+3. Crea las interfaces de red WiFi (AP y STA)
 4. Inicializa el driver WiFi con configuración por defecto
 5. Registra el manejador de eventos (para logging de conexiones)
-6. Configura credenciales de la red:
+6. Configura credenciales de la red Access Point:
    - SSID: `"ESP32_Server"`
    - Contraseña: `"12345678"`
    - Canal: 1
    - Máximo de conexiones: 4
    - Seguridad: WPA2 Personal
-7. Inicia el Access Point
+7. Configura credenciales de la red Station:
+   - SSID: `"Mondongo"`
+   - Contraseña: `"huevos12"`
+   - Reintentos: 5
+8. Inicia el driver WiFi en modo AP+STA
 
 **Resultado:**
-- El ESP32 crea una red WiFi propia
+- El ESP32 crea una red WiFi propia (Access Point)
+- El ESP32 se conecta a una red WiFi externa (Station) para tener Internet
 - Los usuarios pueden conectarse a `"ESP32_Server"` con contraseña `"12345678"`
 - La IP del ESP32 será `192.168.4.1` (por defecto en SoftAP)
 
 ---
 
-## 5. Inicio del Servidor Web
+## 5. Sincronización de Tiempo
 
 **Archivo:** `main/main.c`  
-**Línea:** 81
+**Líneas:** 114-131
+
+```c
+// Esperar conexión WiFi para sincronizar hora
+for (int retry = 0; retry < 30 && !wifi_is_connected(); retry++) {
+    vTaskDelay(pdMS_TO_TICKS(1000));
+}
+
+time_sync_init();
+
+if (!hora_sincronizada()) {
+    establecer_hora_manual(2024, 12, 9, 12, 0, 0);
+}
+```
+
+**Archivo:** `main/time_sync.c`  
+**Función:** `time_sync_init()`
+
+**¿Qué hace?**
+1. Configura la zona horaria para Colombia (UTC-5)
+2. Configura servidores NTP (co.pool.ntp.org)
+3. Inicializa SNTP con callback de sincronización
+4. Espera hasta 30 segundos para sincronizar la hora
+5. Si no se puede sincronizar, intenta restaurar la hora desde NVS
+6. Si no hay hora guardada, establece una hora por defecto
+
+**Persistencia:**
+- La hora sincronizada se guarda en NVS
+- Al reiniciar, se intenta restaurar la hora guardada
+- Se ajusta por el tiempo transcurrido desde el último guardado
+
+**Funciones disponibles:**
+- `hora_sincronizada()`: Verifica si la hora está sincronizada
+- `obtener_dia_actual()`: Obtiene el día de la semana en español
+- `obtener_hora_actual()`: Obtiene la hora actual en formato HH:MM
+- `establecer_hora_manual()`: Establece la hora manualmente
+
+---
+
+## 6. Inicio del Servidor Web
+
+**Archivo:** `main/main.c`  
+**Línea:** 136
 
 ```c
 start_webserver();
@@ -160,15 +267,16 @@ start_webserver();
 **Archivo:** `main/web_server.c`  
 **Función:** `start_webserver()`
 
-### 5.1. Creación de Estructura de Contexto
+### 6.1. Creación de Estructura de Contexto
 
 Se crea una estructura `webserver_context_t` que encapsula todo el estado del servidor:
 - Handles de colas (queues) para comandos
 - Mutexes para protección de sesiones y IDs
 - Array de sesiones de usuarios
 - Handle del servidor HTTP
+- Contador de IDs de comandos
 
-### 5.2. Creación de Mutexes
+### 6.2. Creación de Mutexes
 
 **Mutex de Sesiones:**
 ```c
@@ -184,7 +292,7 @@ ctx.command_id_mutex = xSemaphoreCreateMutex();
 - Protege `ctx->command_id_counter` de race conditions
 - Garantiza IDs únicos para cada comando
 
-### 5.3. Creación de Colas (Queues)
+### 6.3. Creación de Colas (Queues)
 
 **Cola de Comandos:**
 ```c
@@ -202,7 +310,7 @@ ctx.gpio_response_queue = xQueueCreate(GPIO_QUEUE_SIZE, sizeof(gpio_command_t));
 - Dirección: Tarea de procesamiento → Handler HTTP
 - Uso: La tarea envía respuestas aquí
 
-### 5.4. Creación de Tareas
+### 6.4. Creación de Tareas
 
 **Tarea de Procesamiento de Comandos:**
 ```c
@@ -224,7 +332,7 @@ xTaskCreate(session_management_task, "session_mgmt", 2048, &ctx, 3, NULL);
 - Función: `session_management_task()`
 - Propósito: Verificar periódicamente las sesiones y expirar las inactivas (>3 minutos)
 
-### 5.5. Inicialización de SPIFFS
+### 6.5. Inicialización de SPIFFS
 
 ```c
 init_spiffs();
@@ -249,11 +357,11 @@ crear_archivo_si_no_existe();
 - Crea `/spiffs/registros.json` si no existe
 - Inicializa con un array JSON vacío `[]`
 
-### 5.6. Configuración e Inicio del Servidor HTTP
+### 6.6. Configuración e Inicio del Servidor HTTP
 
 ```c
 httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-config.max_uri_handlers = 14;
+config.max_uri_handlers = 17;
 config.max_open_sockets = 7;
 config.lru_purge_enable = true;
 httpd_start(&ctx.server, &config);
@@ -261,11 +369,11 @@ httpd_start(&ctx.server, &config);
 
 **Configuración:**
 - Puerto: 80 (por defecto)
-- Máximo de handlers de URI: 14
+- Máximo de handlers de URI: 17
 - Máximo de sockets abiertos: 7
 - Purga LRU habilitada (cierra conexiones inactivas)
 
-### 5.7. Registro de Rutas HTTP
+### 6.7. Registro de Rutas HTTP
 
 ```c
 register_http_routes(&ctx);
@@ -293,12 +401,18 @@ register_http_routes(&ctx);
 - `GET /temperature` → Obtener temperatura actual (JSON)
 - `GET /registros` → Leer todos los registros (JSON)
 - `POST /registros` → Guardar nuevo registro (JSON)
+- `POST /fan/mode` → Establecer modo del ventilador
+- `POST /fan/manual` → Establecer velocidad manual
+- `GET /fan/status` → Obtener estado del ventilador (JSON)
+- `GET /fan/diagnostic` → Diagnóstico completo (JSON)
+- `GET /pir/status` → Obtener estado del sensor PIR (JSON)
+- `POST /time/set` → Establecer hora manualmente
 
 ---
 
-## 6. Flujo de Peticiones HTTP
+## 7. Flujo de Peticiones HTTP
 
-### 6.1. Conexión del Cliente
+### 7.1. Conexión del Cliente
 
 1. **El usuario se conecta a la red WiFi:**
    - SSID: `"ESP32_Server"`
@@ -311,7 +425,7 @@ register_http_routes(&ctx);
    - El servidor HTTP (creado en `start_webserver()`) recibe la petición
    - Busca el handler correspondiente según la URI
 
-### 6.2. Flujo de Login
+### 7.2. Flujo de Login
 
 **Petición:** `GET /`
 
@@ -352,7 +466,7 @@ typedef struct {
 } session_t;
 ```
 
-### 6.3. Flujo de Peticiones Autenticadas
+### 7.3. Flujo de Peticiones Autenticadas
 
 **Cualquier petición a rutas protegidas:**
 
@@ -375,7 +489,7 @@ typedef struct {
    - El handler procesa la petición normalmente
    - Se sirve el archivo o se ejecuta la acción solicitada
 
-### 6.4. Flujo de Terminal Web
+### 7.4. Flujo de Terminal Web
 
 **Petición:** `GET /terminal`
 
@@ -387,7 +501,7 @@ typedef struct {
    - Se sirve `terminal.html` desde SPIFFS
 3. El frontend carga y muestra la terminal
 
-**Petición:** `GET /cmd?c=led y on`
+**Petición:** `GET /cmd?c=led on`
 
 **Handler:** `cmd_get_handler()`
 
@@ -445,7 +559,7 @@ typedef struct {
    - Si se recibió la respuesta correcta, se envía al navegador
    - Si hay timeout, se envía un mensaje de error
 
-### 6.5. Flujo de Lectura de Temperatura
+### 7.5. Flujo de Lectura de Temperatura
 
 **Petición:** `GET /temperature`
 
@@ -471,7 +585,7 @@ typedef struct {
 
 4. Se envía la respuesta al cliente
 
-### 6.6. Flujo de Gestión de Registros
+### 7.6. Flujo de Gestión de Registros
 
 **Petición:** `GET /registros`
 
@@ -523,14 +637,57 @@ typedef struct {
 
 6. Se responde `"OK"` o un error
 
+### 7.7. Flujo de Control del Ventilador
+
+**Petición:** `POST /fan/mode`
+
+**Handler:** `fan_mode_post_handler()`
+
+**Flujo:**
+1. Se verifica la autenticación
+2. Se recibe el body JSON:
+   ```json
+   {"mode": "manual"}
+   ```
+
+3. Se parsea y valida el modo (off, manual, temperature, schedule)
+
+4. Se establece el modo:
+   ```c
+   fan_set_mode(mode);
+   ```
+
+5. Se responde `"OK"`
+
+**Petición:** `POST /fan/manual`
+
+**Handler:** `fan_manual_post_handler()`
+
+**Flujo:**
+1. Se verifica la autenticación
+2. Se recibe el body JSON:
+   ```json
+   {"percent": 50}
+   ```
+
+3. Se valida el porcentaje (0-100)
+
+4. Se establece la velocidad:
+   ```c
+   fan_set_manual_percent(percent);
+   fan_set_mode(FAN_MODE_MANUAL);
+   ```
+
+5. Se responde `"OK"`
+
 ---
 
-## 7. Procesamiento de Comandos
+## 8. Procesamiento de Comandos
 
 **Archivo:** `main/terminal_commands.c`  
 **Tarea:** `terminal_command_task()`
 
-### 7.1. Recepción de Comando
+### 8.1. Recepción de Comando
 
 La tarea `terminal_command_task` se ejecuta en un loop infinito:
 
@@ -548,7 +705,7 @@ while (1) {
 2. Cuando el handler HTTP envía un comando, la tarea lo recibe
 3. Se copia el comando a la variable local `cmd`
 
-### 7.2. Procesamiento del Comando
+### 8.2. Procesamiento del Comando
 
 ```c
 process_terminal_command(&cmd);
@@ -561,30 +718,30 @@ process_terminal_command(&cmd);
 
 | Comando | Acción |
 |---------|--------|
-| `led y on` | Enciende LED amarillo |
-| `led y off` | Apaga LED amarillo |
-| `led b on` | Enciende LED azul |
-| `led b off` | Apaga LED azul |
-| `led all on` | Enciende ambos LEDs |
-| `led all off` | Apaga ambos LEDs |
-| `status` | Muestra estado de los LEDs |
+| `led on` | Enciende LED RGB verde (100% brillo) |
+| `led off` | Apaga LED RGB verde (0% brillo) |
+| `led <0-100>` | Establece brillo del LED RGB verde (0-100%) |
+| `fan on` | Enciende ventilador al 50% (modo manual) |
+| `fan off` | Apaga ventilador (modo OFF) |
+| `fan <0-100>` | Establece velocidad del ventilador (0-100%, modo manual) |
+| `status` | Muestra estado del sistema (LED RGB y ventilador) |
 | `help` | Lista de comandos disponibles |
 | `clear` | Limpia pantalla (manejado en frontend) |
 
 **Ejemplo de procesamiento:**
 ```c
-if (strcmp(cmd->command, "led y on") == 0) {
-    gpio_set_yellow(true);  // Llama a gpio_driver.c
-    strcpy(cmd->response, "[OK] LED amarillo encendido.");
+if (strcmp(cmd->command, "led on") == 0) {
+    rgb_set_green_percent(100);  // Llama a rgb_led.c
+    snprintf(cmd->response, sizeof(cmd->response), "[OK] LED RGB verde encendido (100%%).");
 }
 ```
 
-**Control de GPIO:**
-- `gpio_set_yellow()` y `gpio_set_blue()` están en `gpio_driver.c`
-- Estas funciones usan mutex para acceso thread-safe
-- Modifican directamente el estado de los pines GPIO
+**Control de Hardware:**
+- `rgb_set_green_percent()` está en `rgb_led.c`
+- `fan_set_mode()` y `fan_set_manual_percent()` están en `fan_control.c`
+- Estas funciones modifican directamente el hardware mediante PWM
 
-### 7.3. Envío de Respuesta
+### 8.3. Envío de Respuesta
 
 ```c
 xQueueSend(ctx->gpio_response_queue, &cmd, pdMS_TO_TICKS(100));
@@ -609,9 +766,9 @@ xQueueSend(ctx->gpio_response_queue, &cmd, pdMS_TO_TICKS(100));
 
 ---
 
-## 8. Tareas en Segundo Plano
+## 9. Tareas en Segundo Plano
 
-### 8.1. Tarea de Lectura de Temperatura
+### 9.1. Tarea de Lectura de Temperatura
 
 **Archivo:** `main/ntc_sensor.c`  
 **Tarea:** `ntc_reading_task()`
@@ -653,7 +810,7 @@ while (1) {
 - Los datos se almacenan en `current_ntc_data` (protegido por mutex)
 - El servidor web puede leerlos con `ntc_get_current_temperature()`
 
-### 8.2. Tarea de Gestión de Sesiones
+### 9.2. Tarea de Gestión de Sesiones
 
 **Archivo:** `main/web_server.c`  
 **Tarea:** `session_management_task()`
@@ -679,8 +836,7 @@ while (1) {
             (now - ctx->sessions[i].last_activity > SESSION_TIMEOUT_MS)) {
             // Sesión expirada (>3 minutos de inactividad)
             ctx->sessions[i].authenticated = false;
-            gpio_set_yellow(false);  // Apaga LEDs por seguridad
-            gpio_set_blue(false);
+            rgb_set_green_percent(0);  // Apaga LED por seguridad
         }
     }
     
@@ -697,6 +853,83 @@ while (1) {
 **Timeout:**
 - `SESSION_TIMEOUT_MS = 3 * 60 * 1000` (3 minutos)
 
+### 9.3. Tarea de Control Automático por Temperatura
+
+**Archivo:** `main/fan_control.c`  
+**Tarea:** `fan_auto_temp_task()`
+
+**Configuración:**
+- Nombre: `"fan_auto_temp"`
+- Stack: 4096 bytes
+- Prioridad: 5
+
+**Flujo:**
+```c
+while (1) {
+    // Solo actualizar si estamos en modo AUTO_TEMP
+    if (current_mode == FAN_MODE_AUTO_TEMP) {
+        // Obtener la temperatura actual del sensor
+        ntc_data_t temp_data = ntc_get_current_temperature();
+        
+        // Verificar que la temperatura sea válida
+        if (temp_data.temperature_c > -900.0 && 
+            isfinite(temp_data.temperature_c) && 
+            !isnan(temp_data.temperature_c)) {
+            
+            // Actualizar el ventilador basado en la temperatura
+            fan_update_auto_temp(temp_data.temperature_c);
+        }
+    }
+    
+    // Esperar antes de la siguiente lectura
+    vTaskDelay(pdMS_TO_TICKS(1000));
+}
+```
+
+**Propósito:**
+- Lee la temperatura periódicamente (cada 1 segundo)
+- Calcula el porcentaje de velocidad basado en temperatura (15-25°C)
+- Actualiza el ventilador automáticamente cuando está en modo AUTO_TEMP
+- Verifica presencia mediante sensor PIR (si no hay presencia, apaga el ventilador)
+
+### 9.4. Tarea de Control por Horarios (Registros)
+
+**Archivo:** `main/fan_control.c`  
+**Tarea:** `fan_schedule_task()`
+
+**Configuración:**
+- Nombre: `"fan_schedule"`
+- Stack: 4096 bytes
+- Prioridad: 5
+
+**Flujo:**
+```c
+while (1) {
+    // Solo actualizar si estamos en modo SCHEDULE
+    if (current_mode == FAN_MODE_SCHEDULE) {
+        // Verificar registros
+        fan_update_from_registros();
+    }
+    
+    // Esperar antes de la siguiente verificación
+    vTaskDelay(pdMS_TO_TICKS(10000));  // Cada 10 segundos
+}
+```
+
+**Propósito:**
+- Verifica los registros guardados periódicamente (cada 10 segundos)
+- Obtiene el día y hora actual
+- Busca un registro activo que coincida con el momento actual
+- Actualiza la velocidad del ventilador según el registro encontrado
+- Verifica presencia mediante sensor PIR (si no hay presencia, apaga el ventilador)
+
+**Función `fan_update_from_registros()`:**
+1. Verifica que la hora esté sincronizada
+2. Obtiene el día y hora actual
+3. Llama a `verificar_registro_activo()` del módulo registros
+4. Si hay registro activo, establece la velocidad correspondiente
+5. Si no hay registro activo, apaga el ventilador
+
 ---
 
 ## Resumen del Flujo Completo
@@ -705,9 +938,12 @@ while (1) {
 
 1. **`app_main()` se ejecuta**
    - Inicializa NVS
-   - Inicializa GPIO (LEDs)
+   - Inicializa LED RGB
    - Inicializa sensor NTC y crea tarea de lectura
-   - Inicializa WiFi (SoftAP)
+   - Inicializa sensor PIR
+   - Inicializa ventilador y crea tareas de control
+   - Inicializa WiFi (AP+STA)
+   - Sincroniza tiempo (SNTP)
    - Inicia servidor web
 
 2. **`start_webserver()` se ejecuta**
@@ -721,6 +957,8 @@ while (1) {
    - `ntc_reader`: Lee temperatura cada 1 segundo
    - `gpio_cmd_task`: Espera comandos en la cola
    - `session_mgmt`: Verifica sesiones cada 2 segundos
+   - `fan_auto_temp`: Controla ventilador por temperatura cada 1 segundo
+   - `fan_schedule`: Verifica registros cada 10 segundos
 
 ### Cuando un Usuario se Conecta:
 
@@ -741,7 +979,7 @@ while (1) {
    - `GET /terminal` → `terminal.html`
 
 6. **El usuario ejecuta un comando:**
-   - `GET /cmd?c=led y on`
+   - `GET /cmd?c=led on`
    - El handler envía el comando a la cola
    - La tarea procesa el comando
    - La tarea envía la respuesta a la cola
@@ -759,6 +997,21 @@ while (1) {
    - El handler lee `current_ntc_data`
    - Se responde con JSON: `{"temperature": 25.5}`
 
+### Flujo de Control del Ventilador:
+
+1. **Modo AUTO_TEMP:**
+   - Tarea `fan_auto_temp` lee temperatura cada 1 segundo
+   - Calcula porcentaje basado en temperatura (15-25°C)
+   - Verifica presencia PIR
+   - Actualiza PWM del ventilador
+
+2. **Modo SCHEDULE:**
+   - Tarea `fan_schedule` verifica registros cada 10 segundos
+   - Obtiene día y hora actual
+   - Busca registro activo en SPIFFS
+   - Verifica presencia PIR
+   - Actualiza PWM del ventilador según registro
+
 ---
 
 ## Diagrama de Arquitectura
@@ -772,17 +1025,20 @@ while (1) {
 │  └──────┬───────┘                                           │
 │         │                                                   │
 │         ├─→ NVS Init                                        │
-│         ├─→ GPIO Init (LEDs)                                │
+│         ├─→ RGB LED Init                                    │
 │         ├─→ NTC Init + Task                                 │
-│         ├─→ WiFi SoftAP                                     │
+│         ├─→ PIR Init                                        │
+│         ├─→ Fan Init + Tasks                                │
+│         ├─→ WiFi AP+STA                                     │
+│         ├─→ Time Sync (SNTP)                                │
 │         └─→ Web Server Start                                │
 │                                                             │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │              start_webserver()                       │   |
+│  │              start_webserver()                       │   │
 │  │  ┌──────────────┐  ┌──────────────┐                  |   │
-│  │  │   Mutexes    │  │    Colas      │                 │   │
-│  │  │ - sessions   │  │ - commands    │                 │   │
-│  │  │ - cmd_ids    │  │ - responses   │                 │   │
+│  │  │   Mutexes    │  │    Colas     │                  │   │
+│  │  │ - sessions   │  │ - commands   │                  │   │
+│  │  │ - cmd_ids    │  │ - responses  │                  │   │
 │  │  └──────────────┘  └──────────────┘                  |   │
 │  │                                                      │   │
 │  │  ┌──────────────────────────────────────────────┐    |   │
@@ -805,14 +1061,26 @@ while (1) {
 │  │  - Almacena en current_ntc_data (mutex)              │   │
 │  └──────────────────────────────────────────────────────┘   │
 │                                                             │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │         Tarea: fan_auto_temp (prioridad 5)           │   │
+│  │  - Controla ventilador por temperatura               │   │
+│  │  - Actualiza cada 1 segundo                          │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │         Tarea: fan_schedule (prioridad 5)            │   │
+│  │  - Verifica registros cada 10 segundos               │   │
+│  │  - Controla ventilador por horarios                  │   │
+│  └──────────────────────────────────────────────────────┘   │
+│                                                             │
 └─────────────────────────────────────────────────────────────┘
-         │                    │
-         │ WiFi               │ GPIO
-         ▼                    ▼
-    ┌─────────┐          ┌─────────┐
-    │ Cliente │          │  LEDs   │
-    │  Web    │          │  NTC    │
-    └─────────┘          └─────────┘
+         │                    │                    │
+         │ WiFi               │ GPIO               │ ADC
+         ▼                    ▼                    ▼
+    ┌─────────┐          ┌─────────┐          ┌─────────┐
+    │ Cliente │          │  LEDs   │          │  NTC    │
+    │  Web    │          │  Fan    │          │  PIR    │
+    └─────────┘          └─────────┘          └─────────┘
 ```
 
 ---
@@ -838,7 +1106,7 @@ typedef struct {
 
 - **Inactividad:** 3 minutos
 - **Verificación:** Cada 2 segundos (tarea `session_mgmt`)
-- **Acción al expirar:** Apaga LEDs automáticamente
+- **Acción al expirar:** Apaga LED RGB automáticamente
 
 ### Protección
 
@@ -853,11 +1121,14 @@ typedef struct {
 ```
 main/
 ├── main.c                 # Punto de entrada (app_main)
-├── wifi_app.c/h          # Configuración WiFi SoftAP
+├── wifi_app.c/h          # Configuración WiFi AP+STA
 ├── web_server.c/h        # Servidor HTTP y rutas
 ├── terminal_commands.c/h # Procesamiento de comandos
-├── gpio_driver.c/h       # Control de LEDs (GPIO)
+├── rgb_led.c/h           # Control LED RGB verde
+├── fan_control.c/h       # Control ventilador PWM
 ├── ntc_sensor.c/h        # Sensor de temperatura
+├── pir_driver.c/h        # Driver sensor PIR
+├── time_sync.c/h         # Sincronización de tiempo SNTP
 └── registros.c/h         # Gestión de registros (SPIFFS)
 
 front/                     # Archivos del frontend (SPIFFS)
@@ -886,17 +1157,29 @@ front/                     # Archivos del frontend (SPIFFS)
 
 3. **Persistencia:**
    - SPIFFS para archivos estáticos y registros
-   - NVS para configuración del sistema
+   - NVS para configuración del sistema y hora sincronizada
 
 4. **Seguridad:**
    - Autenticación basada en sesiones
    - Timeout automático de sesiones inactivas
-   - LEDs se apagan automáticamente al expirar sesión
+   - LED RGB se apaga automáticamente al expirar sesión
 
 5. **Hardware:**
-   - GPIO 2: LED Amarillo
-   - GPIO 5: LED Azul
+   - GPIO 27: LED RGB Verde (PWM)
+   - GPIO 26: Ventilador (PWM)
    - GPIO 32 (ADC1_CH4): Sensor NTC
+   - GPIO 12: Sensor PIR
+
+6. **Control del Ventilador:**
+   - Múltiples modos de operación (OFF, MANUAL, AUTO_TEMP, SCHEDULE)
+   - Control automático por temperatura
+   - Control por horarios usando registros
+   - Verificación de presencia mediante sensor PIR
+
+7. **Sincronización de Tiempo:**
+   - SNTP para obtener hora actual
+   - Persistencia en NVS
+   - Fallback a hora manual si SNTP no está disponible
 
 ---
 
@@ -907,3 +1190,5 @@ front/                     # Archivos del frontend (SPIFFS)
 - La comunicación entre módulos se hace a través de interfaces bien definidas
 - El uso de mutexes y colas garantiza thread-safety en un entorno multi-tarea
 - El sistema es robusto y maneja errores de forma apropiada
+- El control del ventilador es flexible y soporta múltiples modos de operación
+- El sistema de registros permite programar el ventilador por horarios

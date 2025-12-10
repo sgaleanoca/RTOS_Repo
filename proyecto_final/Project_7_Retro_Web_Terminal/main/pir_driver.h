@@ -8,14 +8,27 @@
  * Este módulo gestiona la detección de movimiento mediante interrupciones GPIO.
  * 
  * Hardware:
- * - Sensor PIR: GPIO 12 (configurable)
+ * - Sensor PIR: GPIO 12 (configurable mediante PIR_GPIO_PIN)
+ * - El sensor PIR detecta movimiento mediante cambios en radiación infrarroja
  * 
  * Características:
  * - Detección de movimiento mediante interrupciones GPIO (flanco de subida/bajada)
  * - Soporte para cola de eventos opcional para notificaciones asíncronas
  * - Lectura síncrona del estado actual del sensor
  * - ISR (Interrupt Service Routine) thread-safe usando colas desde ISR
+ * - Configuración automática de pull-up/pull-down (deshabilitados, el módulo PIR ya los tiene)
  * 
+ * Uso en el sistema:
+ * - El ventilador verifica presencia mediante pir_is_motion_active()
+ * - En modo MANUAL, el ventilador ignora el PIR
+ * - En otros modos, el ventilador solo funciona si hay presencia detectada
+ * 
+ * ============================================================================
+ * ÍNDICE DE SECCIONES:
+ * ============================================================================
+ * Sección 1: CONFIGURACIÓN DE PIN GPIO se encuentra en las líneas 35 a 40
+ * Sección 2: ESTRUCTURAS DE DATOS se encuentra en las líneas 42 a 51
+ * Sección 3: PROTOTIPOS DE FUNCIONES se encuentra en las líneas 53 a 94
  * ============================================================================
  */
 

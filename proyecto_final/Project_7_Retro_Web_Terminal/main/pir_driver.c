@@ -9,17 +9,57 @@
  * 
  * Hardware:
  * - Sensor PIR: GPIO 12 (configurable mediante pir_init())
+ * - El sensor PIR detecta movimiento mediante cambios en radiación infrarroja
  * 
  * Características:
  * - Detección de movimiento mediante interrupciones GPIO
  * - Soporte para cola de eventos opcional para notificaciones asíncronas
  * - Lectura síncrona del estado actual del sensor
  * - ISR (Interrupt Service Routine) thread-safe usando colas desde ISR
+ * - Configuración automática de pull-up/pull-down (deshabilitados, el módulo PIR ya los tiene)
  * 
  * Arquitectura:
- * - Interrupciones GPIO en ambos flancos (subida y bajada)
- * - ISR envía eventos a cola de FreeRTOS (si está configurada)
+ * - Interrupciones GPIO en ambos flancos (subida y bajada) para detectar cambios
+ * - ISR envía eventos a cola de FreeRTOS (si está configurada) usando xQueueSendFromISR()
  * - Función síncrona para leer estado actual sin esperar eventos
+ * - El ventilador utiliza este sensor para verificar presencia antes de activarse
+ * 
+ * Uso en el sistema:
+ * - El ventilador verifica presencia mediante pir_is_motion_active()
+ * - En modo MANUAL, el ventilador ignora el PIR
+ * - En otros modos, el ventilador solo funciona si hay presencia detectada
+ * 
+ * ============================================================================
+ * ÍNDICE DE SECCIONES:
+ * ============================================================================
+ * Sección 1: INCLUDES se encuentra en las líneas 37 a 47
+ * Sección 2: DEFINICIONES Y CONSTANTES se encuentra en las líneas 49 a 50
+ * Sección 3: VARIABLES ESTÁTICAS se encuentra en las líneas 52 a 55
+ * Sección 4: FUNCIONES INTERNAS se encuentra en las líneas 57 a 94
+ * Sección 5: FUNCIONES PÚBLICAS se encuentra en las líneas 96 a 219
+ * ============================================================================
+ * 
+ * ============================================================================
+ * RESUMEN DE TAREAS, COLAS Y SEMÁFOROS IMPLEMENTADOS:
+ * ============================================================================
+ * 
+ * === TAREAS (TASKS) ===
+ * 
+ * Ninguna en este módulo. Las funciones se llaman desde otras tareas.
+ * 
+ * === COLAS (QUEUES) ===
+ * 
+ * 1. s_pir_evt_queue (opcional, configurada externamente)
+ *    - Tipo: QueueHandle_t (FreeRTOS queue)
+ *    - Tamaño: Configurado externamente
+ *    - Elemento: pir_event_t (estructura con campo motion)
+ *    - Dirección: ISR → Tarea externa
+ *    - Operación: xQueueSendFromISR() desde ISR
+ *    - Uso: Notificaciones asíncronas de cambios de movimiento (opcional)
+ * 
+ * === SEMÁFOROS (MUTEXES) ===
+ * 
+ * Ninguno en este módulo. gpio_get_level() es thread-safe.
  * 
  * ============================================================================
  */

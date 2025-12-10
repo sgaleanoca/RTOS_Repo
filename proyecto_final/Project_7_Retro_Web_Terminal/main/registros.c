@@ -12,10 +12,46 @@
  * - Creación automática del archivo registros.json si no existe
  * - Guardado de registros en formato JSON en /spiffs/registros.json
  * - Lectura de todos los registros almacenados
+ * - Verificación de registros activos para el día y hora actual
  * - Persistencia de datos tras reinicio del ESP32
  * 
  * Los registros se utilizan desde el módulo web_server.c a través de los
- * endpoints HTTP GET /registros y POST /registros.
+ * endpoints HTTP GET /registros y POST /registros, y desde fan_control.c
+ * para el modo SCHEDULE del ventilador.
+ * 
+ * Formato de registro:
+ * {
+ *   "dia": "lunes",
+ *   "hora": "14:30",
+ *   "velocidad": 50,
+ *   "id": "1234567890"
+ * }
+ * 
+ * ============================================================================
+ * ÍNDICE DE SECCIONES:
+ * ============================================================================
+ * Sección 1: INCLUDES se encuentra en las líneas 44 a 60
+ * Sección 2: DEFINICIONES Y CONSTANTES se encuentra en las líneas 62 a 63
+ * Sección 3: FUNCIONES INTERNAS se encuentra en las líneas 65 a 76
+ * Sección 4: FUNCIONES PÚBLICAS se encuentra en las líneas 78 a 325
+ * ============================================================================
+ * 
+ * ============================================================================
+ * RESUMEN DE TAREAS, COLAS Y SEMÁFOROS IMPLEMENTADOS:
+ * ============================================================================
+ * 
+ * === TAREAS (TASKS) ===
+ * 
+ * Ninguna en este módulo. Las funciones se llaman desde otras tareas.
+ * 
+ * === COLAS (QUEUES) ===
+ * 
+ * Ninguna en este módulo.
+ * 
+ * === SEMÁFOROS (MUTEXES) ===
+ * 
+ * Ninguno en este módulo. El acceso a archivos SPIFFS es thread-safe
+ * mediante las funciones estándar de C (fopen, fread, fwrite).
  * 
  * ============================================================================
  */

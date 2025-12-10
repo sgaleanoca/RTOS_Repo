@@ -1,16 +1,22 @@
 # Project 7: Retro Web Terminal
 
-Terminal web retro estilo Matrix para ESP32 con autenticación, control de LEDs, sensor de temperatura y servidor web embebido.
+Terminal web retro estilo Matrix para ESP32 con autenticación, control de hardware (LED RGB, ventilador PWM), sensores (temperatura NTC, presencia PIR), sincronización de tiempo y servidor web embebido.
 
 ## Descripción General
 
 El proyecto implementa un servidor web retro estilo terminal en un ESP32 que permite controlar hardware mediante una interfaz web moderna. El sistema proporciona:
 
-- **Acceso Point WiFi (SoftAP)**: El ESP32 crea su propia red WiFi para acceso directo
+- **Access Point + Station WiFi (AP+STA)**: El ESP32 crea su propia red WiFi local y se conecta a Internet
 - **Interfaz Web Retro**: Terminal estilo Matrix con estética retro y efectos visuales
 - **Autenticación Segura**: Sistema de login con sesiones basadas en IP y timeout automático
-- **Control de Hardware**: Comandos para controlar LEDs (amarillo y azul) mediante GPIO
-- **Sensor de Temperatura**: Lectura en tiempo real mediante sensor NTC
+- **Control de Hardware**: 
+  - LED RGB verde (GPIO 27, PWM)
+  - Ventilador con control PWM (GPIO 26, múltiples modos)
+- **Sensores**:
+  - Sensor de temperatura NTC 10k (GPIO 32, ADC1)
+  - Sensor PIR de presencia (GPIO 12)
+- **Sincronización de Tiempo**: SNTP para obtener hora actual y control por horarios
+- **Sistema de Registros**: Gestión de horarios del ventilador con persistencia en SPIFFS
 - **Almacenamiento SPIFFS**: Archivos HTML/CSS/JS almacenados en partición SPIFFS del flash
 - **Arquitectura RTOS**: Sistema basado en FreeRTOS con tareas concurrentes y colas de mensajes
 
@@ -27,11 +33,15 @@ El proyecto implementa un servidor web retro estilo terminal en un ESP32 que per
 │  │                                                             |    │
 │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │    │
 │  │  │  Main Task   │  │ GPIO Command │  │  Session     │       │    │
-│  │  │  (app_main)  │  │    Task      │  │  Management   │      │    │
-│  │  │              │  │              │  │     Task      │      │    │
+│  │  │  (app_main)  │  │    Task      │  │  Management  │       │    │
+│  │  │              │  │              │  │     Task     │       │    │
 │  │  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘       │    │
 │  │         │                 │                  │              │    │
-│  │         │                 │                  │              │    │
+│  │  ┌──────▼───────┐  ┌──────▼───────┐  ┌──────▼───────┐       │    │
+│  │  │ NTC Reader   │  │ Fan Auto Temp│  │ Fan Schedule │       │    │
+│  │  │    Task      │  │     Task     │  │     Task     │       │    │
+│  │  └──────────────┘  └──────────────┘  └──────────────┘       │    │
+│  │                                                             │    │
 │  │  ┌──────▼─────────────────▼──────────────────▼──────┐       │    │
 │  │  │         Colas de Mensajes (FreeRTOS)             │       │    │
 │  │  │  • gpio_command_queue                            │       │    │
@@ -41,7 +51,7 @@ El proyecto implementa un servidor web retro estilo terminal en un ESP32 que per
 │  └─────────────────────────────────────────────────────────────┘    │
 │                                                                     │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐               │
-│  │  WiFi SoftAP │  │ HTTP Server  │  │  SPIFFS      │               │
+│  │  WiFi AP+STA │  │ HTTP Server  │  │  SPIFFS      │               │
 │  │  (wifi_app)  │  │(web_server)  │  │  Filesystem  │               │
 │  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘               │
 │         │                 │                 │                       │
@@ -67,11 +77,34 @@ El proyecto implementa un servidor web retro estilo terminal en un ESP32 que per
 
 El sistema está compuesto por los siguientes módulos principales:
 
-1. **Módulo WiFi (wifi_app.c/h)**: Configura el ESP32 como Access Point, creando una red WiFi independiente
+1. **Módulo WiFi (wifi_app.c/h)**: Configura el ESP32 como Access Point + Station (AP+STA)
 2. **Módulo Servidor Web (web_server.c/h)**: Implementa el servidor HTTP con manejo de sesiones y rutas
-3. **Módulo GPIO (gpio_driver.c/h)**: Controla los LEDs mediante pines GPIO configurados
-4. **Módulo Sensor NTC (ntc_sensor.c/h)**: Lee temperatura mediante termistor NTC 10k
-5. **Frontend Web (front/)**: Interfaz de usuario con terminal retro y dashboard
+3. **Módulo Terminal (terminal_commands.c/h)**: Procesa comandos de la terminal web
+4. **Módulo LED RGB (rgb_led.c/h)**: Control PWM del LED RGB verde
+5. **Módulo Ventilador (fan_control.c/h)**: Control PWM del ventilador con múltiples modos
+6. **Módulo Sensor NTC (ntc_sensor.c/h)**: Lee temperatura mediante termistor NTC 10k
+7. **Módulo Sensor PIR (pir_driver.c/h)**: Detecta presencia mediante sensor PIR
+8. **Módulo Sincronización de Tiempo (time_sync.c/h)**: Sincroniza hora mediante SNTP
+9. **Módulo Registros (registros.c/h)**: Gestiona registros de horarios del ventilador
+10. **Frontend Web (front/)**: Interfaz de usuario con terminal retro y dashboard
+
+## Hardware
+
+### Pines GPIO Configurados
+
+| GPIO | Función | Descripción |
+|------|---------|-------------|
+| GPIO 27 | LED RGB Verde | Control PWM mediante LEDC Channel 1, Timer 0 |
+| GPIO 26 | Ventilador | Control PWM mediante LEDC Channel 2, Timer 1 |
+| GPIO 32 | Sensor NTC | Lectura ADC1 Channel 4 (divisor de voltaje) |
+| GPIO 12 | Sensor PIR | Entrada digital con interrupciones |
+
+### Especificaciones
+
+- **LED RGB**: PWM 8-bit, 5kHz, control por porcentaje (0-100%)
+- **Ventilador**: PWM 8-bit, 25kHz, control por porcentaje (0-100%)
+- **Sensor NTC**: Termistor 10k, resistencia en serie 10k, ecuación Steinhart-Hart
+- **Sensor PIR**: Detección de movimiento mediante interrupciones GPIO
 
 ## Flujo de Inicialización del Sistema
 
@@ -86,10 +119,6 @@ El sistema está compuesto por los siguientes módulos principales:
                     │ 1. Inicializar  │
                     │      NVS        │
                     │  (nvs_flash)    │
-                    │                 │
-                    │ • Erase si      │
-                    │   necesario     │
-                    │ • Init flash    │
                     └────────┬────────┘
                              │
                              ▼
@@ -97,71 +126,66 @@ El sistema está compuesto por los siguientes módulos principales:
                     │ 2. Inicializar  │
                     │    Hardware     │
                     │                 │
-                    │ • GPIO LEDs     │
+                    │ • LED RGB       │
                     │ • Sensor NTC    │
-                    │ • Tarea lectura │
-                    │   temperatura   │
+                    │ • Sensor PIR    │
+                    │ • Ventilador    │
+                    │ • Tareas RTOS   │
                     └────────┬────────┘
                              │
                              ▼
                     ┌─────────────────┐
                     │ 3. Inicializar  │
-                    │   WiFi SoftAP   │
+                    │   WiFi AP+STA   │
                     │  (wifi_app.c)   │
                     │                 │
-                    │ • Configurar    │
-                    │   SSID/Pass     │
-                    │ • Iniciar AP    │
-                    │ • Asignar IP    │
+                    │ • Access Point  │
+                    │ • Station       │
                     └────────┬────────┘
                              │
                     ┌────────┴────────┐
                     │ Red WiFi Creada │
                     │                 │
-                    │ SSID: ESP32_    │
+                    │ AP: ESP32_      │
                     │      Server     │
-                    │ Pass: 12345678  │
-                    │ IP: 192.168.4.1 │
+                    │ STA: Mondongo   │
                     └────────┬────────┘
                              │
                              ▼
                     ┌─────────────────┐
-                    │ 4. Inicializar  │
+                    │ 4. Sincronizar  │
+                    │      Tiempo     │
+                    │  (time_sync.c)  │
+                    │                 │
+                    │ • SNTP          │
+                    │ • Zona horaria  │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │ 5. Inicializar  │
                     │  Servidor Web   │
                     │ (web_server.c)  │
                     └────────┬────────┘
                              │
                     ┌────────┴────────┐
-                    │ 4.1. Montar     │
+                    │ 5.1. Montar     │
                     │     SPIFFS      │
                     │  (/spiffs)      │
-                    │                 │
-                    │ • Verificar     │
-                    │   partición     │
-                    │ • Montar FS     │
                     └────────┬────────┘
                              │
                     ┌────────┴────────┐
-                    │ 4.2. Verificar  │
-                    │   archivos web  │
-                    │                 │
-                    │ • index.html    │
-                    │ • login.html    │
-                    │ • style.css     │
-                    │ • script.js     │
-                    └────────┬────────┘
-                             │
-                    ┌────────┴────────┐
-                    │ 4.3. Crear      │
+                    │ 5.2. Crear      │
                     │   Colas RTOS    │
                     │                 │
                     │ • command_queue │
                     │ • response_queue│
                     │ • mutex sesiones│
+                    │ • mutex cmd_ids │
                     └────────┬────────┘
                              │
                     ┌────────┴────────┐
-                    │ 4.4. Crear      │
+                    │ 5.3. Crear      │
                     │   Tareas RTOS   │
                     │                 │
                     │ • GPIO task     │
@@ -169,21 +193,16 @@ El sistema está compuesto por los siguientes módulos principales:
                     └────────┬────────┘
                              │
                     ┌────────┴────────┐
-                    │ 4.5. Registrar  │
+                    │ 5.4. Registrar  │
                     │   Handlers HTTP │
                     │                 │
-                    │ • GET /         │
-                    │ • GET /login    │
-                    │ • POST /login   │
-                    │ • GET /cmd      │
-                    │ • GET /temp     │
-                    │ • GET /*.html   │
-                    │ • GET /*.css    │
-                    │ • GET /*.js     │
+                    │ • Páginas web   │
+                    │ • API REST      │
+                    │ • Autenticación │
                     └────────┬────────┘
                              │
                     ┌────────┴────────┐
-                    │ 4.6. Iniciar    │
+                    │ 5.5. Iniciar    │
                     │  HTTP Server    │
                     │  (Puerto 80)    │
                     └────────┬────────┘
@@ -196,512 +215,91 @@ El sistema está compuesto por los siguientes módulos principales:
         │  • Máximo 5 sesiones simultáneas              │
         │  • Timeout: 3 minutos de inactividad          │
         │  • Sistema de autenticación activo            │
+        │  • Control de ventilador activo               │
+        │  • Sensores funcionando                       │
         └───────────────────────────────────────────────┘
 ```
 
-## Flujo de Autenticación
+## Rutas API Disponibles
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Cliente se conecta                           │
-│                    a 192.168.4.1                                │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │  GET /          │
-                    │  (HTTP Request) │
-                    └────────┬────────┘
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │ Extraer IP del  │
-                    │    cliente      │
-                    │ (get_client_ip) │
-                    └────────┬────────┘
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │ Buscar sesión   │
-                    │ por IP          │
-                    │ (find_or_create)│
-                    └────────┬────────┘
-                             │
-                    ┌────────┴────────┐
-                    │                 │
-                    ▼                 ▼
-            ┌──────────────┐  ┌──────────────┐
-            │ Sesión       │  │ No existe    │
-            │ encontrada   │  │ sesión       │
-            └──────┬───────┘  └──────┬───────┘
-                   │                 │
-                   ▼                 ▼
-            ┌──────────────┐ ┌───────────────┐
-            │ ¿Autenticada?│ │ Crear nueva   │
-            │              │ │ sesión        │
-            └──────┬───────┘ │ (authenticated│
-                   │         │  = false)     │
-            ┌──────┴──────┐  └──────┬────────┘
-            │             │         │
-            ▼             ▼         │
-    ┌───────────┐  ┌───────────┐    │
-    │   SÍ      │  │    NO     │    │
-    └─────┬─────┘  └─────┬─────┘    │
-          │              │          │
-          │              └─────┬────┘
-          │                    │
-          │                    ▼
-          │          ┌─────────────────┐
-          │          │ Servir          │
-          │          │ login.html      │
-          │          │ desde SPIFFS    │
-          │          └────────┬────────┘
-          │                   │
-          │                   ▼
-          │          ┌─────────────────┐
-          │          │ Usuario ingresa │
-          │          │ credenciales    │
-          │          └────────┬────────┘
-          │                   │
-          │                   ▼
-          │          ┌─────────────────┐
-          │          │ POST /login     │
-          │          │ user=root       │
-          │          │ pass=matrix123  │
-          │          └────────┬────────┘
-          │                   │
-          │                   ▼
-          │          ┌─────────────────┐
-          │          │ Validar         │
-          │          │ credenciales    │
-          │          └────────┬────────┘
-          │                   │
-          │          ┌────────┴──────────┐
-          │          │                   │
-          │          ▼                   ▼
-          │  ┌───────────┐      ┌───────────┐
-          │  │ Válidas   │      │ Inválidas │
-          │  └─────┬─────┘      └─────┬─────┘
-          │        │                  │
-          │        │                  ▼
-          │        │          ┌──────────────┐
-          │        │          │ HTTP 401     │
-          │        │          │ Unauthorized │
-          │        │          └──────────────┘
-          │        │
-          │        ▼
-          │  ┌─────────────────┐
-          │  │ Marcar sesión   │
-          │  │ como autenticada│
-          │  │ (authenticated= │
-          │  │  true)          │
-          │  │ Actualizar      │
-          │  │ last_activity   │
-          │  └────────┬────────┘
-          │           │
-          │           ▼
-          │  ┌─────────────────┐
-          │  │ HTTP 200 OK     │
-          │  └────────┬────────┘
-          │           │
-          └───────────┘
-                     │
-                     ▼
-            ┌─────────────────┐
-            │ Redirigir a     │
-            │ /dashboard o /  │
-            └────────┬────────┘
-                     │
-                     ▼
-            ┌─────────────────┐
-            │ Servir          │
-            │ index.html      │
-            │ (Terminal)      │
-            └─────────────────┘
-```
+### Páginas Web
+- `GET /` - Redirige a login o dashboard según autenticación
+- `GET /dashboard` - Panel principal (requiere autenticación)
+- `GET /terminal` - Terminal web retro (requiere autenticación)
+- `GET /slider` - Panel de control con temperatura y ventilador (requiere autenticación)
 
-## Flujo de Procesamiento de Comandos
+### Archivos Estáticos
+- `GET /style.css` - Archivo CSS
+- `GET /script.js` - Archivo JavaScript
+- `GET /favicon.ico` - Respuesta 204 No Content
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Usuario escribe comando                      │
-│                    en terminal web                              │
-└────────────────────────────┬────────────────────────────────────┘
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │ JavaScript      │
-                    │ (script.js)     │
-                    │                 │
-                    │ • Captura input │
-                    │ • Valida formato│
-                    └────────┬────────┘
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │ GET /cmd?c=     │
-                    │ comando         │
-                    │                 │
-                    │ Ejemplo:        │
-                    │ /cmd?c=led%20y% │
-                    │ 20on            │
-                    └────────┬────────┘
-                             │
-                             ▼
-                    ┌───────────────────┐
-                    │ Verificar         │
-                    │ autenticación     │
-                    │ (is_authenticated)│
-                    └────────┬──────────┘
-                             │
-                    ┌────────┴────────┐
-                    │                 │
-                    ▼                 ▼
-            ┌──────────────┐  ┌───────────────┐
-            │ Autenticado  │  │ No autenticado│
-            └──────┬───────┘  └──────┬────────┘
-                   │                 │
-                   │                 ▼
-                   │          ┌──────────────┐
-                   │          │ HTTP 401     │
-                   │          │ Redirigir    │
-                   │          │ a /login     │
-                   │          └──────────────┘
-                   │
-                   ▼
-            ┌─────────────────┐
-            │ Decodificar     │
-            │ comando (URL)   │
-            │                 │
-            │ • URL decode    │
-            │ • To lowercase  │
-            └────────┬────────┘
-                     │
-                     ▼
-            ┌─────────────────┐
-            │ ¿Comando        │
-            │ especial?       │
-            │ (clear)         │
-            └────────┬────────┘
-                     │
-            ┌────────┴────────┐
-            │                 │
-            ▼                 ▼
-    ┌──────────────┐  ┌──────────────┐
-    │   SÍ         │  │     NO       │
-    │ (clear)      │  │              │
-    └──────┬───────┘  └──────┬───────┘
-           │                 │
-           │                 ▼
-           │          ┌─────────────────┐
-           │          │ Generar ID      │
-           │          │ único de comando│
-           │          │ (command_id)    │
-           │          └────────┬────────┘
-           │                   │
-           │                   ▼
-           │          ┌─────────────────┐
-           │          │ Crear estructura│
-           │          │ gpio_command_t  │
-           │          │                 │
-           │          │ • command_id    │
-           │          │ • command       │
-           │          │ • response      │
-           │          └────────┬────────┘
-           │                   │
-           │                   ▼
-           │          ┌─────────────────┐
-           │          │ Enviar a cola   │
-           │          │ gpio_command_   │
-           │          │ queue           │
-           │          │ (xQueueSend)    │
-           │          └────────┬────────┘
-           │                   │
-           │                   ▼
-           │          ┌──────────────────┐
-           │          │ Esperar respuesta│
-           │          │ de gpio_response_│
-           │          │ queue            │
-           │          │ (xQueueReceive)  │
-           │          │ con timeout      │
-           │          └────────┬─────────┘
-           │                   │
-           │                   ▼
-           │          ┌─────────────────┐
-           │          │ Verificar       │
-           │          │ command_id      │
-           │          │ coincide        │
-           │          └────────┬────────┘
-           │                   │
-           │                   ▼
-           │          ┌─────────────────┐
-           │          │ Enviar respuesta│
-           │          │ HTTP al cliente │
-           │          └─────────────────┘
-           │
-           ▼
-    ┌─────────────────┐
-    │ Respuesta       │
-    │ inmediata       │
-    │ "[OK] Pantalla  │
-    │ limpiada."      │
-    └─────────────────┘
+### Autenticación
+- `POST /login` - Validar credenciales y crear sesión
+- `GET /logout` - Cerrar sesión y apagar LEDs
 
-┌─────────────────────────────────────────────────────────────────┐
-│              PROCESAMIENTO EN TAREA GPIO (RTOS)                 │
-└─────────────────────────────────────────────────────────────────┘
+### API de Comandos
+- `GET /cmd?c=comando` - Ejecutar comando de terminal
 
-┌─────────────────┐
-│ gpio_command_   │
-│ task (loop)     │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Esperar comando │
-│ de cola         │
-│ (xQueueReceive) │
-│ (bloqueante)    │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Parsear comando │
-│                 │
-│ • led y on      │
-│ • led y off     │
-│ • led b on      │
-│ • led b off     │
-│ • led all on    │
-│ • led all off   │
-│ • status        │
-│ • help          │
-└────────┬────────┘
-         │
-         ▼
-┌──────────────────┐
-│ Ejecutar acción  │
-│                  │
-│ • gpio_set_      │
-│   yellow()       │
-│ • gpio_set_blue()│
-│ • gpio_get_      │
-│   yellow()       │
-│ • gpio_get_blue()│
-└────────┬─────────┘
-         │
-         ▼
-┌──────────────────┐
-│ Generar respuesta│
-│                  │
-│ • "[OK] LED..."  │
-│ • Estado LEDs    │
-│ • Lista comandos │
-└────────┬─────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Enviar respuesta│
-│ a cola          │
-│ gpio_response_  │
-│ queue           │
-└─────────────────┘
-```
+### API de Temperatura
+- `GET /temperature` - Obtener temperatura actual (JSON)
 
-## Gestión de Sesiones y Timeout
+### API de Ventilador
+- `POST /fan/mode` - Establecer modo del ventilador (off, manual, temperature, schedule)
+- `POST /fan/manual` - Establecer velocidad manual (0-100%)
+- `GET /fan/status` - Obtener estado del ventilador (JSON)
+- `GET /fan/diagnostic` - Diagnóstico completo del sistema (JSON)
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│              Tarea de Gestión de Sesiones (RTOS)                │
-│              (session_management_task)                          │
-└─────────────────────────────────────────────────────────────────┘
+### API de Registros
+- `GET /registros` - Leer todos los registros (JSON)
+- `POST /registros` - Guardar nuevo registro (JSON)
 
-                    ┌─────────────────┐
-                    │ Loop cada 2 seg │
-                    │ (vTaskDelay)    │
-                    └────────┬────────┘
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │ Obtener tiempo  │
-                    │ actual (ms)     │
-                    │ (get_time_ms)   │
-                    └────────┬────────┘
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │ Tomar mutex     │
-                    │ (session_mutex) │
-                    └────────┬────────┘
-                             │
-                             ▼
-                    ┌─────────────────┐
-                    │ Iterar sobre    │
-                    │ todas las       │
-                    │ sesiones        │
-                    │ (MAX_SESSIONS)  │
-                    └────────┬────────┘
-                             │
-                    ┌────────┴────────┐
-                    │                 │
-                    ▼                 ▼
-            ┌──────────────┐  ┌───────────────┐
-            │ Sesión       │  │ Sesión        │
-            │ autenticada  │  │ no autenticada│
-            └──────┬───────┘  └───────────────┘
-                   │
-                   ▼
-            ┌─────────────────┐
-            │ Calcular tiempo │
-            │ de inactividad  │
-            │                 │
-            │ timeout = now - │
-            │ last_activity   │
-            └────────┬────────┘
-                     │
-            ┌────────┴────────┐
-            │                 │
-            ▼                 ▼
-    ┌──────────────┐  ┌──────────────┐
-    │ timeout >    │  │ timeout <=   │
-    │ 3 minutos    │  │ 3 minutos    │
-    └──────┬───────┘  └──────────────┘
-           │
-           ▼
-    ┌─────────────────┐
-    │ Expirar sesión  │
-    │                 │
-    │ • authenticated │
-    │   = false       │
-    │ • Apagar LEDs   │
-    │ • Log evento    │
-    └────────┬────────┘
-             │
-             ▼
-    ┌─────────────────┐
-    │ Liberar mutex   │
-    │ (xSemaphoreGive)│
-    └─────────────────┘
-```
+### API de Sensor PIR
+- `GET /pir/status` - Obtener estado del sensor PIR (JSON)
 
-## Diagrama de Interacción de Componentes
+### API de Tiempo
+- `POST /time/set` - Establecer hora manualmente (JSON)
 
-```
-┌──────────────┐
-│   Cliente    │
-│   Web        │
-└──────┬───────┘
-       │ HTTP Requests
-       │
-       ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    HTTP Server (web_server.c)               │
-│                                                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
-│  │   Handler    │  │   Handler    │  │   Handler    │       │
-│  │   GET /      │  │  POST /login │  │  GET /cmd    │       │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘       │
-│         │                 │                  │              │
-│         │                 │                  │              │
-│         ▼                 ▼                  ▼              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
-│  │ Verificar    │  │ Validar      │  │ Verificar    │       │
-│  │ sesión       │  │ credenciales │  │ sesión       │       │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘       │
-│         │                 │                  │              │
-│         │                 │                  │              │
-│         ▼                 ▼                  ▼              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
-│  │ Servir desde │  │ Crear/       │  │ Enviar a     │       │
-│  │ SPIFFS       │  │ Actualizar   |  │ cola comandos│       │
-│  └──────────────┘  └──────────────┘  └──────┬───────┘       │
-│                                                │            │
-└────────────────────────────────────────────────┼────────────┘
-                                                 │
-                                                 ▼
-                                    ┌─────────────────────┐
-                                    │  gpio_command_queue │
-                                    │  (FreeRTOS Queue)   │
-                                    └──────────┬──────────┘
-                                               │
-                                               ▼
-                                    ┌─────────────────────┐
-                                    │  GPIO Command Task  │
-                                    │  (FreeRTOS Task)    │
-                                    └──────────┬──────────┘
-                                               │
-                                               ▼
-                                    ┌─────────────────────┐
-                                    │  gpio_driver.c      │
-                                    │                     │
-                                    │  • gpio_set_yellow()│
-                                    │  • gpio_set_blue()  │
-                                    │  • gpio_get_yellow()│
-                                    │  • gpio_get_blue()  │
-                                    └──────────┬──────────┘
-                                               │
-                                               ▼
-                                    ┌─────────────────────┐
-                                    │  Hardware GPIO      │
-                                    │                     │
-                                    │  • LED Amarillo     │
-                                    │  • LED Azul         │
-                                    └─────────────────────┘
+## Comandos Disponibles en la Terminal
 
-┌─────────────────────────────────────────────────────────────┐
-│                    Session Management                       │
-│                                                             │
-│  ┌──────────────┐                                           │
-│  │ Session Task │                                           │
-│  │ (RTOS Task)  │                                           │
-│  └──────┬───────┘                                           │
-│         │                                                   │
-│         ▼                                                   │
-│  ┌──────────────┐                                           │
-│  │ Verificar    │                                           │
-│  │ timeouts     │                                           │
-│  │ cada 2 seg   │                                           │
-│  └──────┬───────┘                                           │
-│         │                                                   │
-│         ▼                                                   │
-│  ┌──────────────┐                                           │
-│  │ sessions[]   │                                           │
-│  │ array        │                                           │
-│  │ (MAX_SESSIONS│                                           │
-│  │  = 5)        │                                           │
-│  └──────────────┘                                           │
-└─────────────────────────────────────────────────────────────┘
+Una vez autenticado, el usuario puede usar los siguientes comandos en el terminal web:
 
-┌─────────────────────────────────────────────────────────────┐
-│                    NTC Sensor Module                        │
-│                                                             │
-│  ┌──────────────┐                                           │
-│  │ NTC Reading  │                                           │
-│  │ Task (RTOS)  │                                           │
-│  └──────┬───────┘                                           │
-│         │                                                   |
-│         ▼                                                   │
-│  ┌──────────────┐                                           │
-│  │ ntc_sensor.c │                                           │
-│  │              │                                           │
-│  │ • ADC read   │                                           │
-│  │ • Calculate  │                                           │
-│  │   temp       │                                           │
-│  └──────┬───────┘                                           │
-│         │                                                   │
-│         ▼                                                   │
-│  ┌──────────────┐                                           │
-│  │ GET /temp    │                                           │
-│  │ Handler      │                                           │
-│  └──────┬───────┘                                           │
-│         │                                                   │
-│         ▼                                                   │
-│  ┌──────────────┐                                           │
-│  │ JSON Response│                                           │
-│  │ {"temp": XX} │                                           │
-│  └──────────────┘                                           │
-└─────────────────────────────────────────────────────────────┘
-```
+### Control de LED RGB
+- `led on` - Enciende el LED RGB verde (100% brillo)
+- `led off` - Apaga el LED RGB verde (0% brillo)
+- `led <0-100>` - Establece el brillo del LED RGB verde (0-100%)
+
+### Control de Ventilador
+- `fan on` - Enciende el ventilador al 50% de velocidad (modo manual)
+- `fan off` - Apaga el ventilador (modo OFF)
+- `fan <0-100>` - Establece la velocidad del ventilador manualmente (0-100%, modo manual)
+
+### Sistema
+- `status` - Muestra el estado actual del sistema (LED RGB y ventilador)
+- `help` - Muestra la lista de comandos disponibles
+- `clear` - Limpia la pantalla del terminal
+
+## Modos de Operación del Ventilador
+
+El ventilador soporta 4 modos de operación:
+
+1. **FAN_MODE_OFF**: Ventilador apagado (0% PWM)
+2. **FAN_MODE_MANUAL**: Control manual por porcentaje (0-100%), ignora sensor PIR
+3. **FAN_MODE_AUTO_TEMP**: Control automático basado en temperatura (15-25°C), requiere presencia PIR
+4. **FAN_MODE_SCHEDULE**: Control por horarios usando registros guardados, requiere presencia PIR
+
+### Control Automático por Temperatura
+
+- **Temperatura mínima**: 15°C (0% PWM)
+- **Temperatura máxima**: 25°C (100% PWM)
+- **Mapeo**: Lineal entre 15°C y 25°C
+- **Actualización**: Cada 1 segundo mediante tarea RTOS
+
+### Control por Horarios (Registros)
+
+- Los registros se guardan en `/spiffs/registros.json`
+- Formato: `{"dia": "lunes", "hora": "14:30", "velocidad": 50}`
+- Verificación: Cada 10 segundos mediante tarea RTOS
+- Requiere: Hora sincronizada mediante SNTP
 
 ## Instrucciones de Flasheo
 
@@ -716,8 +314,10 @@ El sistema está compuesto por los siguientes módulos principales:
 2. **Hardware necesario**
    - ESP32 (cualquier variante compatible)
    - Cable USB para programación
-   - LEDs conectados a los GPIOs configurados (opcional)
-   - Sensor NTC 10k con resistencia en serie de 10k (opcional)
+   - LED RGB conectado a GPIO 27 (opcional)
+   - Ventilador con MOSFET en GPIO 26 (opcional)
+   - Sensor NTC 10k con resistencia en serie de 10k en GPIO 32 (opcional)
+   - Sensor PIR en GPIO 12 (opcional)
 
 ### Método 1: Script Automático (Recomendado)
 
@@ -775,15 +375,21 @@ idf.py -p /dev/ttyUSB0 monitor
 
 **Logs esperados:**
 ```
-I (xxx) WIFI_APP: SoftAP iniciado. SSID: ESP32_Server Clave: 12345678 canal: 1
+I (xxx) WIFI_APP: WiFi iniciado en modo AP+STA
+I (xxx) WIFI_APP: Access Point: SSID=ESP32_Server, Clave=12345678, Canal=1
+I (xxx) WIFI_APP: Station: Conectando a Mondongo...
+I (xxx) TIME_SYNC: SNTP inicializado, esperando sincronización...
 I (xxx) WEB_SERVER: SPIFFS montado correctamente en /spiffs
 I (xxx) WEB_SERVER: SPIFFS: 1024 KB total, XX KB usado
 I (xxx) WEB_SERVER: Archivo encontrado: /spiffs/index.html (XXX bytes)
 I (xxx) WEB_SERVER: Archivo encontrado: /spiffs/login.html (XXX bytes)
+I (xxx) WEB_SERVER: Archivo encontrado: /spiffs/dashboard.html (XXX bytes)
+I (xxx) WEB_SERVER: Archivo encontrado: /spiffs/terminal.html (XXX bytes)
+I (xxx) WEB_SERVER: Archivo encontrado: /spiffs/slider.html (XXX bytes)
 I (xxx) WEB_SERVER: Archivo encontrado: /spiffs/style.css (XXX bytes)
 I (xxx) WEB_SERVER: Archivo encontrado: /spiffs/script.js (XXX bytes)
-I (xxx) WEB_SERVER: Todos los archivos encontrados correctamente (4/4)
-I (xxx) WEB_SERVER: Servidor Web Iniciado correctamente en puerto 80
+I (xxx) WEB_SERVER: Todos los archivos encontrados correctamente (7/7)
+I (xxx) WEB_SERVER: Servidor Web iniciado correctamente en puerto 80
 ```
 
 ### Solución de Problemas
@@ -817,11 +423,13 @@ Project_7_Retro_Web_Terminal/
 ├── sdkconfig              # Configuración de ESP-IDF
 ├── flash_all.sh           # Script automático de flasheo
 ├── README.md              # Archivo de documentación
+├── FLUJO_DEL_CODIGO.md    # Documentación del flujo del código
 │
 ├── front/                 # Archivos web (se copian a SPIFFS)
 │   ├── index.html        # Terminal principal (requiere login)
 │   ├── login.html        # Página de login
 │   ├── dashboard.html    # Dashboard de control
+│   ├── terminal.html     # Terminal web retro
 │   ├── slider.html       # Control con slider
 │   ├── style.css         # Estilos retro estilo Matrix
 │   └── script.js         # Lógica del terminal web
@@ -829,54 +437,46 @@ Project_7_Retro_Web_Terminal/
 └── main/                  # Código fuente del ESP32
     ├── CMakeLists.txt
     ├── main.c            # Punto de entrada (app_main)
-    ├── wifi_app.c        # Configuración WiFi SoftAP
-    ├── wifi_app.h        # Definiciones WiFi
-    ├── web_server.c      # Servidor HTTP y lógica web
-    ├── web_server.h      # Headers del servidor
-    ├── gpio_driver.c     # Control de LEDs
-    ├── gpio_driver.h     # Headers GPIO
-    ├── ntc_sensor.c      # Sensor de temperatura NTC
-    └── ntc_sensor.h      # Headers sensor NTC
+    ├── wifi_app.c/h      # Configuración WiFi AP+STA
+    ├── web_server.c/h    # Servidor HTTP y lógica web
+    ├── terminal_commands.c/h # Procesamiento de comandos
+    ├── rgb_led.c/h       # Control LED RGB verde
+    ├── fan_control.c/h  # Control ventilador PWM
+    ├── ntc_sensor.c/h   # Sensor de temperatura NTC
+    ├── pir_driver.c/h   # Driver sensor PIR
+    ├── time_sync.c/h    # Sincronización de tiempo SNTP
+    └── registros.c/h    # Gestión de registros de horarios
 ```
 
 ## Credenciales por Defecto
 
-- **SSID WiFi**: `ESP32_Server`
-- **Contraseña WiFi**: `12345678`
-- **IP del ESP32**: `192.168.4.1`
+- **SSID WiFi AP**: `ESP32_Server`
+- **Contraseña WiFi AP**: `12345678`
+- **SSID WiFi STA**: `Mondongo` (configurable en wifi_app.h)
+- **Contraseña WiFi STA**: `huevos12` (configurable en wifi_app.h)
+- **IP del ESP32 (AP)**: `192.168.4.1`
 - **Usuario Web**: `root`
 - **Contraseña Web**: `matrix123`
 
 > **Importante**: Se deben cambiar estas credenciales en producción.
 
-## Comandos Disponibles
-
-Una vez autenticado, el usuario puede usar los siguientes comandos en el terminal web:
-
-### Control Individual de LEDs
-- `led y on` - Enciende el LED amarillo
-- `led y off` - Apaga el LED amarillo
-- `led b on` - Enciende el LED azul
-- `led b off` - Apaga el LED azul
-
-### Control General
-- `led all on` - Enciende ambos LEDs
-- `led all off` - Apaga ambos LEDs
-
-### Sistema
-- `status` - Muestra el estado actual de los LEDs
-- `help` - Muestra la lista de comandos disponibles
-- `clear` - Limpia la pantalla del terminal
-
 ## Configuración
 
-### Cambiar Credenciales WiFi
+### Cambiar Credenciales WiFi AP
 
 Se debe editar el archivo `main/wifi_app.h`:
 ```c
 #define ESP_WIFI_SSID      "Tu_SSID"
 #define ESP_WIFI_PASS      "Tu_Contraseña"
 #define ESP_WIFI_CHANNEL   1
+```
+
+### Cambiar Credenciales WiFi STA
+
+Se debe editar el archivo `main/wifi_app.h`:
+```c
+#define WIFI_STA_SSID      "Tu_Red_WiFi"
+#define WIFI_STA_PASS      "Tu_Contraseña"
 ```
 
 ### Cambiar Credenciales Web
@@ -902,7 +502,7 @@ Se debe editar el archivo `main/web_server.c`:
 nvs,      data, nvs,     ,        0x6000
 phy_init, data, phy,     ,        0x1000
 factory,  app,  factory, ,        1M
-storage,  data, spiffs,  ,        1M    ← Archivos web aquí
+storage,  data, spiffs,  ,        1M    ← Archivos web y registros aquí
 ```
 
 ## Troubleshooting
@@ -925,6 +525,16 @@ storage,  data, spiffs,  ,        1M    ← Archivos web aquí
 - Las sesiones expiran después de 3 minutos de inactividad
 - Se debe volver a hacer login si la sesión expira
 
+### El ventilador no funciona
+- Verificar que el sensor PIR detecte presencia (excepto modo MANUAL)
+- Verificar que la hora esté sincronizada (para modo SCHEDULE)
+- Verificar que haya registros guardados (para modo SCHEDULE)
+
+### La hora no se sincroniza
+- Verificar que el ESP32 esté conectado a Internet (modo Station)
+- Verificar que el servidor NTP sea accesible
+- Se puede establecer la hora manualmente mediante `POST /time/set`
+
 ## Notas Técnicas
 
 ### Sistema de Sesiones
@@ -940,18 +550,19 @@ storage,  data, spiffs,  ,        1M    ← Archivos web aquí
   - `gpio_command_queue`: Comandos del servidor HTTP a la tarea GPIO
   - `gpio_response_queue`: Respuestas de la tarea GPIO al servidor HTTP
 - **Identificación**: Cada comando tiene un ID único para emparejar comando-respuesta
-- **Tarea Dedicada**: Tarea RTOS separada procesa comandos GPIO de forma asíncrona
+- **Tarea Dedicada**: Tarea RTOS separada procesa comandos de forma asíncrona
 
 ### Sistema de Archivos
 - **SPIFFS**: Sistema de archivos en flash, 1MB de capacidad
 - **Montaje**: Se monta en `/spiffs` durante la inicialización
 - **Verificación**: El sistema verifica que todos los archivos web estén presentes al iniciar
+- **Registros**: Los registros de horarios se guardan en `/spiffs/registros.json`
 
 ### Servidor HTTP
 - **Puerto**: 80 (HTTP estándar)
 - **Conexiones**: Soporta hasta 7 conexiones simultáneas
 - **Protocolo**: HTTP/1.1
-- **Handlers**: Múltiples handlers para diferentes rutas (GET /, POST /login, GET /cmd, GET /temp, etc.)
+- **Handlers**: Múltiples handlers para diferentes rutas (17 rutas registradas)
 
 ### FreeRTOS
 - **Kernel**: El programa corre sobre FreeRTOS
@@ -960,13 +571,29 @@ storage,  data, spiffs,  ,        1M    ← Archivos web aquí
   - Tarea de procesamiento de comandos GPIO
   - Tarea de gestión de sesiones
   - Tarea de lectura de temperatura NTC
+  - Tarea de control automático por temperatura del ventilador
+  - Tarea de control por horarios del ventilador
 - **Sincronización**: Mutex y colas para comunicación entre tareas
 
 ### Sensor de Temperatura
 - **Tipo**: Sensor NTC 10k (termistor)
 - **ADC**: Utiliza ADC1, canal 4 (GPIO32)
-- **Lectura**: Tarea RTOS lee temperatura periódicamente
-- **API**: Endpoint `/temp` devuelve temperatura en formato JSON
+- **Lectura**: Tarea RTOS lee temperatura periódicamente cada 1 segundo
+- **API**: Endpoint `/temperature` devuelve temperatura en formato JSON
+- **Cálculo**: Ecuación de Steinhart-Hart para conversión resistencia-temperatura
+
+### Control del Ventilador
+- **PWM**: Control mediante LEDC, 8 bits, 25kHz
+- **Modos**: OFF, MANUAL, AUTO_TEMP, SCHEDULE
+- **Sensor PIR**: El ventilador solo funciona si detecta presencia (excepto modo MANUAL)
+- **Control Automático**: Basado en temperatura (15-25°C)
+- **Control por Horarios**: Basado en registros guardados en SPIFFS
+
+### Sincronización de Tiempo
+- **Protocolo**: SNTP (Simple Network Time Protocol)
+- **Servidor**: co.pool.ntp.org (Colombia)
+- **Zona Horaria**: Colombia (UTC-5)
+- **Persistencia**: Hora guardada en NVS para restaurar después de reinicio
+- **Fallback**: Establecimiento manual de hora si SNTP no está disponible
 
 ---
-

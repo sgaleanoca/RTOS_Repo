@@ -4,21 +4,28 @@
  * ============================================================================
  * 
  * RESUMEN:
- * Header file para la configuración y gestión de WiFi en modo SoftAP
- * (Access Point). Define las credenciales de la red WiFi que crea el ESP32
- * y la función para inicializar el punto de acceso.
+ * Header file para la configuración y gestión de WiFi en modo AP+STA
+ * (Access Point + Station). Define las credenciales de las redes WiFi
+ * y las funciones para inicializar el punto de acceso y la conexión Station.
  * 
- * Configuración:
+ * Configuración Access Point (SoftAP):
  * - SSID: "ESP32_Server"
  * - Contraseña: "12345678"
  * - Canal: 1
  * - Máximo de estaciones conectadas: 4
+ * - Autenticación: WPA2 Personal
+ * 
+ * Configuración Station (STA):
+ * - SSID: "Mondongo"
+ * - Contraseña: "huevos12"
+ * - Máximo de reintentos: 5
  * 
  * ============================================================================
  * ÍNDICE DE SECCIONES:
  * ============================================================================
- * Sección 1: CONFIGURACIÓN DE WIFI SOFTAP se encuentra en las líneas 21 a 26
- * Sección 2: PROTOTIPOS DE FUNCIONES se encuentra en las líneas 28 a 40
+ * Sección 1: CONFIGURACIÓN DE WIFI SOFTAP se encuentra en las líneas 33 a 34
+ * Sección 2: CONFIGURACIÓN DE WIFI STATION se encuentra en las líneas 36 a 39
+ * Sección 3: PROTOTIPOS DE FUNCIONES se encuentra en las líneas 41 a 61
  * ============================================================================
  */
 

@@ -6,11 +6,11 @@
  * RESUMEN:
  * Implementación del módulo de procesamiento de comandos de terminal.
  * Este módulo gestiona el procesamiento de comandos recibidos desde la
- * terminal web, incluyendo comandos para control de LEDs y comandos del sistema.
+ * terminal web, incluyendo comandos para control de LEDs, ventilador y comandos del sistema.
  * 
  * Funcionalidad:
- * - Procesa comandos de la terminal (led, status, help, clear, etc.)
- * - Ejecuta acciones correspondientes (control de GPIO)
+ * - Procesa comandos de la terminal (led, fan, status, help, clear, etc.)
+ * - Ejecuta acciones correspondientes (control de GPIO, PWM para LED y ventilador)
  * - Genera respuestas apropiadas para cada comando
  * 
  * ============================================================================
@@ -116,10 +116,19 @@ typedef struct {
  * @param cmd: Estructura con el comando a procesar (se modifica in-place con la respuesta)
  * 
  * Comandos soportados:
+ * 
+ * Control de LED RGB:
  * - led on : Enciende el LED RGB verde (100% brillo)
  * - led off : Apaga el LED RGB verde (0% brillo)
  * - led <0-100> : Establece el brillo del LED RGB verde (0-100%)
- * - status : Estado del LED RGB verde
+ * 
+ * Control de Ventilador:
+ * - fan on : Enciende el ventilador al 50% de velocidad (modo manual)
+ * - fan off : Apaga el ventilador (modo OFF)
+ * - fan <0-100> : Establece la velocidad del ventilador manualmente (0-100%, modo manual)
+ * 
+ * Sistema:
+ * - status : Estado del sistema (LED RGB y ventilador)
  * - help : Lista de comandos disponibles
  * - clear : Limpiar pantalla (manejado en frontend)
  */
@@ -129,6 +138,7 @@ void process_terminal_command(gpio_command_t *cmd) {
         return;
     }
     
+    // ===== COMANDOS DE LED RGB =====
     // Comando "led <número>" para establecer brillo (0-100)
     if (strncmp(cmd->command, "led ", 4) == 0) {
         int brightness = atoi(cmd->command + 4);
@@ -142,7 +152,9 @@ void process_terminal_command(gpio_command_t *cmd) {
         return;
     }
     
-    // Comando "fan <número>" para establecer velocidad (0-100)
+    // ===== COMANDOS DE VENTILADOR =====
+    // Comando "fan <número>" para establecer velocidad manual (0-100)
+    // Cambia el modo a MANUAL y establece el porcentaje de velocidad
     if (strncmp(cmd->command, "fan ", 4) == 0) {
         int percent = atoi(cmd->command + 4);
         if (percent >= 0 && percent <= 100) {
@@ -156,21 +168,26 @@ void process_terminal_command(gpio_command_t *cmd) {
         return;
     }
     
-    // Comandos simples
+    // ===== COMANDOS SIMPLES (LED RGB) =====
     if (strcmp(cmd->command, "led on") == 0) {
         rgb_set_green_percent(100);
         snprintf(cmd->response, sizeof(cmd->response), "[OK] LED RGB verde encendido (100%%).");
     } else if (strcmp(cmd->command, "led off") == 0) {
         rgb_set_green_percent(0);
         snprintf(cmd->response, sizeof(cmd->response), "[OK] LED RGB verde apagado.");
+    // ===== COMANDOS SIMPLES (VENTILADOR) =====
     } else if (strcmp(cmd->command, "fan on") == 0) {
+        // Enciende el ventilador al 50% en modo manual
         fan_set_mode(FAN_MODE_MANUAL);
         fan_set_manual_percent(50);
         snprintf(cmd->response, sizeof(cmd->response), "[OK] Ventilador encendido al 50%% de velocidad.");
     } else if (strcmp(cmd->command, "fan off") == 0) {
+        // Apaga el ventilador (modo OFF)
         fan_set_mode(FAN_MODE_OFF);
         snprintf(cmd->response, sizeof(cmd->response), "[OK] Ventilador apagado.");
+    // ===== COMANDOS DEL SISTEMA =====
     } else if (strcmp(cmd->command, "status") == 0) {
+        // Muestra el estado actual del LED RGB y del ventilador
         uint8_t fan_percent = fan_get_current_percent();
         fan_mode_t fan_mode = fan_get_mode();
         const char *fan_mode_str;
@@ -192,6 +209,7 @@ void process_terminal_command(gpio_command_t *cmd) {
                  "  - Control: 'fan on/off/<0-100>'",
                  fan_mode_str, fan_percent);
     } else if (strcmp(cmd->command, "help") == 0) {
+        // Muestra la lista de comandos disponibles
         snprintf(cmd->response, sizeof(cmd->response),
                  "Comandos disponibles:\n\n"
                  "  --- LED RGB ---\n"

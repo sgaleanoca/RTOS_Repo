@@ -4,22 +4,50 @@
  * ============================================================================
  * 
  * RESUMEN:
- * Implementación del módulo de WiFi en modo SoftAP (Access Point). Este módulo:
+ * Implementación del módulo de WiFi en modo AP+STA (Access Point + Station).
+ * Este módulo configura el ESP32 para funcionar simultáneamente como:
+ * - Access Point (SoftAP): Crea su propia red WiFi para acceso local
+ * - Station (STA): Se conecta a una red WiFi externa para tener Internet
+ * 
+ * Funcionalidades:
  * - Inicializa la pila de red TCP/IP
- * - Configura el ESP32 como punto de acceso WiFi
- * - Crea una red WiFi con las credenciales definidas
- * - Maneja eventos de conexión/desconexión de clientes
+ * - Configura el ESP32 como punto de acceso WiFi (red local)
+ * - Se conecta a una red WiFi externa para tener Internet (SNTP, etc.)
+ * - Maneja eventos de conexión/desconexión de clientes y estaciones
+ * - Reintentos automáticos de conexión a la red externa
  * 
  * Los usuarios pueden conectarse a la red "ESP32_Server" y acceder al
- * servidor web para controlar el sistema.
+ * servidor web para controlar el sistema. El ESP32 también se conecta
+ * a la red "Mondongo" para tener acceso a Internet (SNTP, etc.).
  * 
  * ============================================================================
  * ÍNDICE DE SECCIONES:
  * ============================================================================
- * Sección 1: INCLUDES se encuentra en las líneas 18 a 38
- * Sección 2: DEFINICIONES Y CONSTANTES se encuentra en las líneas 40 a 41
- * Sección 3: MANEJO DE EVENTOS WIFI se encuentra en las líneas 43 a 66
- * Sección 4: INICIALIZACIÓN DE SOFTAP se encuentra en las líneas 68 a 134
+ * Sección 1: INCLUDES se encuentra en las líneas 36 a 60
+ * Sección 2: DEFINICIONES Y CONSTANTES se encuentra en las líneas 62 a 64
+ * Sección 3: MANEJO DE EVENTOS WIFI se encuentra en las líneas 66 a 103
+ * Sección 4: INICIALIZACIÓN DE SOFTAP se encuentra en las líneas 105 a 197
+ * Sección 5: FUNCIONES DE UTILIDAD se encuentra en las líneas 199 a 205
+ * ============================================================================
+ * 
+ * ============================================================================
+ * RESUMEN DE TAREAS, COLAS Y SEMÁFOROS IMPLEMENTADOS:
+ * ============================================================================
+ * 
+ * === TAREAS (TASKS) ===
+ * 
+ * Ninguna en este módulo. WiFi funciona mediante eventos y callbacks.
+ * 
+ * === COLAS (QUEUES) ===
+ * 
+ * Ninguna en este módulo.
+ * 
+ * === SEMÁFOROS (MUTEXES) ===
+ * 
+ * Ninguno en este módulo. El acceso a variables globales es thread-safe
+ * porque solo se modifican desde el handler de eventos que se ejecuta
+ * en el contexto del bucle de eventos.
+ * 
  * ============================================================================
  */
 

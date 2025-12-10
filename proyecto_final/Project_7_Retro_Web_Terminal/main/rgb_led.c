@@ -18,6 +18,33 @@
  * - Validación de parámetros y manejo de errores
  * 
  * ============================================================================
+ * ÍNDICE DE SECCIONES:
+ * ============================================================================
+ * Sección 1: INCLUDES se encuentra en las líneas 33 a 40
+ * Sección 2: DEFINICIONES Y CONSTANTES se encuentra en las líneas 42 a 50
+ * Sección 3: VARIABLES ESTÁTICAS se encuentra en las líneas 52 a 53
+ * Sección 4: FUNCIONES DE INICIALIZACIÓN se encuentra en las líneas 55 a 104
+ * Sección 5: FUNCIONES DE CONTROL DEL LED se encuentra en las líneas 106 a 145
+ * ============================================================================
+ * 
+ * ============================================================================
+ * RESUMEN DE TAREAS, COLAS Y SEMÁFOROS IMPLEMENTADOS:
+ * ============================================================================
+ * 
+ * === TAREAS (TASKS) ===
+ * 
+ * Ninguna en este módulo. Las funciones se llaman directamente desde otras tareas.
+ * 
+ * === COLAS (QUEUES) ===
+ * 
+ * Ninguna en este módulo.
+ * 
+ * === SEMÁFOROS (MUTEXES) ===
+ * 
+ * Ninguno en este módulo. El acceso a las funciones es thread-safe porque
+ * las funciones de LEDC son thread-safe.
+ * 
+ * ============================================================================
  */
 
 // ===== INCLUDES =====

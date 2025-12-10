@@ -1,16 +1,111 @@
-// ===== INCLUDES Y CONFIGURACIÓN =====
+/**
+ * ============================================================================
+ * ARCHIVO: fan_control.c
+ * ============================================================================
+ * 
+ * RESUMEN:
+ * Implementación del módulo de control del ventilador mediante PWM.
+ * Este módulo gestiona el control de velocidad del ventilador en diferentes
+ * modos de operación: OFF, MANUAL, AUTO_TEMP (automático por temperatura) y
+ * SCHEDULE (control por horarios basado en registros).
+ * 
+ * Hardware:
+ * - Ventilador: Controlado mediante PWM en GPIO 26 (LEDC Channel 2, Timer 1)
+ * - Sensor PIR: El ventilador solo funciona si detecta presencia (excepto modo MANUAL)
+ * - Sensor NTC: Utilizado para control automático por temperatura
+ * 
+ * Características:
+ * - Control PWM de 8 bits (0-255 niveles)
+ * - Frecuencia: 25kHz (adecuada para motores)
+ * - Múltiples modos de operación con tareas independientes
+ * - Integración con sistema de registros para control por horarios
+ * - Verificación de presencia mediante sensor PIR (excepto modo MANUAL)
+ * 
+ * Modos de operación:
+ * - FAN_MODE_OFF: Ventilador apagado (0% PWM)
+ * - FAN_MODE_MANUAL: Control manual por porcentaje (0-100%), ignora PIR
+ * - FAN_MODE_AUTO_TEMP: Control automático basado en temperatura (15-25°C)
+ * - FAN_MODE_SCHEDULE: Control por horarios usando registros guardados
+ * 
+ * ============================================================================
+ * ÍNDICE DE SECCIONES:
+ * ============================================================================
+ * Sección 1: INCLUDES se encuentra en las líneas 48 a 60
+ * Sección 2: DEFINICIONES Y CONSTANTES se encuentra en las líneas 62 a 75
+ * Sección 3: VARIABLES GLOBALES Y ESTADO se encuentra en las líneas 77 a 85
+ * Sección 4: FUNCIONES INTERNAS DE CONTROL se encuentra en las líneas 87 a 95
+ * Sección 5: FUNCIONES PÚBLICAS DE CONTROL se encuentra en las líneas 97 a 269
+ * Sección 6: TAREA DE CONTROL AUTOMÁTICO POR TEMPERATURA se encuentra en las líneas 271 a 330
+ * Sección 7: TAREA DE CONTROL POR HORARIOS (REGISTROS) se encuentra en las líneas 332 a 387
+ * ============================================================================
+ * 
+ * ============================================================================
+ * RESUMEN DE TAREAS, COLAS Y SEMÁFOROS IMPLEMENTADOS:
+ * ============================================================================
+ * 
+ * === TAREAS (TASKS) ===
+ * 
+ * 1. fan_auto_temp_task (Sección 6)
+ *    - Nombre: "fan_auto_temp"
+ *    - Stack: 4096 bytes
+ *    - Prioridad: 5 (alta)
+ *    - Función: Lee la temperatura periódicamente y actualiza el ventilador
+ *              cuando está en modo FAN_MODE_AUTO_TEMP
+ *    - Propósito: Control automático del ventilador basado en temperatura
+ *    - Estado: Loop infinito, actualiza cada 1 segundo
+ *    - Flujo:
+ *      1. Verifica que el modo sea AUTO_TEMP
+ *      2. Lee temperatura del sensor NTC
+ *      3. Calcula porcentaje de velocidad basado en temperatura
+ *      4. Actualiza PWM del ventilador
+ * 
+ * 2. fan_schedule_task (Sección 7)
+ *    - Nombre: "fan_schedule"
+ *    - Stack: 4096 bytes
+ *    - Prioridad: 5 (alta)
+ *    - Función: Verifica periódicamente los registros y actualiza el ventilador
+ *              cuando está en modo FAN_MODE_SCHEDULE
+ *    - Propósito: Control del ventilador basado en horarios guardados
+ *    - Estado: Loop infinito, verifica cada 10 segundos
+ *    - Flujo:
+ *      1. Verifica que el modo sea SCHEDULE
+ *      2. Obtiene día y hora actual
+ *      3. Busca registro activo en registros.json
+ *      4. Actualiza velocidad del ventilador según registro encontrado
+ * 
+ * === COLAS (QUEUES) ===
+ * 
+ * Ninguna en este módulo. Las colas se gestionan en otros módulos.
+ * 
+ * === SEMÁFOROS (MUTEXES) ===
+ * 
+ * Ninguno en este módulo. El acceso a variables globales es thread-safe
+ * porque las funciones de control se llaman desde tareas específicas.
+ * 
+ * ============================================================================
+ */
+
+// ===== INCLUDES =====
+// Headers locales
 #include "fan_control.h"
 #include "ntc_sensor.h"
 #include "registros.h"
 #include "time_sync.h"
 #include "pir_driver.h"
+
+// ESP-IDF
 #include "esp_log.h"
 #include "driver/ledc.h"
+
+// FreeRTOS
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+
+// Estándar C
 #include <math.h>
 #include <string.h>
 
+// ===== DEFINICIONES Y CONSTANTES =====
 static const char *TAG = "FAN_CONTROL";
 
 // ===== VARIABLES GLOBALES Y ESTADO =====

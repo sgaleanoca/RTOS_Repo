@@ -5,16 +5,22 @@
  * 
  * RESUMEN:
  * Header file para el controlador de LED RGB (actualmente solo canal verde).
- * Este módulo gestiona el control PWM del LED RGB conectado al ESP32.
+ * Este módulo gestiona el control PWM del LED RGB conectado al ESP32 mediante
+ * el periférico LEDC (LED Controller).
  * 
  * Hardware:
- * - LED Verde: GPIO 27 (PWM mediante LEDC)
+ * - LED Verde: GPIO 27 (PWM mediante LEDC Channel 1, Timer 0)
  * 
  * Características:
- * - Control PWM de 8 bits (0-255)
- * - Frecuencia: 5kHz
+ * - Control PWM de 8 bits (0-255 niveles)
+ * - Frecuencia: 5kHz (adecuada para LEDs sin parpadeo visible)
  * - Interfaz simple con porcentaje (0-100%)
+ * - Validación automática de parámetros
  * 
+ * ============================================================================
+ * ÍNDICE DE SECCIONES:
+ * ============================================================================
+ * Sección 1: PROTOTIPOS DE FUNCIONES se encuentra en las líneas 40 a 51
  * ============================================================================
  */
 

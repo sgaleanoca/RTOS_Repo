@@ -85,6 +85,7 @@
 // Headers locales
 #include "terminal_commands.h"
 #include "rgb_led.h"
+#include "fan_control.h"
 
 // ESP-IDF
 #include <esp_log.h>
@@ -136,7 +137,21 @@ void process_terminal_command(gpio_command_t *cmd) {
             snprintf(cmd->response, sizeof(cmd->response), 
                      "[OK] LED RGB verde establecido a %d%% de brillo.", brightness);
         } else {
-            strcpy(cmd->response, "[ERROR] El brillo debe estar entre 0 y 100.");
+            snprintf(cmd->response, sizeof(cmd->response), "[ERROR] El brillo debe estar entre 0 y 100.");
+        }
+        return;
+    }
+    
+    // Comando "fan <número>" para establecer velocidad (0-100)
+    if (strncmp(cmd->command, "fan ", 4) == 0) {
+        int percent = atoi(cmd->command + 4);
+        if (percent >= 0 && percent <= 100) {
+            fan_set_mode(FAN_MODE_MANUAL);
+            fan_set_manual_percent((uint8_t)percent);
+            snprintf(cmd->response, sizeof(cmd->response), 
+                     "[OK] Ventilador establecido a %d%% de velocidad.", percent);
+        } else {
+            snprintf(cmd->response, sizeof(cmd->response), "[ERROR] El porcentaje debe estar entre 0 y 100.");
         }
         return;
     }
@@ -144,14 +159,53 @@ void process_terminal_command(gpio_command_t *cmd) {
     // Comandos simples
     if (strcmp(cmd->command, "led on") == 0) {
         rgb_set_green_percent(100);
-        strcpy(cmd->response, "[OK] LED RGB verde encendido (100%).");
+        snprintf(cmd->response, sizeof(cmd->response), "[OK] LED RGB verde encendido (100%%).");
     } else if (strcmp(cmd->command, "led off") == 0) {
         rgb_set_green_percent(0);
-        strcpy(cmd->response, "[OK] LED RGB verde apagado.");
+        snprintf(cmd->response, sizeof(cmd->response), "[OK] LED RGB verde apagado.");
+    } else if (strcmp(cmd->command, "fan on") == 0) {
+        fan_set_mode(FAN_MODE_MANUAL);
+        fan_set_manual_percent(50);
+        snprintf(cmd->response, sizeof(cmd->response), "[OK] Ventilador encendido al 50%% de velocidad.");
+    } else if (strcmp(cmd->command, "fan off") == 0) {
+        fan_set_mode(FAN_MODE_OFF);
+        snprintf(cmd->response, sizeof(cmd->response), "[OK] Ventilador apagado.");
     } else if (strcmp(cmd->command, "status") == 0) {
-        strcpy(cmd->response, "Estado del LED RGB:\n  - LED Verde: Configurado (GPIO 27, PWM)\n  - Control: Disponible mediante comandos 'led on/off/<0-100>'");
+        uint8_t fan_percent = fan_get_current_percent();
+        fan_mode_t fan_mode = fan_get_mode();
+        const char *fan_mode_str;
+        switch (fan_mode) {
+            case FAN_MODE_OFF: fan_mode_str = "OFF"; break;
+            case FAN_MODE_MANUAL: fan_mode_str = "MANUAL"; break;
+            case FAN_MODE_AUTO_TEMP: fan_mode_str = "AUTO_TEMP"; break;
+            case FAN_MODE_SCHEDULE: fan_mode_str = "SCHEDULE"; break;
+            default: fan_mode_str = "UNKNOWN"; break;
+        }
+        snprintf(cmd->response, sizeof(cmd->response), 
+                 "Estado del sistema:\n\n"
+                 "  --- LED RGB ---\n"
+                 "  - LED Verde: Configurado (GPIO 27, PWM)\n"
+                 "  - Control: 'led on/off/<0-100>'\n\n"
+                 "  --- Ventilador ---\n"
+                 "  - Modo: %s\n"
+                 "  - Velocidad: %d%%\n"
+                 "  - Control: 'fan on/off/<0-100>'",
+                 fan_mode_str, fan_percent);
     } else if (strcmp(cmd->command, "help") == 0) {
-        strcpy(cmd->response, "Comandos disponibles:\n\n  --- Control de LED RGB ---\n  led on             - Enciende el LED RGB verde (100% brillo).\n  led off            - Apaga el LED RGB verde.\n  led <0-100>        - Establece el brillo del LED (0-100%).\n                      Ejemplo: 'led 50' establece 50% de brillo.\n\n  --- Sistema ---\n  status             - Muestra el estado del LED RGB.\n  help               - Muestra esta lista.\n  clear              - Limpia la pantalla.");
+        snprintf(cmd->response, sizeof(cmd->response),
+                 "Comandos disponibles:\n\n"
+                 "  --- LED RGB ---\n"
+                 "  led on        - Enciende LED (100%%).\n"
+                 "  led off       - Apaga LED.\n"
+                 "  led <0-100>   - Brillo LED (0-100%%).\n\n"
+                 "  --- Ventilador ---\n"
+                 "  fan on        - Enciende al 0%%.\n"
+                 "  fan off       - Apaga.\n"
+                 "  fan <0-100>   - Velocidad (0-100%%).\n\n"
+                 "  --- Sistema ---\n"
+                 "  status        - Estado.\n"
+                 "  help          - Esta lista.\n"
+                 "  clear         - Limpia pantalla.");
     } else {
         snprintf(cmd->response, sizeof(cmd->response), 
                  "[?] Comando no reconocido: '%s'. Escribe 'help' para ver la lista.", cmd->command);

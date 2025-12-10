@@ -13,6 +13,7 @@
  * @subsection server Servidor HTTP con múltiples rutas
  * - Páginas web: login, dashboard, terminal, slider
  * - API REST: /cmd (comandos), /temperature (datos JSON), /registros (gestión de registros)
+ * - API de sensores: /pir/status (estado del sensor PIR)
  * - Autenticación: /login, /logout
  * 
  * @subsection auth Sistema de autenticación y sesiones
@@ -28,6 +29,13 @@
  * @subsection temperature Gestión de temperatura
  * - Endpoint JSON para obtener temperatura actual
  * - Datos actualizados desde la tarea de lectura del sensor
+ * 
+ * @subsection pir Control del sensor PIR
+ * - Endpoint GET /pir/status para obtener estado del sensor PIR
+ * - Devuelve JSON: {"motion": true/false}
+ * - Utiliza pir_is_motion_active() del módulo pir_driver.c
+ * - Requiere autenticación
+ * - Manejo seguro: retorna false si el PIR no está inicializado
  * 
  * @subsection registros Gestión de registros de horarios
  * - Endpoints HTTP para guardar y leer registros (/registros)
@@ -48,6 +56,7 @@
  * 2. Servidor HTTP con múltiples rutas:
  *    - Páginas web: login, dashboard, terminal, slider
  *    - API REST: /cmd (comandos), /temperature (datos JSON), /registros (gestión de registros)
+ *    - API de sensores: /pir/status (estado del sensor PIR)
  *    - Autenticación: /login, /logout
  * 
  * 3. Sistema de autenticación y sesiones:
@@ -64,7 +73,14 @@
  *    - Endpoint JSON para obtener temperatura actual
  *    - Datos actualizados desde la tarea de lectura del sensor
  * 
- * 6. Gestión de registros de horarios:
+ * 6. Control del sensor PIR:
+ *    - Endpoint GET /pir/status para obtener estado del sensor PIR
+ *    - Devuelve JSON: {"motion": true/false}
+ *    - Utiliza pir_is_motion_active() del módulo pir_driver.c
+ *    - Requiere autenticación
+ *    - Manejo seguro: retorna false si el PIR no está inicializado
+ * 
+ * 7. Gestión de registros de horarios:
  *    - Endpoints HTTP para guardar y leer registros (/registros)
  *    - Utiliza el módulo registros.c para almacenamiento persistente en SPIFFS
  *    - Los registros se guardan en /spiffs/registros.json
@@ -80,7 +96,9 @@
  * Sección 6: TAREA DE GESTIÓN DE SESIONES se encuentra en las líneas 190 a 218
  * Sección 7: FUNCIONES DE GESTIÓN DE SESIONES se encuentra en las líneas 220 a 318
  * Sección 8: UTILIDADES DE ARCHIVOS se encuentra en las líneas 323 a 358
- * Sección 9: HANDLERS HTTP se encuentra en las líneas 360 a 769
+ * Sección 9: HANDLERS HTTP se encuentra en las líneas 360 a 974
+ *    - Incluye handlers para: login, logout, comandos, temperatura, registros,
+ *      control del ventilador y sensor PIR (/pir/status)
  * Sección 10: INICIALIZACIÓN DE SPIFFS se encuentra en las líneas 771 a 869
  * Sección 11: REGISTRO DE RUTAS HTTP se encuentra en las líneas 871 a 928
  * Sección 12: INICIALIZACIÓN DEL SERVIDOR se encuentra en las líneas 930 a 1010

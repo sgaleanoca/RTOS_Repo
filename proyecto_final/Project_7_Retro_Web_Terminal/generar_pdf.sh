@@ -2,7 +2,7 @@
 # Script para generar documentación PDF con Doxygen
 # Requiere: doxygen y pdflatex instalados
 # El PDF se guardará en la carpeta docs/
-
+4
 echo "=========================================="
 echo "Generando documentación PDF con Doxygen"
 echo "=========================================="

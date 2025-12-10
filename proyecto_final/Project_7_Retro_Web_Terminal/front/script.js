@@ -510,6 +510,7 @@
             
             // Verificar que los elementos existan antes de continuar
             if (!statusIcon || !statusText || !statusIndicator) {
+                console.warn("[PIR] Elementos del DOM no encontrados. Icon:", !!statusIcon, "Text:", !!statusText, "Indicator:", !!statusIndicator);
                 return;
             }
             
@@ -547,18 +548,21 @@
                             text.textContent = 'Persona detectada';
                             indicator.classList.remove('pir-status-inactive');
                             indicator.classList.add('pir-status-active');
+                            console.log("[PIR] Estado actualizado: Persona detectada");
                         } else {
                             // Sin presencia
                             icon.textContent = '🚫';
                             text.textContent = 'Sin persona';
                             indicator.classList.remove('pir-status-active');
                             indicator.classList.add('pir-status-inactive');
+                            console.log("[PIR] Estado actualizado: Sin persona");
                         }
                     } else {
                         // Estado desconocido
                         icon.textContent = '⏳';
                         text.textContent = 'Verificando...';
                         indicator.classList.remove('pir-status-active', 'pir-status-inactive');
+                        console.warn("[PIR] Respuesta inválida del servidor:", data);
                     }
                 })
                 .catch(err => {
@@ -1700,31 +1704,46 @@
     });
 
     // Inicializar funcionalidad del slider cuando la página carga
-    if (document.getElementById('sliderClock')) {
-        // Actualizar reloj cada segundo
-        setInterval(updateSliderClock, UPDATE_INTERVAL_MS);
-        updateSliderClock();
-        
-        // Actualizar temperatura cada segundo
-        setInterval(updateSliderTemperature, TEMP_UPDATE_INTERVAL_MS);
-        updateSliderTemperature();
-        
-        // Actualizar estado del PIR cada segundo (solo si los elementos existen)
-        if (document.getElementById('pirStatusIcon') && 
-            document.getElementById('pirStatusText') && 
-            document.getElementById('pirStatusIndicator')) {
-            setInterval(updatePirStatus, TEMP_UPDATE_INTERVAL_MS);
-            // Retrasar la primera llamada un poco para asegurar que la página esté completamente cargada
-            setTimeout(updatePirStatus, 500);
+    function initializeSlider() {
+        if (document.getElementById('sliderClock')) {
+            // Actualizar reloj cada segundo
+            setInterval(updateSliderClock, UPDATE_INTERVAL_MS);
+            updateSliderClock();
+            
+            // Actualizar temperatura cada segundo
+            setInterval(updateSliderTemperature, TEMP_UPDATE_INTERVAL_MS);
+            updateSliderTemperature();
+            
+            // Actualizar estado del PIR cada segundo (solo si los elementos existen)
+            const pirIcon = document.getElementById('pirStatusIcon');
+            const pirText = document.getElementById('pirStatusText');
+            const pirIndicator = document.getElementById('pirStatusIndicator');
+            
+            if (pirIcon && pirText && pirIndicator) {
+                console.log("[SLIDER] Elementos PIR encontrados, inicializando actualización...");
+                setInterval(updatePirStatus, TEMP_UPDATE_INTERVAL_MS);
+                // Retrasar la primera llamada un poco para asegurar que la página esté completamente cargada
+                setTimeout(updatePirStatus, 500);
+            } else {
+                console.warn("[SLIDER] Elementos PIR no encontrados. Icon:", !!pirIcon, "Text:", !!pirText, "Indicator:", !!pirIndicator);
+            }
+            
+            // Sincronizar hora del navegador con el ESP32 al cargar la página
+            syncBrowserTimeToESP32();
+            
+            // Cargar estado actual del ventilador al iniciar
+            loadFanStatus();
+            
+            console.log("[SLIDER] Funcionalidad del slider inicializada");
         }
-        
-        // Sincronizar hora del navegador con el ESP32 al cargar la página
-        syncBrowserTimeToESP32();
-        
-        // Cargar estado actual del ventilador al iniciar
-        loadFanStatus();
-        
-        console.log("[SLIDER] Funcionalidad del slider inicializada");
+    }
+    
+    // Ejecutar inicialización cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeSlider);
+    } else {
+        // DOM ya está listo
+        initializeSlider();
     }
     
     /**

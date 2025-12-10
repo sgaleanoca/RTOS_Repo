@@ -501,93 +501,77 @@
     /**
      * Actualiza el estado del sensor PIR en la página slider
      * Hace petición GET a /pir/status y muestra el estado visualmente
+     * Se actualiza automáticamente cada segundo, igual que la temperatura y la hora
      */
     function updatePirStatus() {
-        try {
-            const statusIcon = document.getElementById('pirStatusIcon');
-            const statusText = document.getElementById('pirStatusText');
-            const statusIndicator = document.getElementById('pirStatusIndicator');
-            
-            // Verificar que los elementos existan antes de continuar
-            if (!statusIcon || !statusText || !statusIndicator) {
-                console.warn("[PIR] Elementos del DOM no encontrados. Icon:", !!statusIcon, "Text:", !!statusText, "Indicator:", !!statusIndicator);
-                return;
-            }
-            
-            fetch("/pir/status")
-                .then(resp => {
-                    if (!resp.ok) {
-                        if (resp.status === 401) {
-                            return Promise.reject(new Error("Unauthorized"));
-                        }
-                        throw new Error(`HTTP ${resp.status}`);
+        const statusIcon = document.getElementById('pirStatusIcon');
+        const statusText = document.getElementById('pirStatusText');
+        const statusIndicator = document.getElementById('pirStatusIndicator');
+        
+        if (!statusIcon || !statusText || !statusIndicator) {
+            return;
+        }
+        
+        fetch("/pir/status")
+            .then(resp => {
+                if (!resp.ok) {
+                    if (resp.status === 401) {
+                        return Promise.reject(new Error("Unauthorized"));
                     }
-                    return resp.text().then(text => {
-                        try {
-                            return JSON.parse(text);
-                        } catch (e) {
-                            console.error("[PIR] Error parseando JSON:", text);
-                            throw e;
-                        }
-                    });
-                })
-                .then(data => {
-                    // Verificar nuevamente que los elementos existan (por si se eliminaron durante la petición)
-                    const icon = document.getElementById('pirStatusIcon');
-                    const text = document.getElementById('pirStatusText');
-                    const indicator = document.getElementById('pirStatusIndicator');
-                    
-                    if (!icon || !text || !indicator) {
-                        return;
-                    }
-                    
-                    if (data && typeof data.motion === 'boolean') {
-                        if (data.motion) {
-                            // Presencia detectada
-                            icon.textContent = '👤';
-                            text.textContent = 'Persona detectada';
-                            indicator.classList.remove('pir-status-inactive');
-                            indicator.classList.add('pir-status-active');
-                            console.log("[PIR] Estado actualizado: Persona detectada");
-                        } else {
-                            // Sin presencia
-                            icon.textContent = '🚫';
-                            text.textContent = 'Sin persona';
-                            indicator.classList.remove('pir-status-active');
-                            indicator.classList.add('pir-status-inactive');
-                            console.log("[PIR] Estado actualizado: Sin persona");
-                        }
-                    } else {
-                        // Estado desconocido
-                        icon.textContent = '⏳';
-                        text.textContent = 'Verificando...';
-                        indicator.classList.remove('pir-status-active', 'pir-status-inactive');
-                        console.warn("[PIR] Respuesta inválida del servidor:", data);
-                    }
-                })
-                .catch(err => {
-                    // Verificar nuevamente que los elementos existan
-                    const icon = document.getElementById('pirStatusIcon');
-                    const text = document.getElementById('pirStatusText');
-                    const indicator = document.getElementById('pirStatusIndicator');
-                    
-                    if (!icon || !text || !indicator) {
-                        return;
-                    }
-                    
-                    // Solo mostrar error si no es un error de autenticación
-                    if (err.message !== "Unauthorized") {
-                        console.error("[PIR] Error al obtener estado:", err);
-                        // Mostrar estado desconocido en lugar de error para no alarmar
-                        icon.textContent = '⏳';
-                        text.textContent = 'Verificando...';
-                        indicator.classList.remove('pir-status-active', 'pir-status-inactive');
+                    throw new Error(`HTTP ${resp.status}`);
+                }
+                return resp.text().then(text => {
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        console.error("[PIR] Error parseando JSON:", text);
+                        throw e;
                     }
                 });
-        } catch (error) {
-            // Capturar cualquier error inesperado para evitar que rompa la página
-            console.error("[PIR] Error inesperado en updatePirStatus:", error);
-        }
+            })
+            .then(data => {
+                const icon = document.getElementById('pirStatusIcon');
+                const text = document.getElementById('pirStatusText');
+                const indicator = document.getElementById('pirStatusIndicator');
+                
+                if (!icon || !text || !indicator) {
+                    return;
+                }
+                
+                if (data && typeof data.motion === 'boolean') {
+                    if (data.motion) {
+                        // Presencia detectada
+                        icon.textContent = '👤';
+                        text.textContent = 'Persona detectada';
+                        indicator.classList.remove('pir-status-inactive');
+                        indicator.classList.add('pir-status-active');
+                    } else {
+                        // Sin presencia
+                        icon.textContent = '🚫';
+                        text.textContent = 'Sin persona';
+                        indicator.classList.remove('pir-status-active');
+                        indicator.classList.add('pir-status-inactive');
+                    }
+                } else {
+                    // Estado desconocido
+                    icon.textContent = '⏳';
+                    text.textContent = 'Verificando...';
+                    indicator.classList.remove('pir-status-active', 'pir-status-inactive');
+                }
+            })
+            .catch(err => {
+                if (err.message !== "Unauthorized") {
+                    const icon = document.getElementById('pirStatusIcon');
+                    const text = document.getElementById('pirStatusText');
+                    const indicator = document.getElementById('pirStatusIndicator');
+                    
+                    if (icon && text && indicator) {
+                        icon.textContent = '⏳';
+                        text.textContent = 'Verificando...';
+                        indicator.classList.remove('pir-status-active', 'pir-status-inactive');
+                    }
+                }
+            });
     }
 
     // ===== SECCIÓN: CONTROL DE VENTILADOR =====
@@ -1696,6 +1680,24 @@
                 stopTemperatureMode();
             }
         }
+        
+        // Pausar/reanudar actualización del PIR
+        if (window.pirUpdateInterval) {
+            if (isPageVisible) {
+                // Reanudar actualización del PIR
+                if (!window.pirUpdateIntervalActive) {
+                    console.log("[PIR] Reanudando actualización del sensor PIR");
+                    window.pirUpdateIntervalActive = true;
+                    updatePirStatus(); // Actualizar inmediatamente
+                }
+            } else {
+                // Pausar actualización del PIR (no limpiar el intervalo, solo marcar como inactivo)
+                if (window.pirUpdateIntervalActive) {
+                    console.log("[PIR] Pausando actualización del sensor PIR (página no visible)");
+                    window.pirUpdateIntervalActive = false;
+                }
+            }
+        }
     });
 
     // Limpiar recursos al salir de la página
@@ -1714,19 +1716,9 @@
             setInterval(updateSliderTemperature, TEMP_UPDATE_INTERVAL_MS);
             updateSliderTemperature();
             
-            // Actualizar estado del PIR cada segundo (solo si los elementos existen)
-            const pirIcon = document.getElementById('pirStatusIcon');
-            const pirText = document.getElementById('pirStatusText');
-            const pirIndicator = document.getElementById('pirStatusIndicator');
-            
-            if (pirIcon && pirText && pirIndicator) {
-                console.log("[SLIDER] Elementos PIR encontrados, inicializando actualización...");
-                setInterval(updatePirStatus, TEMP_UPDATE_INTERVAL_MS);
-                // Retrasar la primera llamada un poco para asegurar que la página esté completamente cargada
-                setTimeout(updatePirStatus, 500);
-            } else {
-                console.warn("[SLIDER] Elementos PIR no encontrados. Icon:", !!pirIcon, "Text:", !!pirText, "Indicator:", !!pirIndicator);
-            }
+            // Actualizar estado del PIR cada segundo, igual que la temperatura
+            setInterval(updatePirStatus, TEMP_UPDATE_INTERVAL_MS);
+            updatePirStatus();
             
             // Sincronizar hora del navegador con el ESP32 al cargar la página
             syncBrowserTimeToESP32();

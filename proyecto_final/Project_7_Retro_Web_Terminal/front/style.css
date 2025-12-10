@@ -1888,6 +1888,68 @@ body.slider-body {
     }
 }
 
+.pir-status-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px 0;
+}
+
+.pir-status-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.pir-status-icon {
+    font-size: 3em;
+    line-height: 1;
+    transition: transform 0.3s ease;
+}
+
+.pir-status-text {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #33ff33;
+    text-shadow: 0 0 10px #33ff33;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.pir-status-active .pir-status-icon {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 10px #33ff33);
+}
+
+.pir-status-active .pir-status-text {
+    color: #33ff33;
+    text-shadow: 0 0 15px #33ff33;
+}
+
+.pir-status-inactive .pir-status-icon {
+    opacity: 0.6;
+}
+
+.pir-status-inactive .pir-status-text {
+    color: #888;
+    text-shadow: 0 0 5px #888;
+}
+
+@media (max-width: 768px) {
+    .pir-status-display {
+        padding: 12px 0;
+    }
+    
+    .pir-status-icon {
+        font-size: 2.5em;
+    }
+    
+    .pir-status-text {
+        font-size: 1em;
+    }
+}
+
 .logs-display p {
     margin: 0;
 }

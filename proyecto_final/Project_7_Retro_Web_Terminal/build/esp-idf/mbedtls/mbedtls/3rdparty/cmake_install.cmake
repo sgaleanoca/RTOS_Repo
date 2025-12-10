@@ -39,8 +39,8 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/zerendor/Documents/Project_7_Retro_Web_Terminal/build/esp-idf/mbedtls/mbedtls/3rdparty/everest/cmake_install.cmake")
-  include("/home/zerendor/Documents/Project_7_Retro_Web_Terminal/build/esp-idf/mbedtls/mbedtls/3rdparty/p256-m/cmake_install.cmake")
+  include("/home/zerendor/Documents/RTOS_Raiz/proyecto_final/Project_7_Retro_Web_Terminal/build/esp-idf/mbedtls/mbedtls/3rdparty/everest/cmake_install.cmake")
+  include("/home/zerendor/Documents/RTOS_Raiz/proyecto_final/Project_7_Retro_Web_Terminal/build/esp-idf/mbedtls/mbedtls/3rdparty/p256-m/cmake_install.cmake")
 
 endif()
 

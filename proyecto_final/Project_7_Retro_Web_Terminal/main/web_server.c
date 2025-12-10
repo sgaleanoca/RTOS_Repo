@@ -143,6 +143,7 @@
 #include "time_sync.h"
 #include "terminal_commands.h"
 #include "fan_control.h"
+#include "pir_driver.h"
 
 // ESP-IDF
 #include <esp_http_server.h>
@@ -958,6 +959,50 @@ static esp_err_t fan_status_get_handler(httpd_req_t *req) {
 }
 
 /**
+ * Handler para GET /pir/status
+ * Devuelve el estado actual del sensor PIR en formato JSON
+ * Respuesta: {"motion": true} o {"motion": false}
+ * Requiere autenticación
+ */
+static esp_err_t pir_status_get_handler(httpd_req_t *req) {
+    webserver_context_t *ctx = (webserver_context_t *)req->user_ctx;
+    if (!is_authenticated(ctx, req)) {
+        httpd_resp_set_status(req, "401 Unauthorized");
+        httpd_resp_send(req, "Unauthorized", HTTPD_RESP_USE_STRLEN);
+        return ESP_OK;
+    }
+    
+    // Leer el estado del PIR de forma segura
+    // pir_is_motion_active() retorna false si el PIR no está inicializado
+    // Esto es seguro y siempre retorna un valor válido (false si no está inicializado)
+    bool motion_detected = pir_is_motion_active();
+    
+    // Preparar respuesta JSON
+    char response[64];
+    int len = snprintf(response, sizeof(response), "{\"motion\":%s}", motion_detected ? "true" : "false");
+    
+    // Verificar que el buffer sea suficiente y que la operación fue exitosa
+    if (len < 0 || len >= (int)sizeof(response)) {
+        ESP_LOGE(TAG, "Error formateando respuesta PIR (len=%d, size=%zu)", len, sizeof(response));
+        // En caso de error, devolver un JSON válido con motion=false
+        len = snprintf(response, sizeof(response), "{\"motion\":false}");
+        if (len < 0 || len >= (int)sizeof(response)) {
+            // Si aún falla, usar respuesta hardcodeada
+            const char *fallback = "{\"motion\":false}";
+            httpd_resp_set_type(req, "application/json");
+            httpd_resp_send(req, fallback, HTTPD_RESP_USE_STRLEN);
+            return ESP_OK;
+        }
+    }
+    
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-cache, no-store, must-revalidate");
+    httpd_resp_send(req, response, len);
+    
+    return ESP_OK;
+}
+
+/**
  * Decodifica una cadena URL-encoded (convierte %20 y + a espacios)
  * @param str: Cadena a decodificar (se modifica in-place)
  */
@@ -1396,13 +1441,6 @@ static esp_err_t time_set_post_handler(httpd_req_t *req) {
     return ESP_OK;
 }
 
-// Handler catch-all para debugging (debe registrarse al final)
-static esp_err_t catch_all_handler(httpd_req_t *req) {
-    ESP_LOGW(TAG, "URI no manejada: %s (método: %d)", req->uri, req->method);
-    httpd_resp_send_404(req);
-    return ESP_FAIL;
-}
-
 // ===== SECCIÓN: INICIALIZACIÓN DE SPIFFS =====
 /**
  * Verifica que todos los archivos necesarios estén presentes en SPIFFS
@@ -1549,6 +1587,9 @@ static esp_err_t register_http_routes(webserver_context_t *ctx) {
         {"/fan/manual", HTTP_POST, fan_manual_post_handler, "fan_manual"},
         {"/fan/status", HTTP_GET, fan_status_get_handler, "fan_status"},
         {"/fan/diagnostic", HTTP_GET, fan_diagnostic_get_handler, "fan_diagnostic"},
+        
+        // API de sensor PIR
+        {"/pir/status", HTTP_GET, pir_status_get_handler, "pir_status"},
         
         // API de tiempo
         {"/time/set", HTTP_POST, time_set_post_handler, "time_set"},

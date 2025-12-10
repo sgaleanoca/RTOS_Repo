@@ -5,18 +5,18 @@ cmake_minimum_required(VERSION 3.5)
 
 file(MAKE_DIRECTORY
   "/home/zerendor/esp/esp-idf/components/bootloader/subproject"
-  "/home/zerendor/Documents/Project_7_Retro_Web_Terminal/build/bootloader"
-  "/home/zerendor/Documents/Project_7_Retro_Web_Terminal/build/bootloader-prefix"
-  "/home/zerendor/Documents/Project_7_Retro_Web_Terminal/build/bootloader-prefix/tmp"
-  "/home/zerendor/Documents/Project_7_Retro_Web_Terminal/build/bootloader-prefix/src/bootloader-stamp"
-  "/home/zerendor/Documents/Project_7_Retro_Web_Terminal/build/bootloader-prefix/src"
-  "/home/zerendor/Documents/Project_7_Retro_Web_Terminal/build/bootloader-prefix/src/bootloader-stamp"
+  "/home/zerendor/Documents/RTOS_Raiz/proyecto_final/Project_7_Retro_Web_Terminal/build/bootloader"
+  "/home/zerendor/Documents/RTOS_Raiz/proyecto_final/Project_7_Retro_Web_Terminal/build/bootloader-prefix"
+  "/home/zerendor/Documents/RTOS_Raiz/proyecto_final/Project_7_Retro_Web_Terminal/build/bootloader-prefix/tmp"
+  "/home/zerendor/Documents/RTOS_Raiz/proyecto_final/Project_7_Retro_Web_Terminal/build/bootloader-prefix/src/bootloader-stamp"
+  "/home/zerendor/Documents/RTOS_Raiz/proyecto_final/Project_7_Retro_Web_Terminal/build/bootloader-prefix/src"
+  "/home/zerendor/Documents/RTOS_Raiz/proyecto_final/Project_7_Retro_Web_Terminal/build/bootloader-prefix/src/bootloader-stamp"
 )
 
 set(configSubDirs )
 foreach(subDir IN LISTS configSubDirs)
-    file(MAKE_DIRECTORY "/home/zerendor/Documents/Project_7_Retro_Web_Terminal/build/bootloader-prefix/src/bootloader-stamp/${subDir}")
+    file(MAKE_DIRECTORY "/home/zerendor/Documents/RTOS_Raiz/proyecto_final/Project_7_Retro_Web_Terminal/build/bootloader-prefix/src/bootloader-stamp/${subDir}")
 endforeach()
 if(cfgdir)
-  file(MAKE_DIRECTORY "/home/zerendor/Documents/Project_7_Retro_Web_Terminal/build/bootloader-prefix/src/bootloader-stamp${cfgdir}") # cfgdir has leading slash
+  file(MAKE_DIRECTORY "/home/zerendor/Documents/RTOS_Raiz/proyecto_final/Project_7_Retro_Web_Terminal/build/bootloader-prefix/src/bootloader-stamp${cfgdir}") # cfgdir has leading slash
 endif()

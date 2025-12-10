@@ -1,4 +1,4 @@
-# Install script for directory: /home/zerendor/Documents/Project_7_Retro_Web_Terminal/main
+# Install script for directory: /home/zerendor/Documents/RTOS_Raiz/proyecto_final/Project_7_Retro_Web_Terminal/main
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

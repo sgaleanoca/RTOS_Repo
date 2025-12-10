@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "Project_7_Retro_Web_Terminal",
-    "project_version":    "d1716ce5-dirty",
+    "project_version":    "6688a2ac-dirty",
     "project_path":       "/home/zerendor/Documents/RTOS_Raiz/proyecto_final/Project_7_Retro_Web_Terminal",
     "idf_path":           "/home/zerendor/esp/esp-idf",
     "build_dir":          "/home/zerendor/Documents/RTOS_Raiz/proyecto_final/Project_7_Retro_Web_Terminal/build",

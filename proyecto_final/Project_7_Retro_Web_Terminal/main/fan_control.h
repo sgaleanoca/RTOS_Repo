@@ -2,7 +2,7 @@
  * @file fan_control.h
  * @brief Controlador de ventilador mediante PWM para ESP32
  * @author Proyecto Final RTOS
- * @date 2024
+ * @date 2025
  * 
  * @details Header file para el módulo de control del ventilador mediante PWM.
  * Este módulo gestiona el control de velocidad del ventilador en diferentes

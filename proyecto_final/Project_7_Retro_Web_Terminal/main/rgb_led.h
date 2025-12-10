@@ -74,6 +74,22 @@ bool rgb_led_init(void);
  */
 void rgb_set_green_percent(uint8_t percent);
 
+/**
+ * @brief Inicia la tarea de control automático del LED basado en el sensor PIR
+ * 
+ * Crea una tarea de FreeRTOS que monitorea continuamente el sensor PIR y controla
+ * el LED automáticamente:
+ * - LED al 100% cuando se detecta movimiento
+ * - LED apagado cuando no hay movimiento
+ * 
+ * Requisitos:
+ * - rgb_led_init() debe haber sido llamado
+ * - pir_init() debe haber sido llamado
+ * 
+ * La tarea se ejecuta de forma independiente y monitorea el PIR continuamente.
+ */
+void rgb_led_start_pir_control(void);
+
 #ifdef __cplusplus
 }
 #endif

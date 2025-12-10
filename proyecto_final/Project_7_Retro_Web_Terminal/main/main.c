@@ -2,7 +2,7 @@
  * @file main.c
  * @brief Punto de entrada principal de la aplicación ESP32 - Terminal Web Retro
  * @author Proyecto Final RTOS
- * @date 2024
+ * @date 2025
  * 
  * @details Este es el punto de entrada principal de la aplicación ESP32. Se encarga de
  * inicializar todos los componentes del sistema en el orden correcto:
@@ -176,6 +176,11 @@ void app_main(void) {
         // Continuar ejecución aunque falle (el sistema puede funcionar sin PIR)
     } else {
         ESP_LOGI(TAG, "Sensor PIR inicializado correctamente en GPIO %d", PIR_GPIO_PIN);
+        
+        // Iniciar control automático del LED basado en el sensor PIR
+        // El LED se encenderá al 100% cuando detecte movimiento y se apagará cuando no haya movimiento
+        rgb_led_start_pir_control();
+        ESP_LOGI(TAG, "Control automático del LED por PIR iniciado");
     }
     
     // Inicializar control del ventilador (PWM en GPIO26)

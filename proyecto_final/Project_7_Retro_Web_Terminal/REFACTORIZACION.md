@@ -10,35 +10,35 @@ Este documento describe la refactorización profesional realizada en el proyecto
 
 #### 1.1. `rgb_led.c` / `rgb_led.h`
 **Mejoras implementadas:**
-- ✅ Cambio de retorno `void` a `bool` para `rgb_led_init()` con validación de errores
-- ✅ Agregado flag de inicialización `rgb_led_initialized` para prevenir múltiples inicializaciones
-- ✅ Mejorado manejo de errores con `ESP_ERROR_CHECK` y mensajes descriptivos
-- ✅ Documentación completa con explicación del "por qué" de cada decisión
-- ✅ Header guards mejorados (`#ifndef RGB_LED_H`)
-- ✅ Validación de parámetros en `rgb_set_green_percent()`
-- ✅ Soporte para `extern "C"` para compatibilidad C++
+- Cambio de retorno `void` a `bool` para `rgb_led_init()` con validación de errores
+- Agregado flag de inicialización `rgb_led_initialized` para prevenir múltiples inicializaciones
+- Mejorado manejo de errores con `ESP_ERROR_CHECK` y mensajes descriptivos
+- Documentación completa con explicación del "por qué" de cada decisión
+- Header guards mejorados (`#ifndef RGB_LED_H`)
+- Validación de parámetros en `rgb_set_green_percent()`
+- Soporte para `extern "C"` para compatibilidad C++
 
 #### 1.2. `pir_driver.c` / `pir_driver.h`
 **Mejoras implementadas:**
-- ✅ Cambio de retorno `void` a `bool` para `pir_init()` con validación de errores
-- ✅ Agregado flag de inicialización `s_pir_initialized`
-- ✅ Validación de pin GPIO antes de configurar
-- ✅ Mejorado manejo de errores en configuración GPIO e ISR
-- ✅ Documentación completa del ISR y explicación de thread-safety
-- ✅ Header guards mejorados (`#ifndef PIR_DRIVER_H`)
-- ✅ Mensajes de log más descriptivos
-- ✅ Validación en `pir_is_motion_active()` para verificar inicialización
+- Cambio de retorno `void` a `bool` para `pir_init()` con validación de errores
+- Agregado flag de inicialización `s_pir_initialized`
+- Validación de pin GPIO antes de configurar
+- Mejorado manejo de errores en configuración GPIO e ISR
+- Documentación completa del ISR y explicación de thread-safety
+- Header guards mejorados (`#ifndef PIR_DRIVER_H`)
+- Mensajes de log más descriptivos
+- Validación en `pir_is_motion_active()` para verificar inicialización
 
 #### 1.3. `gpio_driver.c` / `gpio_driver.h`
 **Mejoras implementadas:**
-- ✅ Cambio de retorno `void` a `bool` para `gpio_init_leds()` con validación de errores
-- ✅ Agregado flag de inicialización `gpio_leds_initialized`
-- ✅ Validación de errores en configuración de dirección GPIO
-- ✅ Limpieza de recursos (mutex) en caso de error
-- ✅ Validación de inicialización en todas las funciones públicas
-- ✅ Header guards mejorados (`#ifndef GPIO_DRIVER_H`)
-- ✅ Documentación mejorada con explicación de thread-safety
-- ✅ Inicialización de LEDs en estado apagado (nivel bajo)
+- Cambio de retorno `void` a `bool` para `gpio_init_leds()` con validación de errores
+- Agregado flag de inicialización `gpio_leds_initialized`
+- Validación de errores en configuración de dirección GPIO
+- Limpieza de recursos (mutex) en caso de error
+- Validación de inicialización en todas las funciones públicas
+- Header guards mejorados (`#ifndef GPIO_DRIVER_H`)
+- Documentación mejorada con explicación de thread-safety
+- Inicialización de LEDs en estado apagado (nivel bajo)
 
 ### 2. Arquitectura FreeRTOS
 
@@ -64,37 +64,37 @@ El proyecto ya cuenta con una arquitectura orientada a eventos bien estructurada
 4. `data_mutex` - Protege datos del sensor NTC (en ntc_sensor.c)
 
 #### Mejoras Realizadas
-- ✅ Validación de inicialización en todas las funciones que usan recursos compartidos
-- ✅ Documentación mejorada de la arquitectura de tareas y colas
-- ✅ Manejo de errores mejorado en creación de recursos FreeRTOS
+- Validación de inicialización en todas las funciones que usan recursos compartidos
+- Documentación mejorada de la arquitectura de tareas y colas
+- Manejo de errores mejorado en creación de recursos FreeRTOS
 
 ### 3. Limpieza y Optimización de Código
 
 #### Estandarización
-- ✅ Todas las funciones siguen estilo snake_case consistente
-- ✅ Funciones internas marcadas como `static` cuando corresponde
-- ✅ Header guards en todos los archivos `.h`
-- ✅ Documentación consistente con formato Doxygen
+- Todas las funciones siguen estilo snake_case consistente
+- Funciones internas marcadas como `static` cuando corresponde
+- Header guards en todos los archivos `.h`
+- Documentación consistente con formato Doxygen
 
 #### Validación de Errores
-- ✅ `ESP_ERROR_CHECK` o validaciones de retorno en inicializaciones de drivers
-- ✅ Validación de parámetros en funciones públicas
-- ✅ Manejo de errores con mensajes descriptivos
-- ✅ Flags de inicialización para prevenir uso antes de inicializar
+- `ESP_ERROR_CHECK` o validaciones de retorno en inicializaciones de drivers
+- Validación de parámetros en funciones públicas
+- Manejo de errores con mensajes descriptivos
+- Flags de inicialización para prevenir uso antes de inicializar
 
 #### Modularidad
-- ✅ Funciones internas marcadas como `static`
-- ✅ Encapsulación de estado en estructuras estáticas
-- ✅ Separación clara entre interfaz pública e implementación
+- Funciones internas marcadas como `static`
+- Encapsulación de estado en estructuras estáticas
+- Separación clara entre interfaz pública e implementación
 
 ### 4. Documentación
 
 #### Mejoras en Documentación
-- ✅ Comentarios explicando el "por qué" de la lógica, no solo el "qué"
-- ✅ Documentación de arquitectura FreeRTOS (tareas, colas, mutexes)
-- ✅ Explicación de thread-safety en funciones críticas
-- ✅ Documentación de parámetros y valores de retorno
-- ✅ Ejemplos de uso en comentarios cuando es apropiado
+- Comentarios explicando el "por qué" de la lógica, no solo el "qué"
+- Documentación de arquitectura FreeRTOS (tareas, colas, mutexes)
+- Explicación de thread-safety en funciones críticas
+- Documentación de parámetros y valores de retorno
+- Ejemplos de uso en comentarios cuando es apropiado
 
 ### 5. Configuración de Frontend
 
@@ -111,10 +111,10 @@ Los archivos frontend (HTML/CSS/JS) están correctamente configurados:
 - `script.js`
 
 **Sistema de Servicio:**
-- ✅ Archivos servidos desde SPIFFS mediante `send_file_from_spiffs()`
-- ✅ Partición SPIFFS configurada en `partitions.csv` (1MB)
-- ✅ Verificación de archivos en `verify_spiffs_files()`
-- ✅ Rutas HTTP configuradas para servir archivos estáticos
+- Archivos servidos desde SPIFFS mediante `send_file_from_spiffs()`
+- Partición SPIFFS configurada en `partitions.csv` (1MB)
+- Verificación de archivos en `verify_spiffs_files()`
+- Rutas HTTP configuradas para servir archivos estáticos
 
 **Rutas HTTP:**
 - `GET /` → Redirige a login o dashboard
@@ -140,9 +140,9 @@ Los archivos frontend (HTML/CSS/JS) están correctamente configurados:
 ## Próximos Pasos Recomendados
 
 ### Corto Plazo
-1. ✅ Completar refactorización de drivers restantes (ntc_sensor, fan_control)
-2. ✅ Mejorar documentación de módulos de conectividad (wifi_app, web_server)
-3. ✅ Verificar que todas las funciones tengan validación de errores
+1. Completar refactorización de drivers restantes (ntc_sensor, fan_control)
+2. Mejorar documentación de módulos de conectividad (wifi_app, web_server)
+3. Verificar que todas las funciones tengan validación de errores
 
 ### Mediano Plazo
 1. Considerar crear módulo centralizado de gestión de tareas
@@ -174,10 +174,10 @@ Los archivos frontend (HTML/CSS/JS) están correctamente configurados:
 ## Conclusión
 
 La refactorización ha mejorado significativamente la calidad del código:
-- ✅ Código más robusto con validaciones y manejo de errores
-- ✅ Mejor documentación que explica decisiones de diseño
-- ✅ Arquitectura FreeRTOS bien estructurada y documentada
-- ✅ Código más mantenible y profesional
+- Código más robusto con validaciones y manejo de errores
+- Mejor documentación que explica decisiones de diseño
+- Arquitectura FreeRTOS bien estructurada y documentada
+- Código más mantenible y profesional
 
 El proyecto ahora sigue las mejores prácticas de ingeniería de firmware para ESP32 y FreeRTOS.
 
